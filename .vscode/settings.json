@@ -1,0 +1,19 @@
+{
+    "sqltools.connections": [
+        {
+            "mysqlOptions": {
+                "authProtocol": "default",
+                "enableSsl": "Disabled"
+            },
+            "ssh": "Disabled",
+            "previewLimit": 50,
+            "server": "124.221.15.13",
+            "port": 3306,
+            "driver": "MySQL",
+            "name": "cookercome",
+            "database": "cookercome",
+            "username": "cookercome",
+            "password": "998877"
+        }
+    ]
+}
