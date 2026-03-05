@@ -26,7 +26,7 @@ CREATE TABLE `t_role` (
   `role_name` varchar(20) NOT NULL COMMENT '角色标识：customer/chef/admin',
   `role_desc` varchar(100) DEFAULT '' COMMENT '角色描述',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `uk_role_name` (`role_name`)
+  UNIQUE KEY `uk_role_name` (`role_name`) 
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='角色字典表（统一管理角色含义）';
 
 -- 初始化角色数据
