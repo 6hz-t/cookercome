@@ -1,8 +1,8 @@
 // src/router/index.js
 import { createRouter, createWebHistory } from 'vue-router'
-// 导入登录页面和仪表盘页面
+// 导入登录页面和主页面
 import Login from '@/views/Login.vue'
-import Dashboard from '@/views/Dashboard.vue'
+import CookerHome from '@/views/cookerviews/CookerHome.vue'
 
 // 路由规则
 const routes = [
@@ -16,9 +16,9 @@ const routes = [
     component: Login
   },
   {
-    path: '/dashboard', // 仪表盘页路由
+    path: '/dashboard', // 主页路由
     name: 'Dashboard',
-    component: Dashboard
+    component: CookerHome
   }
 ]
 
