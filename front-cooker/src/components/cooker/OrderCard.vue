@@ -86,8 +86,8 @@ export default {
 </script>
 <style scoped>
 .order-card {
-  width: 1000px;
-  padding: 15px;
+  width: 100%;
+  
   /* 新增：给卡片加内边距，避免内容贴边 */
 }
 

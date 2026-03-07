@@ -2,7 +2,9 @@ package com.hs.backend.controller;
 
 import com.hs.backend.common.Result;
 import com.hs.backend.dto.request.LoginRequest;
+import com.hs.backend.dto.request.RefreshTokenRequest;
 import com.hs.backend.dto.request.RegisterRequest;
+import com.hs.backend.dto.response.AuthResponse;
 import com.hs.backend.entity.User;
 import com.hs.backend.service.UserService;
 import jakarta.validation.Valid;
@@ -27,21 +29,29 @@ public class AuthController {
     @PostMapping("/register")
     public Result<User> register(@Valid @RequestBody RegisterRequest request) {
         User user = userService.register(
-                request.getUsername(),
+                request.getPhone(),  // 使用手机号作为用户名
                 request.getPassword(),
-                request.getPhone(),
-                request.getUserType()
+                request.getRole()  // 传递角色参数
         );
         return Result.success("注册成功", user);
     }
 
     /**
-     * 用户登录
+     * 用户登录（双 Token）
      */
     @PostMapping("/login")
-    public Result<?> login(@Valid @RequestBody LoginRequest request) {
-        String token = userService.login(request.getUsername(), request.getPassword());
-        return Result.success("登录成功", token);
+    public Result<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
+        AuthResponse response = userService.login(request.getPhone(), request.getPassword());
+        return Result.success("登录成功", response);
+    }
+    
+    /**
+     * 刷新 Token
+     */
+    @PostMapping("/refresh")
+    public Result<AuthResponse> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
+        AuthResponse response = userService.refreshToken(request.getRefreshToken());
+        return Result.success("刷新成功", response);
     }
 
     /**

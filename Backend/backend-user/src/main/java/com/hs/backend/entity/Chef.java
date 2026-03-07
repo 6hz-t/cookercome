@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
-@TableName("chef")
+@TableName("t_chef")
 public class Chef implements Serializable {
 
     private static final long serialVersionUID = 1L;

@@ -11,10 +11,11 @@ import lombok.Data;
 public class RegisterRequest {
 
     /**
-     * 用户名
+     * 手机号
      */
-    @NotBlank(message = "用户名不能为空")
-    private String username;
+    @NotBlank(message = "手机号不能为空")
+    @Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确")
+    private String phone;
 
     /**
      * 密码
@@ -23,13 +24,7 @@ public class RegisterRequest {
     private String password;
 
     /**
-     * 手机号
+     * 角色：0-客户，1-厨师，2-管理员
      */
-    @Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确")
-    private String phone;
-
-    /**
-     * 用户类型：1-普通用户，2-厨师
-     */
-    private Integer userType = 1;
+    private Integer role = 0;  // 默认为客户
 }

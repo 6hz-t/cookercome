@@ -6,7 +6,6 @@
                 <el-input v-model="chef.name" placeholder="请输入姓名"></el-input>
             </el-form-item>
 
-
             <el-form-item label="头像">
                 <el-upload class="avatar-uploader" action="https://run.mocky.io/v3/9d059bf9-4660-45f2-925d-ce80ad6c4d15"
                     :show-file-list="false" :on-success="handleAvatarSuccess" :before-upload="beforeAvatarUpload">
@@ -23,8 +22,8 @@
                 <el-input v-model="chef.sfzid" placeholder="请输入身份证号"></el-input>
             </el-form-item>
             <el-form-item label="常驻地址">
-                <el-input 
-                    v-model="chef.address.fullAddress" 
+                <el-input
+                    v-model="chef.address.fullAddress"
                     placeholder="请输入地址或点击右侧图标选择"
                     clearable
                 >
@@ -39,7 +38,6 @@
                 <el-input v-model="chef.introduction" type="textarea" placeholder="请输入简介"></el-input>
             </el-form-item>
             <el-form-item label="菜系">
-
                 <el-checkbox-group v-model="chef.dishkinds">
                     <el-checkbox label="LuCai">鲁菜</el-checkbox>
                     <el-checkbox label="ChuanCai">川菜</el-checkbox>
@@ -49,14 +47,11 @@
                     <el-checkbox label="ZheCai">浙菜</el-checkbox>
                     <el-checkbox label="XiangCai">湘菜</el-checkbox>
                     <el-checkbox label="HuiCai">徽菜</el-checkbox>
-
                 </el-checkbox-group>
             </el-form-item>
             <el-form-item label="评分">
-                <el-rate v-model="star" disabled  text-color="#ff9900" />
+                <el-rate v-model="star" disabled text-color="#ff9900" />
             </el-form-item>
-
-
 
             <el-form-item label="执业资质">
                 <el-upload class="upload-demo" drag
@@ -67,13 +62,12 @@
                     </div>
                     <template #tip>
                         <div class="el-upload__tip">
-                            jpg/png文件，且不超过500
+                            jpg/png 文件，且不超过 500
                         </div>
                     </template>
                 </el-upload>
             </el-form-item>
             <el-form-item>
-
                 <el-button type="primary" @click="submitForm('ruleForm')">保存</el-button>
                 <el-button @click="resetForm('ruleForm')">重置</el-button>
             </el-form-item>
@@ -87,9 +81,9 @@
                 <el-button type="primary" @click="confirmLocation">确定</el-button>
             </template>
         </el-dialog>
-
     </div>
 </template>
+
 <script>
 import { Position, UploadFilled, Plus } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
@@ -102,29 +96,28 @@ export default {
     },
     data() {
         return {
-            Position, // 让模板可以访问 Position 图标
             imageUrl: '',
             star: 3.7,
             chef: {
-                name: '',// 姓名
-                phone: '',// 电话
-                sfzid: '',// 身份证号
+                name: '',
+                phone: '',
+                sfzid: '',
                 address: {
-                    fullAddress: '',// 详细地址
-                    province: '',// 省份
-                    city: '',// 城市
-                    district: '',// 区县
-                    street: '',// 街道
-                    streetNumber: '',// 门牌号
-                    longitude: '',// 经度
-                    latitude: ''// 纬度
-                },// 地址
-                introduction: '',// 简介
-                dishkinds: [],// 菜系
-                avatar: '',// 头像
-                status: '',// 状态
-                certificate: '',// 证书
-                star: 0// 评分
+                    fullAddress: '',
+                    province: '',
+                    city: '',
+                    district: '',
+                    street: '',
+                    streetNumber: '',
+                    longitude: '',
+                    latitude: ''
+                },
+                introduction: '',
+                dishkinds: [],
+                avatar: '',
+                status: '',
+                certificate: '',
+                star: 0
             },
             rules: {
                 name: [
@@ -135,16 +128,11 @@ export default {
                     { required: true, message: '请输入电话号码', trigger: 'blur' },
                     { pattern: /^1[3-9]\d{9}$/, message: '请输入有效的电话号码', trigger: 'blur' }
                 ],
-                address: [
-                    { required: true, message: '请输入地址', trigger: 'blur' },
-                    { min: 5, max: 50, message: '长度在 5 到 50 个字符', trigger: 'blur' }
-                ],
                 sfzid: [
                     { required: true, message: '请输入身份证号', trigger: 'blur' },
                     { pattern: /^\d{15}$|^\d{18}$|^\d{17}(\d|X|x)$/, message: '请输入有效的身份证号', trigger: 'blur' }
                 ]
             },
-            // 地图相关
             mapDialogVisible: false,
             map: null,
             marker: null,
@@ -152,103 +140,128 @@ export default {
         };
     },
     methods: {
-        // 打开地图选择器
         openMapPicker() {
             this.mapDialogVisible = true;
-            // 对话框打开后延迟初始化地图，确保容器已渲染且有正确尺寸
             this.$nextTick(() => {
                 setTimeout(() => {
                     this.initMapPicker();
                 }, 100);
             });
         },
-        // 初始化地图选择器
         initMapPicker() {
             if (!this.$refs.mapContainer) {
                 console.error('地图容器未找到');
                 return;
             }
-            
-            if (!window.BMapGL && !window.BMap) {
-                ElMessage.error('百度地图未加载');
+
+            if (!window.BMapGL) {
+                ElMessage.error('百度地图 BMapGL 未加载，请检查 index.html 配置');
                 return;
             }
 
-            // 优先使用 BMapGL（WebGL 版）
-            const isGL = !!window.BMapGL;
-            const BMap = isGL ? window.BMapGL : window.BMap;
-            console.log('使用地图版本:', isGL ? 'BMapGL' : 'BMap');
+            const BMap = window.BMapGL;
+            console.log('使用地图版本：BMapGL');
 
             // 创建地图实例
             this.map = new BMap.Map(this.$refs.mapContainer);
-            
-            // 默认中心点（北京）
-            const point = new BMap.Point(116.404, 39.915);
 
-            // 初始化地图
-            this.map.centerAndZoom(point, 15);
+            // 默认中心点（武汉）
+            const point = new BMap.Point(114.438217, 30.464676);
+            this.map.centerAndZoom(point, 10);
             this.map.enableScrollWheelZoom(true);
             this.map.addControl(new BMap.NavigationControl());
             this.map.addControl(new BMap.ScaleControl());
 
-            // 添加点击事件
+            // 点击地图事件
             this.map.addEventListener('click', (e) => {
-                const point = e.point; // 普通版 BMap 直接返回经纬度
-                const lng = point.lng;
-                const lat = point.lat;
+                console.log('点击事件完整对象 e:', e);
+                console.log('e 的所有属性:', Object.keys(e));
                 
-                console.log('点击位置坐标:', lng, lat);
+                // BMapGL 点击事件返回的坐标在 e.point，但是墨卡托坐标
+                // 需要使用 map.pixelToPoint 或直接从 e 中获取
+                let lngLatPoint = null;
+                
+                // 尝试多种方式获取经纬度
+                if (e.lngLat) {
+                    lngLatPoint = e.lngLat;
+                    console.log('使用 e.lngLat');
+                } else if (e.latLng) {
+                    lngLatPoint = e.latLng;
+                    console.log('使用 e.latLng');
+                } else if (e.point) {
+                    console.log('e.point:', e.point);
+                    console.log('e.point.lng:', e.point?.lng, 'e.point.lat:', e.point?.lat);
+                    // 如果 e.point 直接有 lng/lat 属性
+                    if (e.point.lng && e.point.lat) {
+                        lngLatPoint = e.point;
+                        console.log('使用 e.point (已有 lng/lat)');
+                    }
+                }
+                
+                if (!lngLatPoint) {
+                    console.error('无法获取经纬度坐标');
+                    return;
+                }
+                
+                const lng = lngLatPoint.lng;
+                const lat = lngLatPoint.lat;
 
-                this.selectedPoint = point;
+                console.log('点击位置坐标 (经纬度):', lng, lat);
+                this.selectedPoint = lngLatPoint;
+
+
+                console.log('marker', this.marker);
 
                 // 清除旧标记
                 if (this.marker) {
                     this.map.removeOverlay(this.marker);
                 }
 
-                // 添加新标记（使用自定义图标）
-                const markerIcon = new BMap.Icon(
-                    'https://api.map.baidu.com/library/SearchInfoWindow/1.5/src/images/marker_red.png',
-                    new BMap.Size(22, 40),
-                    {
-                        offset: new BMap.Size(11, 40),
-                        imageAnchor: new BMap.Size(11, 40)
-                    }
-                );
-                this.marker = new BMap.Marker(point, { icon: markerIcon });
+                // 添加新标记
+                this.marker = new BMap.Marker(lngLatPoint);
                 this.map.addOverlay(this.marker);
 
-                // 使用 Geocoder 获取地址
+                // 逆地理编码获取地址
                 const geoc = new BMap.Geocoder();
-                geoc.getLocation(point, (rs) => {
-                    console.log('Geocoder 返回结果:', rs);
-                    
-                    if (rs && rs.address) {
-                        this.chef.address = {
-                            fullAddress: rs.address,
-                            province: rs.province || '',
-                            city: rs.city || '',
-                            district: rs.district || '',
-                            street: rs.street || '',
-                            streetNumber: rs.streetNumber || '',
-                            longitude: lng,
-                            latitude: lat
-                        };
-                        console.log('选中地址:', this.chef.address);
-                        ElMessage.success('已选择：' + rs.address);
-                    } else {
-                        console.log('Geocoder 未返回地址');
-                        this.chef.address = {
-                            fullAddress: `经度:${lng.toFixed(6)}, 纬度:${lat.toFixed(6)}`,
-                            longitude: lng,
-                            latitude: lat
-                        };
-                        ElMessage.warning('未获取到详细地址，已保存坐标');
-                    }
+                geoc.getLocation(lngLatPoint, (rs) => {
+                    console.log('Geocoder 完整返回:', rs);
+                    console.log('rs.address:', rs?.address);
+                    console.log('rs.formatted_address:', rs?.formatted_address);
+                    console.log('rs.addressComponent:', rs?.addressComponent);
+                    console.log('rs.content:', rs?.content);
+                    this.handleGeocodeResult(rs, lng, lat);
                 });
             });
         },
-        // 确认选择的位置
+        handleGeocodeResult(rs, lng, lat) {
+            console.log('handleGeocodeResult 收到:', rs);
+            
+            // BMapGL 返回的是 addressComponent 而不是 addressComponents
+            const comp = rs.addressComponent || rs.addressComponents || {};
+            const address = rs.address || rs.formatted_address || '';
+
+            if (address) {
+                this.chef.address = {
+                    fullAddress: address,
+                    province: comp.province || '',
+                    city: comp.city || '',
+                    district: comp.district || '',
+                    street: comp.street || '',
+                    streetNumber: comp.street_number || '',
+                    longitude: lng,
+                    latitude: lat
+                };
+                console.log('选中地址:', this.chef.address);
+                ElMessage.success('已选择：' + address);
+            } else {
+                this.chef.address = {
+                    fullAddress: `经度:${lng.toFixed(6)}, 纬度:${lat.toFixed(6)}`,
+                    longitude: lng,
+                    latitude: lat
+                };
+                ElMessage.warning('未获取到详细地址，已保存坐标');
+            }
+        },
         confirmLocation() {
             if (!this.selectedPoint) {
                 ElMessage.warning('请选择一个位置');
@@ -288,6 +301,7 @@ export default {
     }
 }
 </script>
+
 <style scoped>
 .container {
     width: 1000px;
@@ -321,7 +335,7 @@ export default {
 }
 
 h3 {
-    margin: 20;
+    margin: 20px;
     text-align: center;
     justify-content: center;
     display: flex;

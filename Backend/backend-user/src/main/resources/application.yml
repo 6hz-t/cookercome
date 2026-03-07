@@ -51,7 +51,8 @@ mybatis-plus:
 # JWT 配置
 jwt:
   secret: cookerc0me2026secretkey!@#$%^
-  expiration: 86400000
+  expiration: 7200000  # Access Token: 2 小时 (7200000ms)
+  refresh-expiration: 604800000  # Refresh Token: 7 天 (604800000ms)
 
 # 日志配置
 logging:

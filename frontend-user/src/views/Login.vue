@@ -1,5 +1,12 @@
 <template>
   <div class="login-container">
+    <!-- 背景层 -->
+    <div class="background-layer">
+      <div class="background-gradient-left"></div>
+      <div class="background-image"></div>
+      <div class="background-gradient-right"></div>
+    </div>
+    
     <div class="login-card scroll-animate" data-direction="bottom">
       <!-- 左侧装饰 -->
       <div class="login-left">
@@ -35,14 +42,15 @@
         </div>
         
         <el-form :model="form" :rules="rules" ref="formRef" label-width="0px">
-          <el-form-item prop="username">
+          <el-form-item prop="phone">
             <div class="input-wrapper">
-              <el-icon class="input-icon"><User /></el-icon>
+              <el-icon class="input-icon"><Cellphone /></el-icon>
               <el-input 
-                v-model="form.username" 
-                placeholder="请输入用户名"
+                v-model="form.phone" 
+                placeholder="请输入手机号"
                 size="large"
                 clearable
+                maxlength="11"
               />
             </div>
           </el-form-item>
@@ -120,13 +128,14 @@ const loading = ref(false)
 const rememberMe = ref(false)
 
 const form = reactive({
-  username: '',
+  phone: '',
   password: ''
 })
 
 const rules = {
-  username: [
-    { required: true, message: '请输入用户名', trigger: 'blur' }
+  phone: [
+    { required: true, message: '请输入手机号', trigger: 'blur' },
+    { pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确', trigger: 'blur' }
   ],
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
@@ -141,7 +150,7 @@ const handleLogin = async () => {
     if (valid) {
       loading.value = true
       try {
-        await userStore.loginAction(form.username, form.password)
+        await userStore.loginAction(form.phone, form.password)
         ElMessage.success('登录成功')
         router.push('/')
       } catch (error) {
@@ -169,6 +178,54 @@ const handleLogin = async () => {
   justify-content: center;
   position: relative;
   overflow: hidden;
+  padding-top: 100px;
+}
+
+/* 背景层 */
+.background-layer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+}
+
+.background-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.background-image::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('@/assets/images/lorrbackground.png') center/cover no-repeat;
+  opacity: 0.7;
+}
+
+.background-gradient-left {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 65%;
+  height: 100%;
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.9) 0%, rgba(255, 255, 255, 0) 100%);
+}
+
+.background-gradient-right {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 65%;
+  height: 100%;
+  background: linear-gradient(270deg, rgba(0, 0, 0, 0.9) 0%, rgba(255, 255, 255, 0) 100%);
 }
 
 .login-card {
@@ -177,16 +234,16 @@ const handleLogin = async () => {
   border-radius: 24px;
   overflow: hidden;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  min-height: 650px;
-  max-width: 900px;
+  min-height: 550px;
+  max-width: 700px;
   width: 100%;
 }
 
 /* 左侧品牌区域 */
 .login-left {
   flex: 1;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 50px 40px;
+  background: linear-gradient(135deg, #374ca5 0%, #1b1b1b 100%);
+  padding: 0 0 0 60px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -195,16 +252,6 @@ const handleLogin = async () => {
   overflow: hidden;
 }
 
-.login-left::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  right: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-  animation: rotate 30s linear infinite;
-}
 
 @keyframes rotate {
   from { transform: rotate(0deg); }
@@ -217,74 +264,74 @@ const handleLogin = async () => {
 }
 
 .logo-icon {
-  width: 80px;
-  height: 80px;
+  width: 60px;
+  height: 60px;
   background: rgba(255, 255, 255, 0.2);
-  border-radius: 20px;
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
   backdrop-filter: blur(10px);
 }
 
 .logo-icon .el-icon {
-  font-size: 48px;
+  font-size: 36px;
 }
 
 .brand-title {
-  font-size: 36px;
+  font-size: 28px;
   font-weight: bold;
-  margin: 0 0 10px 0;
+  margin: 0 0 8px 0;
   letter-spacing: 2px;
 }
 
 .brand-subtitle {
-  font-size: 14px;
+  font-size: 13px;
   opacity: 0.9;
-  margin: 0 0 40px 0;
+  margin: 0 0 30px 0;
   line-height: 1.6;
 }
 
 .feature-list {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 15px;
 }
 
 .feature-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  font-size: 16px;
+  gap: 10px;
+  font-size: 14px;
   opacity: 0.95;
 }
 
 .feature-item .el-icon {
-  font-size: 24px;
+  font-size: 20px;
   color: #ffd700;
 }
 
 /* 右侧表单区域 */
 .login-right {
   flex: 1.3;
-  padding: 50px 40px;
+  padding: 40px 30px;
   background: white;
 }
 
 .form-header {
-  margin-bottom: 40px;
+  margin-bottom: 30px;
 }
 
 .title {
-  font-size: 32px;
+  font-size: 26px;
   font-weight: bold;
   color: #333;
-  margin: 0 0 10px 0;
+  margin: 0 0 8px 0;
 }
 
 .subtitle {
-  font-size: 14px;
+  font-size: 13px;
   color: #999;
   margin: 0;
 }
@@ -349,7 +396,7 @@ const handleLogin = async () => {
   display: flex;
   align-items: center;
   text-align: center;
-  margin: 30px 0;
+  margin: 10px 0;
   color: #999;
   font-size: 14px;
 }
@@ -373,8 +420,8 @@ const handleLogin = async () => {
 }
 
 .social-btn {
-  width: 50px;
-  height: 50px;
+  width: 45px;
+  height: 45px;
   border: 2px solid #e4e7ed;
   background: white;
   transition: all 0.3s ease;
