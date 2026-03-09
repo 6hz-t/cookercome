@@ -67,7 +67,7 @@ export default {
   left: 0;
   width: 100%;
   z-index: 1000;
-  background-color: #fff;
+  background-color: #FFF;
   text-align: center;
 }
 

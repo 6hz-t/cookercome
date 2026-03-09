@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
-@TableName("user")
+@TableName("t_user")
 public class User implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -24,9 +24,9 @@ public class User implements Serializable {
     private Long id;
 
     /**
-     * 用户名
+     * 手机号（登录账号）
      */
-    private String username;
+    private String phone;
 
     /**
      * 密码（加密）
@@ -34,44 +34,9 @@ public class User implements Serializable {
     private String password;
 
     /**
-     * 手机号
+     * 角色：0-客户，1-厨师，2-管理员
      */
-    private String phone;
-
-    /**
-     * 邮箱
-     */
-    private String email;
-
-    /**
-     * 真实姓名
-     */
-    private String realName;
-
-    /**
-     * 身份证号
-     */
-    private String idCard;
-
-    /**
-     * 用户类型：1-普通用户，2-厨师
-     */
-    private Integer userType;
-
-    /**
-     * 头像 URL
-     */
-    private String avatar;
-
-    /**
-     * 性别：0-女，1-男
-     */
-    private Integer gender;
-
-    /**
-     * 状态：0-禁用，1-正常
-     */
-    private Integer status;
+    private Integer role;
 
     /**
      * 创建时间
@@ -84,10 +49,4 @@ public class User implements Serializable {
      */
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updateTime;
-
-    /**
-     * 逻辑删除标志
-     */
-    @TableLogic
-    private Integer deleted;
 }

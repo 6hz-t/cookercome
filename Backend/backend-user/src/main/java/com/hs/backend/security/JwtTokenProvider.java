@@ -18,8 +18,11 @@ public class JwtTokenProvider {
     @Value("${jwt.secret:cookerc0me2026secretkey!@#$}")
     private String jwtSecret;
 
-    @Value("${jwt.expiration:86400000}")
-    private long jwtExpiration;
+    @Value("${jwt.expiration:7200000}")
+    private long jwtExpiration; // Access Token: 2 小时
+    
+    @Value("${jwt.refresh-expiration:604800000}")
+    private long jwtRefreshExpiration; // Refresh Token: 7 天
 
     /**
      * 获取签名密钥
@@ -30,11 +33,26 @@ public class JwtTokenProvider {
     }
 
     /**
-     * 生成 Token
+     * 生成 Access Token
      */
-    public String generateToken(Long userId) {
+    public String generateAccessToken(Long userId) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtExpiration);
+
+        return Jwts.builder()
+                .subject(String.valueOf(userId))
+                .issuedAt(now)
+                .expiration(expiryDate)
+                .signWith(getSigningKey())
+                .compact();
+    }
+    
+    /**
+     * 生成 Refresh Token
+     */
+    public String generateRefreshToken(Long userId) {
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + jwtRefreshExpiration);
 
         return Jwts.builder()
                 .subject(String.valueOf(userId))
@@ -92,5 +110,12 @@ public class JwtTokenProvider {
                 .getPayload();
 
         return claims.getExpiration();
+    }
+    
+    /**
+     * 获取 Access Token 有效期（毫秒）
+     */
+    public long getAccessTokenExpiration() {
+        return jwtExpiration;
     }
 }

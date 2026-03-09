@@ -1,5 +1,12 @@
 <template>
   <div class="register-container">
+    <!-- 背景层 -->
+    <div class="background-layer">
+      <div class="background-gradient-left"></div>
+      <div class="background-image"></div>
+      <div class="background-gradient-right"></div>
+    </div>
+    
     <div class="register-card scroll-animate" data-direction="bottom">
       <!-- 左侧装饰 -->
       <div class="register-left">
@@ -39,18 +46,6 @@
         </div>
         
         <el-form :model="form" :rules="rules" ref="formRef" label-width="0px">
-          <el-form-item prop="username">
-            <div class="input-wrapper">
-              <el-icon class="input-icon"><User /></el-icon>
-              <el-input 
-                v-model="form.username" 
-                placeholder="请输入用户名（3-20 位）"
-                size="large"
-                clearable
-              />
-            </div>
-          </el-form-item>
-          
           <el-form-item prop="phone">
             <div class="input-wrapper">
               <el-icon class="input-icon"><Cellphone /></el-icon>
@@ -139,7 +134,6 @@ const loading = ref(false)
 const agreeTerms = ref(false)
 
 const form = reactive({
-  username: '',
   phone: '',
   password: '',
   confirmPassword: ''
@@ -154,10 +148,6 @@ const validateConfirmPassword = (rule, value, callback) => {
 }
 
 const rules = {
-  username: [
-    { required: true, message: '请输入用户名', trigger: 'blur' },
-    { min: 3, max: 20, message: '用户名长度 3-20 位', trigger: 'blur' }
-  ],
   phone: [
     { required: true, message: '请输入手机号', trigger: 'blur' },
     { pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确', trigger: 'blur' }
@@ -198,10 +188,8 @@ const handleRegister = async () => {
       loading.value = true
       try {
         await userStore.registerAction(
-          form.username,
-          form.password,
           form.phone,
-          1 // 默认普通用户
+          form.password
         )
         ElMessage.success('注册成功', {
           duration: 1500
@@ -234,6 +222,54 @@ const handleRegister = async () => {
   justify-content: center;
   position: relative;
   overflow: hidden;
+  padding-top: 100px;
+}
+
+/* 背景层 */
+.background-layer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+}
+
+.background-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.background-image::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('@/assets/images/lorrbackground.png') center/cover no-repeat;
+  opacity: 0.7;
+}
+
+.background-gradient-left {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 65%;
+  height: 100%;
+  background: linear-gradient(90deg, rgba(0, 0, 0, 1) 0%, rgba(255, 255, 255, 0) 100%);
+}
+
+.background-gradient-right {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 65%;
+  height: 100%;
+  background: linear-gradient(270deg, rgba(0, 0, 0, 1) 0%, rgba(255, 255, 255, 0) 100%);
 }
 
 .register-card {
@@ -242,16 +278,16 @@ const handleRegister = async () => {
   border-radius: 24px;
   overflow: hidden;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  min-height: 650px;
-  max-width: 900px;
+  min-height: 550px;
+  max-width: 700px;
   width: 100%;
 }
 
 /* 左侧品牌区域 */
 .register-left {
   flex: 1;
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-  padding: 50px 40px;
+  background: linear-gradient(135deg, #3193af 0%, #151515 100%);
+  padding: 0 0 0 60px;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -260,54 +296,38 @@ const handleRegister = async () => {
   overflow: hidden;
 }
 
-.register-left::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  right: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-  animation: rotate 30s linear infinite;
-}
-
-@keyframes rotate {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
 .brand-section {
   position: relative;
   z-index: 1;
 }
 
 .logo-icon {
-  width: 80px;
-  height: 80px;
+  width: 60px;
+  height: 60px;
   background: rgba(255, 255, 255, 0.2);
-  border-radius: 20px;
+  border-radius: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
   backdrop-filter: blur(10px);
 }
 
 .logo-icon .el-icon {
-  font-size: 48px;
+  font-size: 36px;
 }
 
 .brand-title {
-  font-size: 36px;
+  font-size: 28px;
   font-weight: bold;
-  margin: 0 0 10px 0;
+  margin: 0 0 8px 0;
   letter-spacing: 2px;
 }
 
 .brand-subtitle {
-  font-size: 14px;
+  font-size: 13px;
   opacity: 0.9;
-  margin: 0 0 40px 0;
+  margin: 0 0 30px 0;
   line-height: 1.6;
 }
 
@@ -320,20 +340,20 @@ const handleRegister = async () => {
 .benefit-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  font-size: 16px;
+  gap: 10px;
+  font-size: 14px;
   opacity: 0.95;
 }
 
 .benefit-item .el-icon {
-  font-size: 22px;
+  font-size: 20px;
   color: #4ade80;
 }
 
 /* 右侧表单区域 */
 .register-right {
   flex: 1.3;
-  padding: 50px 40px;
+  padding: 40px 30px;
   background: white;
 }
 
@@ -354,18 +374,18 @@ const handleRegister = async () => {
 }
 
 .form-header {
-  margin-bottom: 40px;
+  margin-bottom: 30px;
 }
 
 .title {
-  font-size: 32px;
+  font-size: 26px;
   font-weight: bold;
   color: #333;
-  margin: 0 0 10px 0;
+  margin: 0 0 8px 0;
 }
 
 .subtitle {
-  font-size: 14px;
+  font-size: 13px;
   color: #999;
   margin: 0;
 }
