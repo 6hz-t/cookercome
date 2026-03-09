@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const request = axios.create({
-  baseURL: 'http://localhost:8080/api', // 后端 API 基础路径
+  baseURL: 'http://localhost:8081/api', // 后端 API 基础路径
   timeout: 10000
 })
 
@@ -10,6 +10,7 @@ request.interceptors.request.use(
   config => {
     const token = localStorage.getItem('token')
     if (token) {
+      console.log('token:', token)
       config.headers['Authorization'] = `Bearer ${token}`
     }
     return config

@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.hs</groupId>
-	<artifactId>Backend</artifactId>
+	<artifactId>Backend-parent</artifactId>
 	<version>1.0.0</version>
 	<packaging>pom</packaging>
 	<name>Backend</name>
@@ -19,7 +19,7 @@
 	<modules>
 		<module>backend-user</module>
 		<!-- 后续添加其他模块 -->
-		<!-- <module>backend-cooker</module> -->
+		 <module>backend-cooker</module>
 		<!-- <module>backend-admin</module> -->
 	</modules>
 	<url/>
