@@ -1,123 +1,147 @@
 <template>
   <div class="login-container">
-    <el-card class="login-card">
-      <h2 class="login-title">管理员登录</h2>
-      <el-form 
-        :model="loginForm" 
-        :rules="loginRules" 
-        ref="loginFormRef" 
-        label-width="80px"
-        class="login-form"
-      >
-        <el-form-item label="手机号" prop="phone">
-          <el-input 
-            v-model="loginForm.phone" 
-            placeholder="请输入管理员手机号"
-            maxlength="11"
-          ></el-input>
-        </el-form-item>
-        <el-form-item label="密码" prop="password">
-          <el-input 
-            v-model="loginForm.password" 
+    <div class="login-card">
+      <h2>管理员登录</h2>
+      <form @submit.prevent="handleLogin">
+        <div class="input-group">
+          <label for="username">用户名</label>
+          <input 
+            id="username" 
+            type="text" 
+            v-model="username" 
+            placeholder="请输入用户名"
+            required
+          />
+        </div>
+        
+        <div class="input-group">
+          <label for="password">密码</label>
+          <input 
+            id="password" 
             type="password" 
+            v-model="password" 
             placeholder="请输入密码"
-            show-password
-          ></el-input>
-        </el-form-item>
-        <el-form-item class="login-btn-group">
-          <el-button type="primary" @click="handleLogin" class="login-btn">登录</el-button>
-        </el-form-item>
-      </el-form>
-    </el-card>
+            required
+          />
+        </div>
+        
+        <button type="submit" class="login-btn">登录</button>
+      </form>
+      
+      <div v-if="errorMessage" class="error-message">
+        {{ errorMessage }}
+      </div>
+    </div>
   </div>
 </template>
 
-<script setup>
-import { ref, reactive } from 'vue'
-import { useRouter } from 'vue-router' // 路由跳转用
-import request from '@/utils/request' // 引入封装的axios
-import { ElMessage } from 'element-plus'
+<script>
+export default {
+  name: 'Login',
+  data() {
+    return {
+      username: '',
+      password: '',
+      errorMessage: ''
+    }
+  },
+  methods: {
+    handleLogin() {
+      // 验证输入
+      if (!this.username || !this.password) {
+        this.errorMessage = '请填写完整的用户名和密码';
+        return;
+      }
 
-// 路由实例
-const router = useRouter()
-
-// 登录表单数据
-const loginForm = reactive({
-  phone: '', // 手机号
-  password: '' // 密码
-})
-
-// 表单验证规则
-const loginRules = reactive({
-  phone: [
-    { required: true, message: '请输入手机号', trigger: 'blur' },
-    { pattern: /^1[3-9]\d{9}$/, message: '手机号格式错误', trigger: 'blur' }
-  ],
-  password: [
-    { required: true, message: '请输入密码', trigger: 'blur' },
-    { min: 6, max: 16, message: '密码长度为6-16位', trigger: 'blur' }
-  ]
-})
-
-// 表单引用（用于验证）
-const loginFormRef = ref(null)
-
-// 登录按钮点击事件
-const handleLogin = () => {
-  // 先验证表单
-  loginFormRef.value.validate((valid) => {
-    if (!valid) return
-
-    // 表单验证通过，调用后端登录接口
-    request.post('/user/login', loginForm)
-      .then((res) => {
-        // 登录成功：保存token到本地存储（持久化，刷新页面不丢失）
-        localStorage.setItem('admin-token', res.data)
-        ElMessage.success('登录成功！')
-        // 跳转到仪表盘页面
-        router.push('/dashboard')
-      })
-      .catch((err) => {
-        ElMessage.error(err.msg || '登录失败，请检查账号密码')
-      })
-  })
+      // 模拟登录请求
+      console.log('登录信息:', { username: this.username, password: this.password });
+      
+      // 这里应该发送登录请求到后端
+      // 如果登录成功则跳转到主页
+      
+      // 重置错误消息
+      this.errorMessage = '';
+      
+      // 模拟登录成功后跳转到主页
+      this.$router.push('/dashboard');
+    }
+  }
 }
 </script>
 
 <style scoped>
-/* 登录页面样式，新手可直接用 */
 .login-container {
-  width: 100vw;
-  height: 100vh;
-  background-color: #f5f7fa;
   display: flex;
   justify-content: center;
   align-items: center;
+  min-height: 100vh;
+  background-color: #f5f5f5;
+  padding: 20px;
 }
 
 .login-card {
-  width: 400px;
-  padding: 20px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 30px;
+  width: 100%;
+  max-width: 400px;
 }
 
-.login-title {
+h2 {
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
   color: #333;
 }
 
-.login-form {
-  margin-top: 20px;
+.input-group {
+  margin-bottom: 16px;
 }
 
-.login-btn-group {
-  text-align: center;
+.input-group label {
+  display: block;
+  margin-bottom: 6px;
+  color: #555;
+  font-weight: 500;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: #409eff;
+  box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
 }
 
 .login-btn {
   width: 100%;
-  height: 40px;
+  padding: 12px;
+  background-color: #409eff;
+  color: white;
+  border: none;
+  border-radius: 4px;
   font-size: 16px;
+  cursor: pointer;
+  margin-top: 8px;
+}
+
+.login-btn:hover {
+  background-color: #4a9eff;
+}
+
+.error-message {
+  margin-top: 16px;
+  padding: 12px;
+  background-color: #fef0f0;
+  color: #f56565;
+  border-radius: 4px;
+  text-align: center;
 }
 </style>
