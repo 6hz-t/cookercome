@@ -1,5 +1,6 @@
 package wit.backendcooker.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +26,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
 
     @Autowired
+    private UserMapper userMapper;
+
+    @Autowired
     private JwtTokenUtil jwtTokenUtil;
 
 
@@ -33,17 +37,50 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     @Override
     public ChefLoginRespVo login(ChefLoginVo chefLoginVo) {
        log.info("用户登录中，用户名：{}", chefLoginVo.getUsername());
-       String token = jwtTokenUtil.generateToken(chefLoginVo.getUsername());
-       ChefLoginRespVo chefLoginRespVo = new ChefLoginRespVo();
-       chefLoginRespVo.setToken(token);
-       chefLoginRespVo.setUsername(chefLoginVo.getUsername());
-       //键：token:{accessToken字符串}（精准定位单个 Token）；值：用户 ID（极简存储，快速关联用户）；
-        redisUtil.set("token:" + token, chefLoginVo.getUsername());
 
-        log.info("用户登录成功，用户名：{}", chefLoginVo.getUsername());
+       ChefLoginRespVo chefLoginRespVo = new ChefLoginRespVo();
+
+
+        LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(User::getPhone, chefLoginVo.getUsername())
+                        .select(User::getPassword);
+        User user = userMapper.selectOne(queryWrapper);
+       if (user != null && user.getPassword().equals(chefLoginVo.getPassword())){
+           chefLoginRespVo.setMsg("登录成功");
+           chefLoginRespVo.setCode("200");
+           String token = jwtTokenUtil.generateToken(chefLoginVo.getUsername());
+           redisUtil.set("token:" + token, chefLoginVo.getUsername());
+           chefLoginRespVo.setToken(token);
+           log.info("用户登录成功，用户名：{}", chefLoginVo.getUsername());
+
+        }else{
+            chefLoginRespVo.setMsg("登录失败");
+            chefLoginRespVo.setCode("400");
+            log.info("用户登录失败，用户名：{}", chefLoginVo.getUsername());
+        }
+
+
 
 
        return chefLoginRespVo;
+    }
+
+    @Override
+    public ChefLoginRespVo register(ChefLoginVo chefLoginVo) {
+        log.info("用户注册中，用户名：{}", chefLoginVo.getUsername());
+        ChefLoginRespVo chefLoginRespVo = new ChefLoginRespVo();
+
+        User newUser = new User();
+        newUser.setPhone(chefLoginVo.getUsername());
+        newUser.setPassword(chefLoginVo.getPassword());
+        newUser.setRole(1);
+        userMapper.insert(newUser);
+        chefLoginRespVo.setMsg("注册成功");
+        chefLoginRespVo.setCode("200");
+        return chefLoginRespVo;
+
+
+
     }
 }
 

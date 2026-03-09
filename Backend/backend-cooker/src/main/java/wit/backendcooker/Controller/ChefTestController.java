@@ -11,11 +11,11 @@ import org.springframework.web.bind.annotation.RestController;
  --------------------------
  */
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/test")
 public class ChefTestController {
 
-    @PostMapping("/test")
+    @PostMapping("/test001")
     public String test() {
-        return "test111aaadwsdaa";
+        return "test111";
     }
 }

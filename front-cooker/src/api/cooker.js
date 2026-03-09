@@ -1,7 +1,12 @@
 import request from './request'
+//测试
+export const test = () => request.get('/test')
 
 // 厨师登录
 export const login = (data) => request.post('/chef/login', data)
+
+// 厨师注册
+export const register = (data) => request.post('/chef/register', data)
 
 // 获取厨师信息
 export const getChefInfo = () => request.get('/chef/info')

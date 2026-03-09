@@ -12,7 +12,13 @@ import lombok.Data;
 
 public class ChefLoginRespVo {
     private String token;
-    private String username;
+    private String msg;
+    //200登录成功 400登录失败
+    private String code;
+
+
+
+
 
 
 }

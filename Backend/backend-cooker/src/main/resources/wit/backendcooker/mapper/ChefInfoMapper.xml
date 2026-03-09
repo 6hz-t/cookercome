@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="wit.backendcooker.mapper.ChefInfoMapper">
+
+    <resultMap id="BaseResultMap" type="wit.backendcooker.Entity.ChefInfo">
+            <id property="id" column="id" />
+            <result property="userId" column="user_id" />
+            <result property="idCardFront" column="id_card_front" />
+            <result property="idCardBack" column="id_card_back" />
+            <result property="experienceYears" column="experience_years" />
+            <result property="introduction" column="introduction" />
+            <result property="auditStatus" column="audit_status" />
+            <result property="auditRemark" column="audit_remark" />
+            <result property="latitude" column="latitude" />
+            <result property="longitude" column="longitude" />
+            <result property="serviceRadius" column="service_radius" />
+            <result property="pricePerMeal" column="price_per_meal" />
+            <result property="serviceStatus" column="service_status" />
+            <result property="createTime" column="create_time" />
+            <result property="updateTime" column="update_time" />
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,user_id,id_card_front,id_card_back,experience_years,introduction,
+        audit_status,audit_remark,latitude,longitude,service_radius,
+        price_per_meal,service_status,create_time,update_time
+    </sql>
+</mapper>

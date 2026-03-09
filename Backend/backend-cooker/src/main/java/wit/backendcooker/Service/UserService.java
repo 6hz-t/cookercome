@@ -12,5 +12,6 @@ import wit.backendcooker.VO.ChefLoginVo;
 */
 public interface UserService extends IService<User> {
     ChefLoginRespVo login(ChefLoginVo chefLoginVo);
+    ChefLoginRespVo register(ChefLoginVo chefLoginVo);
 
 }

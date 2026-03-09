@@ -13,10 +13,18 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import wit.backendcooker.Filter.JwtAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    public SecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -26,9 +34,17 @@ public class SecurityConfig {
                 // 禁用表单登录
                 .formLogin(form -> form.disable())
                 // 配置授权规则
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
                         // /api/** 公开 doc swagger-ui.html
-                        .requestMatchers("/api/**").permitAll()
+                        .requestMatchers(
+                                "/api/chef/login",
+                                "/api/chef/register",
+                                "/api/chef/logout",
+                                "/api/chef/refreshToken",
+                                "/api/test/**",
+                                "/") // 首页公开
+                        .permitAll()
                         // Swagger / SpringDoc 相关路径全部公开
                         .requestMatchers(
                                 "/v3/api-docs/**",
