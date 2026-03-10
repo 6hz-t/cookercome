@@ -20,6 +20,7 @@
 		<module>backend-user</module>
 		<!-- 后续添加其他模块 -->
 		 <module>backend-cooker</module>
+
 		<!-- <module>backend-admin</module> -->
 	</modules>
 	<url/>
