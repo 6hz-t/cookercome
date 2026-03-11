@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import wit.backendcooker.Result.Result;
 import wit.backendcooker.VO.ChefLoginRespVo;
 import wit.backendcooker.VO.ChefLoginVo;
-import wit.backendcooker.service.UserService;
+import wit.backendcooker.Service.UserService;
 
 /*
  * @author ：jee

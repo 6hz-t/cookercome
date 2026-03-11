@@ -23,7 +23,7 @@ import wit.backendcooker.VO.ChefInfoVo;
 public class ChefInfoController {
  @Operation( summary = "获取厨师信息")
  @PostMapping("/getChefInfo")
- public Result<ChefInfoVo> getChefInfo(){
+ public Result<ChefInfoVo> getChefInfo(@RequestBody String username){
 
   //todo 获取厨师信息
      return Result.success(new ChefInfoVo());

@@ -1,7 +1,7 @@
-package wit.backendcooker.service;
+package wit.backendcooker.Service;
 
-import wit.backendcooker.Entity.ChefInfo;
 import com.baomidou.mybatisplus.extension.service.IService;
+import wit.backendcooker.Entity.ChefInfo;
 
 /**
 * @author lenovo

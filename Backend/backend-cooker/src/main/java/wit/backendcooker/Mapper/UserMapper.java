@@ -1,4 +1,4 @@
-package wit.backendcooker.mapper;
+package wit.backendcooker.Mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 import wit.backendcooker.Entity.User;

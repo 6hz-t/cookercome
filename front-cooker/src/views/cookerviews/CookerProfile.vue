@@ -109,15 +109,11 @@
         * 评分
         * 位置经度
         * 位置纬度
+        * 位置全址
         * 简介
         * 审核状态
         * 菜系
-        *
-        *
-        *
-        * 城市
-        * 地区
-        * 详细地址
+  
         *
         *
         * */ -->
@@ -366,6 +362,7 @@ export default {
 }
 
 .avatar-uploader .el-upload {
+    /* 虚线框 */
     border: 1px dashed #409eff;
     border-radius: 6px;
     cursor: pointer;

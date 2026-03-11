@@ -1,9 +1,9 @@
-package wit.backendcooker.service.impl;
+package wit.backendcooker.Service.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import wit.backendcooker.Entity.ChefInfo;
-import wit.backendcooker.service.ChefInfoService;
-import wit.backendcooker.mapper.ChefInfoMapper;
+import wit.backendcooker.Mapper.ChefInfoMapper;
+import wit.backendcooker.Service.ChefInfoService;
 import org.springframework.stereotype.Service;
 
 /**

@@ -68,7 +68,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             // 步骤 1: 从 Authorization 请求头中获取 Token
             // 格式应为：Bearer <token>
             String token = getTokenFromRequest(request);
-            System.out.println("token:"+token);
+            
+            // 只有当请求携带了 token 时才打印日志（避免日志过多）
+            if (token != null) {
+                logger.debug("检测到 JWT token: " + token.substring(0, Math.min(20, token.length())) + "...");
+            }
 
             if (StringUtils.hasText(token) && jwtTokenUtil.validateToken(token)) {
                 // 步骤 3: Token 有效，从中解析用户名（JWT 的 subject 字段）

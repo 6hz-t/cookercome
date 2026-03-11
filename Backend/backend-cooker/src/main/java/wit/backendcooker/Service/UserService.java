@@ -1,4 +1,4 @@
-package wit.backendcooker.service;
+package wit.backendcooker.Service;
 
 import wit.backendcooker.Entity.User;
 import com.baomidou.mybatisplus.extension.service.IService;
