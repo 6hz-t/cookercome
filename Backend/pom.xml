@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.hs</groupId>
-	<artifactId>Backend-parent</artifactId>
+	<artifactId>Backend</artifactId>
 	<version>1.0.0</version>
 	<packaging>pom</packaging>
 	<name>Backend</name>
@@ -18,11 +18,8 @@
 	<!-- 子模块列表 -->
 	<modules>
 		<module>backend-user</module>
-		<!-- 后续添加其他模块 -->
-		 <module>backend-cooker</module>
-		<module>backend-dp</module>
-
-		<!-- <module>backend-admin</module> -->
+		<module>backend-cooker</module>
+		<module>backend-admin</module>
 	</modules>
 	<dependencies>
 		<dependency>
@@ -47,6 +44,7 @@
 		<java.version>17</java.version>
 		<mybatis-plus.version>3.5.5</mybatis-plus.version>
 		<jwt.version>0.12.3</jwt.version>
+
 	</properties>
 
 	<!-- 依赖管理 -->
@@ -82,6 +80,7 @@
 				<artifactId>lombok</artifactId>
 				<version>1.18.30</version>
 			</dependency>
+
 		</dependencies>
 	</dependencyManagement>
 
