@@ -16,26 +16,7 @@ import java.time.LocalDateTime;
  * MyBatis-Plus 配置类
  */
 @Configuration
-public class MybatisPlusConfig {
-
-    /**
-     * 自动填充处理器（注册为 Bean）
-     */
-    @Bean
-    public MetaObjectHandler metaObjectHandler() {
-        return new MetaObjectHandler() {
-            @Override
-            public void insertFill(MetaObject metaObject) {
-                this.strictInsertFill(metaObject, "createTime", LocalDateTime.class, LocalDateTime.now());
-                this.strictInsertFill(metaObject, "updateTime", LocalDateTime.class, LocalDateTime.now());
-            }
-
-            @Override
-            public void updateFill(MetaObject metaObject) {
-                this.strictUpdateFill(metaObject, "updateTime", LocalDateTime.class, LocalDateTime.now());
-            }
-        };
-    }
+public class MybatisPlusConfig implements MetaObjectHandler {
 
     /**
      * 分页插件配置
@@ -63,4 +44,20 @@ public class MybatisPlusConfig {
         return factoryBean;
     }
 
+    /**
+     * 自动填充创建时间
+     */
+    @Override
+    public void insertFill(MetaObject metaObject) {
+        this.strictInsertFill(metaObject, "createTime", LocalDateTime.class, LocalDateTime.now());
+        this.strictInsertFill(metaObject, "updateTime", LocalDateTime.class, LocalDateTime.now());
+    }
+
+    /**
+     * 自动填充更新时间
+     */
+    @Override
+    public void updateFill(MetaObject metaObject) {
+        this.strictUpdateFill(metaObject, "updateTime", LocalDateTime.class, LocalDateTime.now());
+    }
 }

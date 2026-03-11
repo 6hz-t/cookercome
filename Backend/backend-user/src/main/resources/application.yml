@@ -5,15 +5,10 @@ spring:
   main:
     allow-circular-references: true
   
-  # MongoDB 配置（暂时禁用自动连接）
-  data:
-    mongodb:
-      auto-index-creation: false
-  
   # 数据库配置
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://124.221.15.13:3306/cookercome?useUnicode=true&characterEncoding=utf-8&useSSL=true&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&zeroDateTimeBehavior=convertToNull&allowMultiQueries=true&connectTimeout=30000&socketTimeout=60000
+    url: "jdbc:mysql://124.221.15.13:3306/cookercome?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true"
     username: cookercome
     password: 998877
 
@@ -55,19 +50,9 @@ mybatis-plus:
 
 # JWT 配置
 jwt:
-  secret: cookerc0me2026SecureSecretKeyForJWTToken!@#$%^&*()
+  secret: cookerc0me2026secretkey!@#$%^
   expiration: 7200000  # Access Token: 2 小时 (7200000ms)
-  refresh-expiration: 7776000000  # Refresh Token: 90 天 (3 个月) = 90 * 24 * 60 * 60 * 1000
-
-# 阿里云 OSS 配置
-aliyun:
-  oss:
-    endpoint: oss-cn-hangzhou.aliyuncs.com
-    access-key-id: LTAI5tCvmabLdf2xQcN363tz
-    access-key-secret: o2Q5xjQ7hcizJv5w2OMLlrohP4LdWZ
-    bucket-name: lihuahua-cookhome
-    # 自定义域名（可选，用于 CDN 加速）
-    custom-domain: ""
+  refresh-expiration: 604800000  # Refresh Token: 7 天 (604800000ms)
 
 # 日志配置
 logging:

@@ -8,7 +8,7 @@
         <version>1.0.0</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
-    <groupId>com.hs</groupId>
+    <groupId>wit</groupId>
     <artifactId>backend-dp</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>backend-dp</name>

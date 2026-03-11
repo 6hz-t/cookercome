@@ -2,6 +2,7 @@ package wit.backendcooker.Service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import wit.backendcooker.Entity.ChefInfo;
+import wit.backendcooker.VO.ChefInfoVo;
 
 /**
 * @author lenovo
@@ -9,5 +10,5 @@ import wit.backendcooker.Entity.ChefInfo;
 * @createDate 2026-03-09 20:40:49
 */
 public interface ChefInfoService extends IService<ChefInfo> {
-
+    public ChefInfoVo getChefInfoByUsername(Long userId);
 }

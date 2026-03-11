@@ -12,6 +12,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -22,12 +23,16 @@ import wit.backendcooker.Utils.JwtTokenUtil;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import static org.apache.commons.lang3.StringUtils.strip;
+
 
 /**
  * JWT 认证过滤器
  * 继承 OncePerRequestFilter，确保每个请求只执行一次过滤
  * 负责在请求到达业务逻辑前验证 JWT Token 的有效性
  */
+
+@Slf4j
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
@@ -65,16 +70,41 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain filterChain) throws ServletException, IOException {
 
         try {
+            // 获取请求 URI，用于判断是否为 Swagger、登录等放行路径
+            String requestURI = request.getRequestURI();
+
+            // 定义不需要 JWT 认证的路径（与 SecurityConfig 中的 permitAll 保持一致）
+            boolean isExcludedPath = requestURI.contains("/swagger-ui") ||
+                    requestURI.contains("/v3/api-docs") ||
+                    requestURI.contains("/webjars") ||
+                    requestURI.contains("/doc.html") ||
+                    requestURI.equals("/") ||
+                    requestURI.startsWith("/api/chef/login") ||
+                    requestURI.startsWith("/api/chef/register") ||
+                    requestURI.startsWith("/api/chef/logout") ||
+                    requestURI.startsWith("/api/chef/refreshToken") ||
+                    requestURI.startsWith("/api/test/") ||
+                    requestURI.endsWith(".ico");
+
+            // 如果是放行路径，直接跳过 JWT 验证，减少不必要的处理
+            if (isExcludedPath) {
+                filterChain.doFilter(request, response);
+                return;
+            }
             // 步骤 1: 从 Authorization 请求头中获取 Token
             // 格式应为：Bearer <token>
-            String token = getTokenFromRequest(request);
+            String token = strip(getTokenFromRequest(request));
             
             // 只有当请求携带了 token 时才打印日志（避免日志过多）
             if (token != null) {
-                logger.debug("检测到 JWT token: " + token.substring(0, Math.min(20, token.length())) + "...");
+                log.debug("------------------------------------------------------------");
+               log.debug("JWT token{}1111 {}", token, requestURI);
+               log.debug("validateToken {} ", jwtTokenUtil.validateToken(token));
+            }else {
+                log.debug("未检测到 JWT token  {}", requestURI);
             }
 
-            if (StringUtils.hasText(token) && jwtTokenUtil.validateToken(token)) {
+            if (jwtTokenUtil.validateToken(token)) {
                 // 步骤 3: Token 有效，从中解析用户名（JWT 的 subject 字段）
                 String username = jwtTokenUtil.getUsernameFromToken(token);
                 System.out.println("username:"+username);

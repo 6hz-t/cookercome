@@ -10,23 +10,30 @@ package wit.backendcooker.Controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
 import wit.backendcooker.Result.Result;
+import wit.backendcooker.Service.ChefInfoService;
+import wit.backendcooker.Service.impl.ChefInfoServiceImpl;
 import wit.backendcooker.VO.ChefInfoVo;
 
 @Tag(name = "厨师信息")
 @RestController
 @RequestMapping("/api/chef")
 public class ChefInfoController {
+ @Autowired
+ private ChefInfoService chefInfoService;
+
+
+
  @Operation( summary = "获取厨师信息")
- @PostMapping("/getChefInfo")
- public Result<ChefInfoVo> getChefInfo(@RequestBody String username){
+ @PostMapping("/getChefInfo/{userid}")
+ public Result<ChefInfoVo> getChefInfo(@PathVariable String userid){
 
   //todo 获取厨师信息
-     return Result.success(new ChefInfoVo());
+  ChefInfoVo chefInfoVo = chefInfoService.getChefInfoByUsername(Long.valueOf(userid));
+
+      return Result.success(chefInfoVo);
  }
 
 

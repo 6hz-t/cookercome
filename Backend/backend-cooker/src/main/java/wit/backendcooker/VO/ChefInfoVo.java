@@ -17,7 +17,7 @@ public class ChefInfoVo {
 
 
 
-        private String username;
+        //private String username;
         private String relName;
         private String phone;
         private String password;
