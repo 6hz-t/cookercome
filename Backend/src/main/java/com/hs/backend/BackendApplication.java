@@ -14,7 +14,7 @@ public class BackendApplication {
         SpringApplication.run(BackendApplication.class, args);
         System.out.println("=================================");
         System.out.println("厨师上门服务平台 - 后端服务启动成功！");
-        System.out.println("访问地址：http://localhost:8082");
+        System.out.println("访问地址：http://localhost:8080");
         System.out.println("=================================");
     }
 }
