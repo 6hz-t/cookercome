@@ -1,8 +1,9 @@
 # 忽略所有项目目录，除了 frontend-user 和 Backend/backend-user
 # 先忽略所有顶层目录
-front-admin/
+front-user/
 front-cooker/
 demo/
+Backend/backend-user/
 Backend/backend-cooker/
 Backend/backend-dp/
 

@@ -1,41 +1,48 @@
 spring:
-  # ?????
+  # 允许Bean覆盖（解决微小冲突）
+  main:
+    allow-bean-definition-overriding: true
   datasource:
     url: jdbc:mysql://124.221.15.13:3306/cookercome?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
     username: cookercome
     password: 998877
     driver-class-name: com.mysql.cj.jdbc.Driver
-  # Spring Security ????
-  security:
-    user:
-      name:
-      password:
-  # ??????
-  mvc:
-    pathmatch:
-      matching-strategy:
 
-# ?????
 server:
-  port: 8080 # ????????????
+  port: 8080
   servlet:
-    context-path: /api # ????????????? /api
+    context-path: /api
 
-# MyBatis ??
-mybatis:
-  mapper-locations: classpath:mapper/*.xml # Mapper XML ????
-  type-aliases-package: com.cooker.entity # ????????? XML ???
+
+# MyBatis-Plus 配置
+mybatis-plus:
   configuration:
-    map-underscore-to-camel-case: true # ???????????? user_id ? userId?
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl # ?? SQL ???????
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  global-config:
+    db-config:
+      id-type: auto
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
 
-# Knife4j ??????
+
+
+# springdoc-openapi项目配置
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
+  group-configs:
+    - group: 'default'
+      paths-to-match: '/**'
+      packages-to-scan:  backendadmin.server.controller
+
+# knife4j的增强配置，不需要增强可以不配
 knife4j:
   enable: true
-  openapi:
-    title: ?????????????
-    description: ?????????????????????
-    version: v1.0
-    contact:
-      name: ???
-
+  setting:
+    language: zh_cn
