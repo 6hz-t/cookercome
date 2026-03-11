@@ -5,6 +5,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+
 /**
  * 认证响应 DTO
  */
@@ -30,12 +32,17 @@ public class AuthResponse {
     private Long expiresIn;
     
     /**
-     * 用户信息
+     * 用户基础信息
      */
     private UserInfoVO userInfo;
     
     /**
-     * 用户信息 VO
+     * 客户详细信息（仅当 role=0 时返回）
+     */
+    private CustomerInfoVO customerInfo;
+    
+    /**
+     * 用户基础信息 VO（对应 t_user 表）
      */
     @Data
     @Builder
@@ -43,5 +50,21 @@ public class AuthResponse {
         private Long id;
         private String phone;
         private Integer role;
+    }
+    
+    /**
+     * 客户详细信息 VO（对应 t_customer_info 表）
+     */
+    @Data
+    @Builder
+    public static class CustomerInfoVO {
+        private Long id;
+        private Long userId;
+        private String username;
+        private String avatar;
+        private String realName;
+        private Integer gender;
+        private String email;
+        private LocalDate birthday;
     }
 }

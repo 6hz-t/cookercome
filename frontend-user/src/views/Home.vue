@@ -1,11 +1,11 @@
 <template>
   <div class="home">
     <!-- 固定右上角头像 -->
-    <div class="profile-avatar-fixed" @click="$router.push('/profile')">
+    <div class="profile-avatar-fixed" @click="$router.push('/service')">
       <el-badge :value="5" :hidden="notificationCount === 0" class="avatar-badge">
         <el-avatar :size="48" src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png" />
       </el-badge>
-      <div class="avatar-tooltip">个人中心</div>
+      <div class="avatar-tooltip">服务中心</div>
     </div>
 
     <!-- 头部横幅 -->

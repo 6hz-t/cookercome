@@ -24,17 +24,20 @@ public class ChefController {
     /**
      * 分页查询厨师列表
      */
+//    @GetMapping("/list")
+//    public Result<Page<Chef>> getChefList(
+//            @RequestParam(defaultValue = "1") Integer page,
+//            @RequestParam(defaultValue = "10") Integer size,
+//            @RequestParam(required = false) String specialty,
+//            @RequestParam(required = false) Integer level
+//    ) {
+//        Page<Chef> chefPage = chefService.getChefPage(page, size, specialty, level);
+//        return Result.success(chefPage);
+//    }
     @GetMapping("/list")
-    public Result<Page<Chef>> getChefList(
-            @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "10") Integer size,
-            @RequestParam(required = false) String specialty,
-            @RequestParam(required = false) Integer level
-    ) {
-        Page<Chef> chefPage = chefService.getChefPage(page, size, specialty, level);
-        return Result.success(chefPage);
+    public Result<String> getChefList() {
+        return Result.success("成功调用");
     }
-
     /**
      * 获取厨师详情
      */

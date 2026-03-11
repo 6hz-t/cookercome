@@ -6,7 +6,7 @@ import { refreshToken as refreshApi } from '@/api/auth'
 
 // 创建 axios 实例
 const request: AxiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api',
+  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
   timeout: 10000
 })
 
@@ -24,6 +24,46 @@ request.interceptors.request.use(
     return Promise.reject(error)
   }
 )
+
+// ✅ 创建独立的 axios 实例用于刷新 token（不受请求拦截器影响）
+const refreshRequest: AxiosInstance = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
+  timeout: 10000
+})
+
+// 为刷新请求添加独立的请求拦截器（不添加 Authorization 头）
+refreshRequest.interceptors.request.use(
+  config => {
+    // ✅ 刷新 token 时不携带 access_token，避免死循环
+    return config
+  },
+  error => {
+    console.error('Refresh request error:', error)
+    return Promise.reject(error)
+  }
+)
+
+// ✅ 为刷新请求添加响应拦截器（解包 response.data）
+refreshRequest.interceptors.response.use(
+  response => {
+    const res = response.data
+    
+    // 如果返回的状态码不是 200，说明接口有错误
+    if (res.code !== 200) {
+      ElMessage.error(res.message || '请求失败')
+      return Promise.reject(new Error(res.message || '请求失败'))
+    }
+    
+    return res  // ✅ 返回解包后的数据
+  },
+  error => {
+    console.error('Refresh response error:', error)
+    return Promise.reject(error)
+  }
+)
+
+// ✅ 导出 refreshRequest 供 auth.ts 使用
+export { refreshRequest }
 
 // 响应拦截器
 let isRefreshing = false
@@ -52,6 +92,9 @@ request.interceptors.response.use(
     if (res.code !== 200) {
       ElMessage.error(res.message || '请求失败')
       
+      // 打印完整响应以便调试
+      console.error('接口返回错误:', res)
+      
       // 401: 未授权
       if (res.code === 401) {
         removeToken()
@@ -68,17 +111,26 @@ request.interceptors.response.use(
     
     const originalRequest = error.config
     
+    // ✅ 添加调试日志
+    console.log('=== 401 刷新调试 ===')
+    console.log('HTTP Status:', error.response?.status)
+    console.log('Is Retry:', originalRequest._retry)
+    console.log('Has Refresh Token:', !!getRefreshToken())
+    
     // 如果是 401 错误且不是重试请求
     if (error.response?.status === 401 && !originalRequest._retry) {
       const refreshToken = getRefreshToken()
       
       if (!refreshToken) {
         // 没有 refresh token，跳转登录
+        console.warn('❌ 没有 refresh token，无法刷新')
         ElMessage.error('登录已过期，请重新登录')
         removeToken()
         router.push('/login')
         return Promise.reject(error)
       }
+      
+      console.log('✅ 开始刷新 token...')
       
       // 如果已经在刷新 token，加入队列
       if (isRefreshing) {
@@ -96,21 +148,37 @@ request.interceptors.response.use(
       isRefreshing = true
       
       try {
-        // 调用刷新 token 接口
+        console.log('📡 调用刷新接口...')
+        // 调用刷新 token 接口（使用 refreshRequest，已自动解包）
         const res = await refreshApi({ refreshToken })
-        // res 已经是 AuthResponse 类型（request 拦截器已处理）
-        const { accessToken, refreshToken: newRefreshToken } = res
+        console.log('🎉 刷新成功:', res)
+        console.log('🔍 res 结构:', res)
         
+        // ✅ res 是 Result<AuthResponse>，真正数据在 res.data 中
+        const { accessToken, refreshToken: newRefreshToken } = res.data || res
+        
+        console.log('💡 解包后的数据:')
+        console.log('  - accessToken:', accessToken)
+        console.log('  - newRefreshToken:', newRefreshToken)
+        
+        if (!accessToken || !newRefreshToken) {
+          console.error('❌ Token 数据无效！')
+          throw new Error('刷新返回的 token 为空')
+        }
+        
+        console.log('💾 保存新 token...')
         // 保存新的 token
         saveToken(accessToken, newRefreshToken)
         
         // 处理队列中的请求
         processQueue(null, accessToken)
         
+        console.log('🔄 重试原请求...')
         // 重试原请求
         originalRequest.headers.Authorization = `Bearer ${accessToken}`
         return request(originalRequest)
       } catch (refreshError) {
+        console.error('❌ 刷新失败:', refreshError)
         // 刷新失败，清除 token 并跳转登录
         processQueue(refreshError, null)
         ElMessage.error('登录已过期，请重新登录')

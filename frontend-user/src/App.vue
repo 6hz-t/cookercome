@@ -5,9 +5,12 @@
 <template>
   <div id="app">
     <router-view v-slot="{ Component, route }">
-      <transition :name="route.meta.transition || 'page'" mode="out-in">
+      <!-- 服务中心不使用全局过渡动画，让它使用自己的内部动画 -->
+      <transition :name="route.meta.transition || 'page'" mode="out-in" v-if="!route.path.startsWith('/service')">
         <component :is="Component" :key="route.path" class="page-component" />
       </transition>
+      <!-- 服务中心页面直接渲染 -->
+      <component :is="Component" :key="route.path" class="page-component" v-else />
     </router-view>
   </div>
 </template>

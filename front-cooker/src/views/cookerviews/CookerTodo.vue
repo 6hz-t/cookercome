@@ -8,7 +8,6 @@
                 :key="order.orderid" 
                 :order="order"
                 @accept="handleAccept"
-                @reject="handleReject"
             ></OrderCard>
         </div>
     </div>
@@ -76,9 +75,6 @@ export default {
     methods: {
         handleAccept(order) {
             console.log('accepted', order.orderid);
-        },
-        handleReject(order) {
-            console.log('rejected', order.orderid);
         }
     }
 }

@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { login, register, logout, getCurrentUser } from '@/api/auth'
 import router from '@/router'
-import { saveToken, removeToken, saveUserInfo, getUserInfo } from '@/utils/token'
+import { saveToken, removeToken, saveUserInfo, getUserInfo, saveAccountInfo, clearAccountInfo, saveAvatarCache } from '@/utils/token'
 
 interface UserInfo {
   id?: number
@@ -26,18 +26,31 @@ export const useUserStore = defineStore('user', {
   
   actions: {
     // 登录（使用手机号）
-    async loginAction(phone: string, password: string) {
+    async loginAction(phone: string, password: string, rememberMe: boolean = true) {
       try {
         const res = await login({ phone, password })
         
-        // 保存双 Token
-        saveToken(res.accessToken, res.refreshToken)
+        // 保存双 Token（注意：后端返回的是 Result 包装，数据在 res.data 中）
+        saveToken(res.data.accessToken, res.data.refreshToken, rememberMe)
         
-        // 保存用户信息
-        this.userInfo = res.userInfo
-        saveUserInfo(res.userInfo)
+        // ✅ 先清除旧的账号信息（避免取消勾选后仍保留）
+        clearAccountInfo()
         
-        return Promise.resolve(res)
+        // 如果勾选记住我，保存加密的账号信息
+        if (rememberMe) {
+          saveAccountInfo(phone, password)
+        }
+        
+        // 保存用户信息（根据是否记住我选择存储位置）
+        this.userInfo = res.data.userInfo
+        saveUserInfo(res.data.userInfo, rememberMe)
+        
+        // 💡 保存头像缓存
+        if (res.data.userInfo && res.data.userInfo.avatar) {
+          saveAvatarCache(res.data.userInfo.avatar, rememberMe)
+        }
+        
+        return Promise.resolve(res.data)
       } catch (error) {
         return Promise.reject(error)
       }
@@ -63,6 +76,14 @@ export const useUserStore = defineStore('user', {
         const res = await getCurrentUser()
         this.userInfo = res
         saveUserInfo(res)
+        
+        // 💡 如果后端返回了头像，更新缓存
+        if (res && res.avatar) {
+          // 根据当前存储位置判断是否记住我
+          const rememberMe = localStorage.getItem('access_token') !== null
+          saveAvatarCache(res.avatar, rememberMe)
+        }
+        
         return Promise.resolve(res)
       } catch (error) {
         return Promise.reject(error)
@@ -76,6 +97,7 @@ export const useUserStore = defineStore('user', {
       } finally {
         this.userInfo = null
         removeToken()
+        clearAccountInfo()  // 清除记住的账号信息
         router.push('/login')
       }
     }

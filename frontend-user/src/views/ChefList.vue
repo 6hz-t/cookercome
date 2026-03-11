@@ -75,10 +75,18 @@ const pageSize = ref(10)
 const total = ref(0)
 
 const loadChefs = async () => {
+  // try {
+  //   const res = await getChefList(currentPage.value, pageSize.value, searchForm.specialty, searchForm.level)
+  //   chefList.value = res.data.records || []
+  //   total.value = res.data.total || 0
+  // } catch (error) {
+  //   console.error('加载厨师列表失败:', error)
+  // }
+
+
   try {
-    const res = await getChefList(currentPage.value, pageSize.value, searchForm.specialty, searchForm.level)
-    chefList.value = res.data.records || []
-    total.value = res.data.total || 0
+    const res = await getChefList()
+    console.log('res', res)
   } catch (error) {
     console.error('加载厨师列表失败:', error)
   }

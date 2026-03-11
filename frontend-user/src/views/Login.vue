@@ -63,7 +63,6 @@
                 type="password" 
                 placeholder="请输入密码"
                 size="large"
-                show-password
                 @keyup.enter="handleLogin"
               />
             </div>
@@ -115,10 +114,11 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/store/modules/user'
+import { getAccountInfo, hasRememberMe } from '@/utils/token'
 import { User, Lock, Star, Location, ChatDotRound, ChatLineRound, Cellphone } from '@element-plus/icons-vue'
 
 const router = useRouter()
@@ -130,6 +130,17 @@ const rememberMe = ref(false)
 const form = reactive({
   phone: '',
   password: ''
+})
+
+// 页面加载时检查是否有记住的账号信息
+onMounted(() => {
+  const accountInfo = getAccountInfo()
+  if (accountInfo) {
+    // 自动填充手机号和解密后的密码
+    form.phone = accountInfo.phone
+    form.password = accountInfo.password
+    rememberMe.value = hasRememberMe()
+  }
 })
 
 const rules = {
@@ -150,9 +161,10 @@ const handleLogin = async () => {
     if (valid) {
       loading.value = true
       try {
-        await userStore.loginAction(form.phone, form.password)
+        // 传入 rememberMe 参数
+        await userStore.loginAction(form.phone, form.password, rememberMe.value)
         ElMessage.success('登录成功')
-        router.push('/')
+        await router.push('/')
       } catch (error) {
         console.error('登录失败:', error)
       } finally {

@@ -4,6 +4,7 @@ import {
 } from 'vue-router'
 import CookerHomeView from '../views/cookerviews/CookerHome.vue'
 import CookerLoginView from '../views/cookerviews/CookerLogin.vue'
+import CookerRegisterView from '../views/cookerviews/CookerRegister.vue'
 import IndexView from '../views/index.vue'
 import CookerTodoView from '../views/cookerviews/CookerTodo.vue'
 import CookerMessageView from '../views/cookerviews/CookerMessage.vue'
@@ -54,6 +55,12 @@ const routes = [{
         path: '/cooker/login',
         name: 'cookerlogin',
         component: CookerLoginView
+
+    },
+    {
+        path: '/cooker/register',
+        name: 'cookerregister',
+        component: CookerRegisterView
 
     }
 

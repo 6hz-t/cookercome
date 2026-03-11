@@ -55,9 +55,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+            } else if (StringUtils.hasText(jwt)) {
+                // ✅ Token 存在但无效（被篡改或过期），返回 401
+                logger.warn("Invalid or expired token detected");
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setContentType("application/json;charset=UTF-8");
+                response.getWriter().write("{\"code\":401,\"message\":\"Token 无效或已过期\"}");
+                return;
             }
+            // 如果没有 token，继续放行（让 Spring Security 处理）
         } catch (Exception ex) {
             logger.error("Could not set user authentication in security context", ex);
+            // Token 验证失败，返回 401
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json;charset=UTF-8");
+            response.getWriter().write("{\"code\":401,\"message\":\"Token 验证失败\"}");
+            return;
         }
 
         filterChain.doFilter(request, response);

@@ -191,7 +191,9 @@ const handleRegister = async () => {
           form.phone,
           form.password
         )
-        ElMessage.success('注册成功', {
+        ElMessage({
+          message: '注册成功',
+          type: 'success',
           duration: 1500
         })
         setTimeout(() => {

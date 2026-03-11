@@ -33,12 +33,8 @@ public class CustomUserDetailsService implements UserDetailsService {
                 throw new UsernameNotFoundException("用户不存在：" + userId);
             }
             
-            if (user.getStatus() != 1) {
-                throw new UsernameNotFoundException("用户已被禁用：" + userId);
-            }
-            
-            // 设置用户角色权限（简化版，实际应该从数据库查询）
-            String role = user.getUserType() == 2 ? "ROLE_CHEF" : "ROLE_USER";
+            // 根据角色分配权限（简化版，实际应该从数据库查询）
+            String role = user.getRole() == 1 ? "ROLE_CHEF" : (user.getRole() == 2 ? "ROLE_ADMIN" : "ROLE_USER");
             
             return new org.springframework.security.core.userdetails.User(
                     user.getId().toString(),

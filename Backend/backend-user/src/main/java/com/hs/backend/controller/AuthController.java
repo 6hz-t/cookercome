@@ -29,7 +29,7 @@ public class AuthController {
     @PostMapping("/register")
     public Result<User> register(@Valid @RequestBody RegisterRequest request) {
         User user = userService.register(
-                request.getPhone(),  // 使用手机号作为用户名
+                request.getPhone(),  // 使用手机号
                 request.getPassword(),
                 request.getRole()  // 传递角色参数
         );

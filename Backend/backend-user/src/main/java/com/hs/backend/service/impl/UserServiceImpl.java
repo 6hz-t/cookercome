@@ -3,15 +3,16 @@ package com.hs.backend.service.impl;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hs.backend.common.exception.BusinessException;
-import com.hs.backend.common.enums.UserTypeEnum;
+import com.hs.backend.common.config.OssConfig;
 import com.hs.backend.dto.response.AuthResponse;
+import com.hs.backend.entity.CustomerInfo;
 import com.hs.backend.entity.User;
 import com.hs.backend.mapper.UserMapper;
 import com.hs.backend.security.JwtTokenProvider;
+import com.hs.backend.service.CustomerInfoService;
 import com.hs.backend.service.UserService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 
 import java.time.LocalDateTime;
 
@@ -23,10 +24,17 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
 
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
+    private final CustomerInfoService customerInfoService;
+    private final OssConfig ossConfig;
 
-    public UserServiceImpl(PasswordEncoder passwordEncoder, JwtTokenProvider jwtTokenProvider) {
+    public UserServiceImpl(PasswordEncoder passwordEncoder, 
+                          JwtTokenProvider jwtTokenProvider,
+                          CustomerInfoService customerInfoService,
+                          OssConfig ossConfig) {
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
+        this.customerInfoService = customerInfoService;
+        this.ossConfig = ossConfig;
     }
 
     @Override
@@ -42,8 +50,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         user.setPhone(phone);
         user.setPassword(passwordEncoder.encode(password));
         user.setRole(role != null ? role : 0);  // 默认为客户（role=0）
+        // 手动设置时间（确保不会为 NULL）
+        user.setCreateTime(LocalDateTime.now());
+        user.setUpdateTime(LocalDateTime.now());
 
         save(user);
+        
+        // 创建默认客户信息
+        String username = "新用户" + user.getId();
+        customerInfoService.createDefaultCustomerInfo(user.getId(), username);
+        
         return user;
     }
 
@@ -64,7 +80,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         String refreshToken = jwtTokenProvider.generateRefreshToken(user.getId());
 
         // 构建响应
-        return AuthResponse.builder()
+        AuthResponse.AuthResponseBuilder responseBuilder = AuthResponse.builder()
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .expiresIn(jwtTokenProvider.getAccessTokenExpiration() / 1000)
@@ -72,7 +88,47 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                         .id(user.getId())
                         .phone(user.getPhone())
                         .role(user.getRole())
-                        .build())
+                        .build());
+        
+        // 如果是客户，查询并返回客户详细信息
+        if (user.getRole() == 0) {
+            CustomerInfo customerInfo = getCustomerInfoByUserId(user.getId());
+            if (customerInfo != null) {
+                responseBuilder.customerInfo(toCustomerInfoVO(customerInfo));
+            }
+        }
+        
+        return responseBuilder.build();
+    }
+    
+    /**
+     * 根据用户 ID 查询客户信息
+     */
+    private CustomerInfo getCustomerInfoByUserId(Long userId) {
+        LambdaQueryWrapper<CustomerInfo> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(CustomerInfo::getUserId, userId);
+        return customerInfoService.getOne(wrapper);
+    }
+    
+    /**
+     * 转换为 CustomerInfoVO
+     */
+    private AuthResponse.CustomerInfoVO toCustomerInfoVO(CustomerInfo customerInfo) {
+        // 将相对路径转换为完整 URL
+        String avatarUrl = null;
+        if (customerInfo.getAvatar() != null && !customerInfo.getAvatar().isEmpty()) {
+            avatarUrl = ossConfig.getFullUrl(customerInfo.getAvatar());
+        }
+        
+        return AuthResponse.CustomerInfoVO.builder()
+                .id(customerInfo.getId())
+                .userId(customerInfo.getUserId())
+                .username(customerInfo.getUsername())
+                .avatar(avatarUrl)  // 返回完整 URL
+                .realName(customerInfo.getRealName())
+                .gender(customerInfo.getGender())
+                .email(customerInfo.getEmail())
+                .birthday(customerInfo.getBirthday())
                 .build();
     }
 
@@ -100,8 +156,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         Long userId = jwtTokenProvider.getUserIdFromToken(refreshToken);
         User user = getById(userId);
         
-        if (user == null || user.getStatus() != 1) {
-            throw new BusinessException("用户不存在或已被禁用");
+        if (user == null) {
+            throw new BusinessException("用户不存在");
         }
 
         // 生成新的双 Token
@@ -118,5 +174,11 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                         .role(user.getRole())
                         .build())
                 .build();
+    }
+
+    //待修改
+    @Override
+    public User getByUsername(String username) {
+        return null;
     }
 }

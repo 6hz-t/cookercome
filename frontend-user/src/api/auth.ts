@@ -1,10 +1,10 @@
-import request from '@/utils/request'
-import type { LoginParams, RegisterParams, AuthResponse } from '@/types/auth'
+import request, { refreshRequest } from '@/utils/request'
+import type { LoginParams, RegisterParams, AuthResponse, Result } from '@/types/auth'
 
 /**
  * 用户登录
  */
-export function login(data: LoginParams): Promise<AuthResponse> {
+export function login(data: LoginParams): Promise<Result<AuthResponse>>{
   return request({
     url: '/auth/login',
     method: 'post',
@@ -24,10 +24,10 @@ export function register(data: RegisterParams): Promise<any> {
 }
 
 /**
- * 刷新 Token
+ * 刷新 Token（使用独立的 axios 实例，不携带 Authorization 头）
  */
-export function refreshToken(data: { refreshToken: string }): Promise<AuthResponse> {
-  return request({
+export function refreshToken(data: { refreshToken: string }): Promise<Result<AuthResponse>> {
+  return refreshRequest({  // ✅ 使用 refreshRequest 而不是 request
     url: '/auth/refresh',
     method: 'post',
     data
