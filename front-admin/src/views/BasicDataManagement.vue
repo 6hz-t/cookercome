@@ -69,10 +69,14 @@
     <div class="content">
       <!-- 顶部信息栏 -->
       <div class="top-info">
-        <div class="breadcrumb">系统设置 &gt; 基础数据管理</div>
+        <!-- 动态面包屑 -->
+        <div class="breadcrumb">{{ breadcrumbText }}</div>
         <div class="top-right">
           <div class="date-info">当前日期 {{ currentDate }}</div>
-          <el-icon size="20" class="bell-icon"><Bell /></el-icon>
+          <!-- 修复图标属性传递 -->
+          <el-icon class="bell-icon">
+            <Bell size="20" />
+          </el-icon>
           <el-button type="danger" size="small" class="logout-btn" @click="handleLogout">安全退出</el-button>
         </div>
       </div>
@@ -85,21 +89,31 @@
             <div class="section-header">
               <h3>菜系管理</h3>
               <div class="actions">
+                <!-- 修复搜索框前缀图标 & 样式类封装 -->
                 <el-input
                   v-model="cuisineSearch"
                   placeholder="搜索菜系名称"
-                  prefix-icon="Search"
-                  style="width: 200px; margin-right: 10px;"
-                ></el-input>
+                  class="search-input"
+                >
+                  <template #prefix>
+                    <el-icon size="16"><Search /></el-icon>
+                  </template>
+                </el-input>
                 <el-button type="primary" @click="addCuisine">新增菜系</el-button>
                 <el-button type="success" @click="saveSortOrder">保存排序</el-button>
               </div>
             </div>
             
-            <el-table border :data="filteredCuisines" style="width: 100%;">
-              <el-table-column prop="id" label="菜系ID" width="100" align="center" />
-              <el-table-column prop="name" label="名称" width="150" align="center" />
-              <el-table-column prop="sortOrder" label="排序值" width="100" align="center">
+            <!-- 修复表格列宽度 + 空数据占位 -->
+            <el-table 
+              border 
+              :data="filteredCuisines" 
+              style="width: 100%;"
+              empty-text="暂无菜系数据，请点击「新增菜系」添加"
+            >
+              <el-table-column prop="id" label="菜系ID" min-width="100" align="center" />
+              <el-table-column prop="name" label="名称" min-width="150" align="center" />
+              <el-table-column prop="sortOrder" label="排序值" min-width="100" align="center">
                 <template #default="scope">
                   <el-input-number 
                     v-model="scope.row.sortOrder" 
@@ -110,7 +124,7 @@
                   />
                 </template>
               </el-table-column>
-              <el-table-column prop="status" label="状态" width="100" align="center">
+              <el-table-column prop="status" label="状态" min-width="100" align="center">
                 <template #default="scope">
                   <el-tag 
                     :type="scope.row.status === 'enabled' ? 'success' : 'danger'"
@@ -120,7 +134,8 @@
                   </el-tag>
                 </template>
               </el-table-column>
-              <el-table-column label="操作" width="200" align="center">
+              <!-- 修复操作列宽度 + 防止按钮换行 -->
+              <el-table-column label="操作" min-width="220" align="center">
                 <template #default="scope">
                   <div class="operation-cell">
                     <el-button 
@@ -155,21 +170,32 @@
             <div class="section-header">
               <h3>角色字典管理</h3>
               <div class="actions">
+                <!-- 修复搜索框前缀图标 & 样式类封装 -->
                 <el-input
                   v-model="roleSearch"
                   placeholder="搜索角色名称"
-                  prefix-icon="Search"
-                  style="width: 200px; margin-right: 10px;"
-                ></el-input>
+                  class="search-input"
+                >
+                  <template #prefix>
+                    <el-icon size="16"><Search /></el-icon>
+                  </template>
+                </el-input>
                 <el-button type="primary" @click="addRole">新增角色</el-button>
               </div>
             </div>
             
-            <el-table border :data="filteredRoles" style="width: 100%;">
-              <el-table-column prop="id" label="角色ID" width="100" align="center" />
-              <el-table-column prop="name" label="名称" width="150" align="center" />
+            <!-- 修复表格列宽度 + 空数据占位 -->
+            <el-table 
+              border 
+              :data="filteredRoles" 
+              style="width: 100%;"
+              empty-text="暂无角色数据，请点击「新增角色」添加"
+            >
+              <el-table-column prop="id" label="角色ID" min-width="100" align="center" />
+              <el-table-column prop="name" label="名称" min-width="150" align="center" />
               <el-table-column prop="description" label="描述" align="center" />
-              <el-table-column label="操作" width="200" align="center">
+              <!-- 修复操作列宽度 -->
+              <el-table-column label="操作" min-width="180" align="center">
                 <template #default="scope">
                   <div class="operation-cell">
                     <el-button 
@@ -219,6 +245,12 @@ const currentDate = ref('2026年03月06日')
 
 // 当前激活的tab
 const activeTab = ref('cuisine')
+
+// 动态面包屑文本
+const breadcrumbText = computed(() => {
+  const base = '系统设置 > 基础数据管理'
+  return activeTab.value === 'cuisine' ? `${base} > 菜系管理` : `${base} > 角色字典管理`
+})
 
 // 搜索关键字
 const cuisineSearch = ref('')
@@ -796,23 +828,61 @@ const handleLogout = async () => {
   gap: 10px;
 }
 
+/* 搜索框样式封装 + 响应式 */
+.search-input {
+  width: 200px;
+  margin-right: 10px;
+}
+
+@media (max-width: 1200px) {
+  .search-input {
+    width: 160px;
+  }
+}
+
 .el-table {
   margin-top: 10px;
 }
 
-.el-table th, .el-table td {
+/* 样式穿透修复 - 表格内容居中 */
+:deep(.el-table th.el-table__cell), 
+:deep(.el-table td.el-table__cell) {
   text-align: center !important;
+  padding: 12px 0 !important;
 }
 
-.el-table .cell {
-  display: flex;
-  justify-content: center;
-  align-items: center;
+:deep(.el-table .cell) {
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  padding: 0 10px;
 }
 
+/* 操作列按钮组居中 + 防止换行 */
 .operation-cell {
-  display: flex;
-  justify-content: center;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
   gap: 8px;
+  width: 100%;
+  white-space: nowrap;
+}
+
+/* 输入框居中 */
+:deep(.el-table .el-input-number) {
+  display: inline-flex !important;
+  justify-content: center !important;
+}
+
+/* 标签居中 */
+:deep(.el-table .el-tag) {
+  display: inline-flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+}
+
+/* 按钮居中 */
+:deep(.el-table .el-button) {
+  margin: 2px;
 }
 </style>
