@@ -1,6 +1,23 @@
 <template>
     <div class="container">
         <h3>个人资料</h3>
+        <!-- {
+  "username": "",
+  "relName": "",
+  "phone": "",
+  "password": "",
+  "idCardFront": "",
+  "idCardBack": "",
+  "gender": 0,
+  "address": "",
+  "lon": 0,
+  "lat": 0,
+  "introduction": "",
+  "avatar": "",
+  "idCardFrontFile": "",
+  "idCardBackFile": "",
+  "qualificationFile": ""
+} -->
         <el-form :model="chef" :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
             <el-form-item label="姓名" prop="name">
                 <el-input v-model="chef.name" placeholder="请输入姓名"></el-input>
@@ -133,25 +150,21 @@ export default {
             imageUrl: '',
             star: 3.7,
             chef: {
-                name: '',
-                phone: '',
-                sfzid: '',
-                address: {
-                    fullAddress: '',
-                    province: '',
-                    city: '',
-                    district: '',
-                    street: '',
-                    streetNumber: '',
-                    longitude: '',
-                    latitude: ''
-                },
-                introduction: '',
-                dishkinds: [],
-                avatar: '',
-                status: '',
-                certificate: '',
-                star: 0
+                "username": "",
+                "relName": "",
+                "phone": "",
+                "password": "",
+                "idCardFront": "",
+                "idCardBack": "",
+                "gender": 0,
+                "address": "",
+                "lon": 0,
+                "lat": 0,
+                "introduction": "",
+                "avatar": "",
+                "idCardFrontFile": "",
+                "idCardBackFile": "",
+                "qualificationFile": ""
             },
             rules: {
                 name: [
@@ -181,7 +194,7 @@ export default {
          * @returns {{lng: number, lat: number}} 返回包含经度和纬度的对象
          */
         mercatorToLatLng(mercatorX, mercatorY) {
-           const x = mercatorX / 20037508.34 * 180;
+            const x = mercatorX / 20037508.34 * 180;
             let y = mercatorY / 20037508.34 * 180;
             y = 180 / Math.PI * (2 * Math.atan(Math.exp(y * Math.PI / 180)) - Math.PI / 2);
             return { lng: x, lat: y };
@@ -235,33 +248,33 @@ export default {
                 let lng, lat;
 
                 // BMapGL 点击事件返回的 e.point 是墨卡托坐标（单位：米），需要转换为经纬度
-              if (e.point) {
-                  console.log('e.point (墨卡托):', e.point);
-                  console.log('e.point.lng:', e.point?.lng, 'e.point.lat:', e.point?.lat);
-                        
+                if (e.point) {
+                    console.log('e.point (墨卡托):', e.point);
+                    console.log('e.point.lng:', e.point?.lng, 'e.point.lat:', e.point?.lat);
+
                     // 将墨卡托坐标转换为经纬度
-                   const result = this.mercatorToLatLng(e.point.lng, e.point.lat);
+                    const result = this.mercatorToLatLng(e.point.lng, e.point.lat);
                     lng = result.lng;
                     lat = result.lat;
-                        
+
                     // 创建新的经纬度点对象
                     lngLatPoint = new BMap.Point(lng, lat);
-                  console.log('转换后的经纬度:', lng, lat);
+                    console.log('转换后的经纬度:', lng, lat);
                 }
 
-              if (!lngLatPoint) {
-                  console.error('无法获取经纬度坐标');
+                if (!lngLatPoint) {
+                    console.error('无法获取经纬度坐标');
                     return;
                 }
 
-              console.log('点击位置坐标 (经纬度):', lng, lat);
+                console.log('点击位置坐标 (经纬度):', lng, lat);
                 this.selectedPoint = lngLatPoint;
 
 
-              console.log('marker', this.marker);
+                console.log('marker', this.marker);
 
                 // 清除旧标记
-              if (this.marker) {
+                if (this.marker) {
                     this.map.removeOverlay(this.marker);
                 }
 
@@ -270,13 +283,13 @@ export default {
                 this.map.addOverlay(this.marker);
 
                 // 逆地理编码获取地址
-              const geoc = new BMap.Geocoder();
+                const geoc = new BMap.Geocoder();
                 geoc.getLocation(lngLatPoint, (rs) => {
-                  console.log('Geocoder 完整返回:', rs);
-                  console.log('rs.address:', rs?.address);
-                  console.log('rs.formatted_address:', rs?.formatted_address);
-                  console.log('rs.addressComponent:', rs?.addressComponent);
-                  console.log('rs.content:', rs?.content);
+                    console.log('Geocoder 完整返回:', rs);
+                    console.log('rs.address:', rs?.address);
+                    console.log('rs.formatted_address:', rs?.formatted_address);
+                    console.log('rs.addressComponent:', rs?.addressComponent);
+                    console.log('rs.content:', rs?.content);
                     this.handleGeocodeResult(rs, lng, lat);
                 });
             });

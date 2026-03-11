@@ -15,5 +15,6 @@
             "username": "cookercome",
             "password": "998877"
         }
-    ]
+    ],
+    "java.configuration.updateBuildConfiguration": "disabled"
 }

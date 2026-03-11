@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestController;
 import wit.backendcooker.Result.Result;
 import wit.backendcooker.VO.ChefLoginRespVo;
 import wit.backendcooker.VO.ChefLoginVo;
-import wit.backendcooker.Service.UserService;
+import wit.backendcooker.Service.ChefService;
 
 /*
  * @author ：jee
@@ -26,13 +26,13 @@ public class ChefLoginController {
 
 
     @Autowired
-    private UserService userService;
+    private ChefService chefService;
     @Operation( summary = "登录")
     @PostMapping("/login")
     public Result<ChefLoginRespVo> login(@RequestBody ChefLoginVo chefLoginVo) {
 
 
-        return Result.success(userService.login(chefLoginVo));
+        return Result.success(chefService.login(chefLoginVo));
     }
 
 
@@ -40,7 +40,7 @@ public class ChefLoginController {
     @PostMapping("/register")
     public Result<String> register(@RequestBody ChefLoginVo chefLoginVo) {
         //todo 注册
-        userService.register(chefLoginVo);
+        chefService.register(chefLoginVo);
         return Result.success("注册成功");
     }
 
