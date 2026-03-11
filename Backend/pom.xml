@@ -24,6 +24,12 @@
 
 		<!-- <module>backend-admin</module> -->
 	</modules>
+	<dependencies>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-autoconfigure</artifactId>
+		</dependency>
+	</dependencies>
 	<url/>
 	<licenses>
 		<license/>
