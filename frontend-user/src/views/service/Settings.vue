@@ -67,6 +67,7 @@
       :close-on-press-escape="false"
       class="profile-edit-dialog"
       append-to-body
+      top="5vh"
     >
       <div class="dialog-content">
         <el-form :model="profileForm" label-width="120px" label-position="left">
@@ -162,6 +163,7 @@ import {
 import { ElMessage } from 'element-plus'
 import AvatarUploader from '@/components/AvatarUploader.vue'
 import { getProfile, updateProfile } from '@/api/settings'
+import { getFullAvatarUrl } from '@/utils/avatar'
 
 const emit = defineEmits(['edit-profile', 'change-phone', 'show-address', 'change-password', 'delete-account'])
 
@@ -247,9 +249,22 @@ const saveProfile = async () => {
 }
 
 // 头像上传成功
-const handleAvatarSuccess = (url) => {
-  profileForm.value.avatar = url
-  console.log('头像上传成功:', url)
+const handleAvatarSuccess = async (fullUrl) => {
+  // fullUrl 是完整 URL，用于前端显示
+  profileForm.value.avatar = fullUrl
+  console.log('头像上传成功，完整 URL:', fullUrl)
+  
+  // 立即保存到数据库
+  try {
+    saving.value = true
+    await updateProfile(profileForm.value)
+    ElMessage.success('头像已保存')
+  } catch (error) {
+    console.error('保存头像失败:', error)
+    ElMessage.error('保存头像失败：' + (error.message || '请重试'))
+  } finally {
+    saving.value = false
+  }
 }
 
 // 头像上传失败
@@ -344,29 +359,32 @@ const disabledDate = (time) => {
   align-items: center;
   gap: 10px;
 }
+</style>
 
-/* 个人信息编辑对话框样式 - 科技感增强版 */
-.profile-edit-dialog :deep(.el-dialog) {
-  border-radius: 24px;
-  overflow: hidden;
-  background: linear-gradient(135deg, rgba(20, 20, 50, 0.98), rgba(30, 30, 70, 0.95));
+<!-- 个人信息编辑对话框样式 - 科技感增强版（非 scoped，因为 Dialog 使用 Teleport） -->
+<style>
+/* 强制覆盖 Element Plus 默认样式 */
+.profile-edit-dialog{
+  border-radius: 24px !important;
+  overflow: hidden !important;
+  background: #16213e !important;
   backdrop-filter: blur(30px);
-  box-shadow: 
+  box-shadow:
     0 0 80px rgba(102, 126, 234, 0.3),
     0 0 120px rgba(118, 75, 162, 0.2),
-    inset 0 0 60px rgba(102, 126, 234, 0.08);
-  border: 1px solid rgba(102, 126, 234, 0.3);
+    inset 0 0 60px rgba(102, 126, 234, 0.08) !important;
+  border: 1px solid rgba(102, 126, 234, 0.3) !important;
 }
 
-.profile-edit-dialog :deep(.el-dialog__header) {
-  padding: 35px 40px;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(118, 75, 162, 0.15));
-  border-bottom: 1px solid rgba(102, 126, 234, 0.4);
+.profile-edit-dialog .el-dialog__header {
+  padding: 25px 35px;
+  background: rgba(102, 126, 234, 0.1);
+  border-bottom: 1px solid rgba(102, 126, 234, 0.3);
   position: relative;
   overflow: hidden;
 }
 
-.profile-edit-dialog :deep(.el-dialog__header)::before {
+.profile-edit-dialog .el-dialog__header::before {
   content: '';
   position: absolute;
   top: -2px;
@@ -383,7 +401,7 @@ const disabledDate = (time) => {
 }
 
 /* 背景装饰网格 */
-.profile-edit-dialog :deep(.el-dialog__header)::after {
+.profile-edit-dialog .el-dialog__header::after {
   content: '';
   position: absolute;
   top: 0;
@@ -398,8 +416,8 @@ const disabledDate = (time) => {
   pointer-events: none;
 }
 
-.profile-edit-dialog :deep(.el-dialog__title) {
-  font-size: 24px;
+.profile-edit-dialog .el-dialog__title {
+  font-size: 20px;
   font-weight: 700;
   color: #fff;
   background: linear-gradient(135deg, #667eea, #00f3ff, #bc13fe);
@@ -416,17 +434,18 @@ const disabledDate = (time) => {
   0%, 100% { background-position: 0% center; }
   50% { background-position: 100% center; }
 }
-
-.profile-edit-dialog :deep(.el-dialog__body) {
-  padding: 45px 40px;
-  max-height: 70vh;
-  overflow-y: auto;
+  
+.profile-edit-dialog .el-dialog__body {
+  padding: 20px 35px 25px 35px;
+  max-height: none;
+  overflow-y: visible;
+  overflow-x: hidden;
   background: transparent;
   position: relative;
 }
 
 /* 侧边光效装饰 */
-.profile-edit-dialog :deep(.el-dialog__body)::before {
+.profile-edit-dialog .el-dialog__body::before {
   content: '';
   position: absolute;
   left: 0;
@@ -437,7 +456,7 @@ const disabledDate = (time) => {
   opacity: 0.5;
 }
 
-.profile-edit-dialog :deep(.el-dialog__body)::after {
+.profile-edit-dialog .el-dialog__body::after {
   content: '';
   position: absolute;
   right: 0;
@@ -456,32 +475,32 @@ const disabledDate = (time) => {
 .avatar-section {
   display: flex;
   align-items: flex-start;
-  gap: 35px;
-  padding: 25px;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.08));
-  border-radius: 16px;
-  border: 1px solid rgba(102, 126, 234, 0.3);
+  gap: 25px;
+  padding: 18px;
+  background: rgba(102, 126, 234, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(102, 126, 234, 0.2);
   box-shadow: 
-    0 8px 32px rgba(102, 126, 234, 0.15),
-    inset 0 0 20px rgba(102, 126, 234, 0.05);
+    0 6px 24px rgba(102, 126, 234, 0.08),
+    inset 0 0 15px rgba(102, 126, 234, 0.02);
 }
 
 .avatar-tips {
   flex: 1;
-  padding: 20px;
-  background: rgba(102, 126, 234, 0.08);
-  border-radius: 12px;
-  border-left: 3px solid #667eea;
-  box-shadow: 0 4px 20px rgba(102, 126, 234, 0.1);
+  padding: 12px;
+  background: rgba(102, 126, 234, 0.04);
+  border-radius: 10px;
+  border-left: 2px solid rgba(102, 126, 234, 0.5);
+  box-shadow: 0 3px 15px rgba(102, 126, 234, 0.05);
 }
 
 .avatar-tips p {
-  margin: 10px 0;
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.75);
+  margin: 6px 0;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   transition: var(--transition);
 }
 
@@ -492,8 +511,8 @@ const disabledDate = (time) => {
 
 .avatar-tips .el-icon {
   color: #667eea;
-  font-size: 16px;
-  filter: drop-shadow(0 0 8px rgba(102, 126, 234, 0.6));
+  font-size: 14px;
+  filter: drop-shadow(0 0 6px rgba(102, 126, 234, 0.5));
 }
 
 .gender-group {
@@ -506,38 +525,38 @@ const disabledDate = (time) => {
   max-width: 130px;
 }
 
-.profile-edit-dialog :deep(.el-form-item) {
-  margin-bottom: 28px;
+.profile-edit-dialog .el-form-item {
+  margin-bottom: 14px;
   position: relative;
 }
 
-.profile-edit-dialog :deep(.el-form-item__label) {
+.profile-edit-dialog .el-form-item__label {
   font-weight: 600;
   color: #fff;
-  font-size: 15px;
+  font-size: 13px;
   background: linear-gradient(135deg, #667eea, #00f3ff);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  padding: 8px 12px;
-  border-radius: 8px;
-  background-color: rgba(102, 126, 234, 0.1);
+  padding: 6px 10px;
+  border-radius: 6px;
+  background-color: rgba(102, 126, 234, 0.05);
 }
 
-.profile-edit-dialog :deep(.el-input__wrapper),
-.profile-edit-dialog :deep(.el-textarea__wrapper) {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(102, 126, 234, 0.05));
-  border: 1px solid rgba(102, 126, 234, 0.3);
+.profile-edit-dialog .el-input__wrapper,
+.profile-edit-dialog .el-textarea__wrapper {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(102, 126, 234, 0.2);
   box-shadow: 
-    0 4px 20px rgba(102, 126, 234, 0.1),
-    inset 0 0 10px rgba(102, 126, 234, 0.02);
-  border-radius: 12px;
-  padding: 12px 16px;
+    0 3px 15px rgba(102, 126, 234, 0.05),
+    inset 0 0 8px rgba(102, 126, 234, 0.01);
+  border-radius: 10px;
+  padding: 10px 14px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.profile-edit-dialog :deep(.el-input__wrapper:hover),
-.profile-edit-dialog :deep(.el-textarea__wrapper:hover) {
+.profile-edit-dialog .el-input__wrapper:hover,
+.profile-edit-dialog .el-textarea__wrapper:hover {
   border-color: #667eea;
   box-shadow: 
     0 0 25px rgba(102, 126, 234, 0.4),
@@ -545,44 +564,44 @@ const disabledDate = (time) => {
   transform: translateY(-2px);
 }
 
-.profile-edit-dialog :deep(.el-input__wrapper.is-focus),
-.profile-edit-dialog :deep(.el-textarea__wrapper.is-focus) {
+.profile-edit-dialog .el-input__wrapper.is-focus,
+.profile-edit-dialog .el-textarea__wrapper.is-focus {
   border-color: #00f3ff;
   box-shadow: 
     0 0 35px rgba(0, 243, 255, 0.5),
     inset 0 0 20px rgba(0, 243, 255, 0.08);
 }
 
-.profile-edit-dialog :deep(.el-input__inner),
-.profile-edit-dialog :deep(.el-textarea__inner) {
+.profile-edit-dialog .el-input__inner,
+.profile-edit-dialog .el-textarea__inner {
   color: #fff;
   font-size: 14px;
 }
 
-.profile-edit-dialog :deep(.el-input__inner::placeholder),
-.profile-edit-dialog :deep(.el-textarea__inner::placeholder) {
+.profile-edit-dialog .el-input__inner::placeholder,
+.profile-edit-dialog .el-textarea__inner::placeholder {
   color: rgba(255, 255, 255, 0.4);
 }
 
-.profile-edit-dialog :deep(.el-radio-group) {
+.profile-edit-dialog .el-radio-group {
   display: flex;
   gap: 15px;
-  padding: 8px;
-  background: rgba(102, 126, 234, 0.08);
-  border-radius: 12px;
-  border: 1px solid rgba(102, 126, 234, 0.2);
+  padding: 6px;
+  background: rgba(102, 126, 234, 0.04);
+  border-radius: 10px;
+  border: 1px solid rgba(102, 126, 234, 0.15);
 }
 
-.profile-edit-dialog :deep(.el-radio) {
+.profile-edit-dialog .el-radio {
   margin: 0;
   flex: 1;
 }
 
-.profile-edit-dialog :deep(.el-radio__input) {
+.profile-edit-dialog .el-radio__input {
   display: none;
 }
 
-.profile-edit-dialog :deep(.el-radio__label) {
+.profile-edit-dialog .el-radio__label {
   width: 100%;
   text-align: center;
   padding: 10px 15px;
@@ -596,14 +615,14 @@ const disabledDate = (time) => {
   border: 1px solid transparent;
 }
 
-.profile-edit-dialog :deep(.el-radio__label:hover) {
+.profile-edit-dialog .el-radio__label:hover {
   background: rgba(102, 126, 234, 0.2);
   border-color: rgba(102, 126, 234, 0.4);
   color: #fff;
   transform: translateY(-2px);
 }
 
-.profile-edit-dialog :deep(.el-radio.is-checked) .el-radio__label {
+.profile-edit-dialog .el-radio.is-checked .el-radio__label {
   background: linear-gradient(135deg, rgba(102, 126, 234, 0.4), rgba(118, 75, 162, 0.3));
   border-color: #667eea;
   color: #00f3ff;
@@ -611,13 +630,13 @@ const disabledDate = (time) => {
   box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
 
-.profile-edit-dialog :deep(.el-divider) {
-  background-color: rgba(102, 126, 234, 0.3);
-  margin: 35px 0;
+.profile-edit-dialog .el-divider {
+  background-color: rgba(102, 126, 234, 0.2);
+  margin: 25px 0;
   position: relative;
 }
 
-.profile-edit-dialog :deep(.el-divider::before) {
+.profile-edit-dialog .el-divider::before {
   content: '';
   position: absolute;
   top: 50%;
@@ -627,31 +646,31 @@ const disabledDate = (time) => {
   background: linear-gradient(90deg, transparent, #667eea, transparent);
 }
 
-.profile-edit-dialog :deep(.el-date-picker) {
+.profile-edit-dialog .el-date-picker {
   width: 100%;
 }
 
-.profile-edit-dialog :deep(.el-date-picker__editor-wrap) {
+.profile-edit-dialog .el-date-picker__editor-wrap {
   input {
     color: #fff;
   }
 }
 
-.profile-edit-dialog :deep(.el-dialog__footer) {
-  padding: 25px 40px;
-  border-top: 1px solid rgba(102, 126, 234, 0.3);
+.profile-edit-dialog .el-dialog__footer {
+  padding: 18px 35px;
+  border-top: 1px solid rgba(102, 126, 234, 0.2);
   display: flex;
   justify-content: flex-end;
-  gap: 15px;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), transparent);
+  gap: 12px;
+  background: rgba(102, 126, 234, 0.02);
 }
 
 .dialog-footer .el-button {
-  min-width: 110px;
-  font-size: 15px;
+  min-width: 90px;
+  font-size: 13px;
   font-weight: 600;
-  padding: 12px 24px;
-  border-radius: 12px;
+  padding: 10px 20px;
+  border-radius: 10px;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -679,22 +698,22 @@ const disabledDate = (time) => {
 }
 
 /* 滚动条美化 */
-.profile-edit-dialog :deep(.el-dialog__body::-webkit-scrollbar) {
+.profile-edit-dialog .el-dialog__body::-webkit-scrollbar {
   width: 8px;
 }
 
-.profile-edit-dialog :deep(.el-dialog__body::-webkit-scrollbar-track) {
+.profile-edit-dialog .el-dialog__body::-webkit-scrollbar-track {
   background: rgba(102, 126, 234, 0.05);
   border-radius: 4px;
 }
 
-.profile-edit-dialog :deep(.el-dialog__body::-webkit-scrollbar-thumb) {
+.profile-edit-dialog .el-dialog__body::-webkit-scrollbar-thumb {
   background: linear-gradient(135deg, #667eea, #00f3ff);
   border-radius: 4px;
   box-shadow: 0 0 10px rgba(102, 126, 234, 0.5);
 }
 
-.profile-edit-dialog :deep(.el-dialog__body::-webkit-scrollbar-thumb:hover) {
+.profile-edit-dialog .el-dialog__body::-webkit-scrollbar-thumb:hover {
   background: linear-gradient(135deg, #00f3ff, #bc13fe);
   box-shadow: 0 0 20px rgba(0, 243, 255, 0.6);
 }
@@ -707,7 +726,7 @@ const disabledDate = (time) => {
 
 /* 响应式优化 */
 @media (max-width: 768px) {
-  .profile-edit-dialog :deep(.el-dialog) {
+  .profile-edit-dialog .el-dialog {
     width: 90% !important;
   }
   
@@ -717,7 +736,7 @@ const disabledDate = (time) => {
     gap: 20px;
   }
   
-  .profile-edit-dialog :deep(.el-dialog__body) {
+  .profile-edit-dialog .el-dialog__body {
     padding: 30px 20px;
   }
 }

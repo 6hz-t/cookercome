@@ -19,9 +19,9 @@ spring:
 
   #redis配置
   redics:
-      host: 124.221.15.13
+      host: localhost
       port: 6379
-      password: 998877
+      password: 654321
       timeout: 3000
       database: 0
       pool:
@@ -39,7 +39,7 @@ spring:
 
 # 服务端口
 server:
-  port: 8082
+  port: 8080
 
 # MyBatis-Plus 配置
 mybatis-plus:

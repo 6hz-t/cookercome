@@ -1,6 +1,6 @@
 package com.hs.backend.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import  com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hs.backend.common.exception.BusinessException;
 import com.hs.backend.common.config.OssConfig;

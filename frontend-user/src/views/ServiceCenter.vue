@@ -138,34 +138,40 @@ const currentComponent = computed(() => {
 
 // 导航跳转
 const navigateTo = (key) => {
- const currentIndex = navItems.findIndex(item => item.key === activeNav.value)
- const targetIndex = navItems.findIndex(item => item.key === key)
- 
- // 根据导航项位置判断方向
- if (targetIndex > currentIndex) {
- navDirection.value = 'left'
- } else if (targetIndex < currentIndex) {
- navDirection.value = 'right'
- }
- 
- const routeMap = {
-  'profile': '/service/personal',
-  'booking': '/service/booking',
-  'activity': '/service/activity',
-  'orders': '/service/orders',
-  'favorites': '/service/favorites',
-  'settings': '/service/settings'
- }
- 
- // 先设置 activeNav，等待 DOM 更新后再执行路由跳转
- activeNav.value = key
- 
- // 使用 nextTick 确保组件已经准备好
- nextTick(() => {
-  // 使用 replace 而不是 push，避免在历史记录中堆叠
-  // 重要：使用 replaceState 来避免触发组件重新创建
-  window.history.replaceState({}, '', routeMap[key])
- })
+  // 如果点击的是当前激活的导航项，则隐藏导航栏
+  if (activeNav.value === key) {
+    isNavHidden.value = !isNavHidden.value  // 切换显示/隐藏状态
+    return
+  }
+  
+  const currentIndex = navItems.findIndex(item => item.key === activeNav.value)
+  const targetIndex = navItems.findIndex(item => item.key === key)
+  
+  // 根据导航项位置判断方向
+  if (targetIndex > currentIndex) {
+    navDirection.value = 'left'
+  } else if (targetIndex < currentIndex) {
+    navDirection.value = 'right'
+  }
+  
+  const routeMap = {
+   'profile': '/service/personal',
+   'booking': '/service/booking',
+   'activity': '/service/activity',
+   'orders': '/service/orders',
+   'favorites': '/service/favorites',
+   'settings': '/service/settings'
+  }
+  
+  // 先设置 activeNav，等待 DOM 更新后再执行路由跳转
+  activeNav.value = key
+  
+  // 使用 nextTick 确保组件已经准备好
+  nextTick(() => {
+   // 使用 replace 而不是 push，避免在历史记录中堆叠
+   // 重要：使用 replaceState 来避免触发组件重新创建
+   window.history.replaceState({}, '', routeMap[key])
+  })
 }
 
 // 当前组件属性

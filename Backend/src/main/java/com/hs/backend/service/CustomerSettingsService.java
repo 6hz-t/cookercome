@@ -6,7 +6,7 @@ import com.hs.backend.entity.CustomerInfo;
 /**
  * 设置服务接口
  */
-public interface SettingsService {
+public interface CustomerSettingsService {
 
     /**
      * 获取用户个人信息

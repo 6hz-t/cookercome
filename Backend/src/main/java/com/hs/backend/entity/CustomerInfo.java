@@ -30,9 +30,10 @@ public class CustomerInfo implements Serializable {
     private Long userId;
 
     /**
-     * 用户名（冗余字段，便于查询）
+     * 用户名
      */
     private String username;
+
 
     /**
      * 头像 URL

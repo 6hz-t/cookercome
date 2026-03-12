@@ -31,3 +31,20 @@ export function getOssSignature(fileName: string) {
     params: { fileName }
   })
 }
+
+/**
+ * 后端代理上传头像到 OSS（避免 CORS 问题）
+ */
+export function uploadAvatar(file: File) {
+  const formData = new FormData()
+  formData.append('file', file)
+  
+  return request({
+    url: '/customer/settings/avatar/upload',
+    method: 'post',
+    data: formData,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+}

@@ -2,7 +2,13 @@
   <div class="avatar-uploader">
     <!-- 头像显示区域 -->
     <div class="avatar-wrapper" @click="triggerUpload">
-      <el-avatar :size="size" :src="currentAvatar" fit="cover" class="user-avatar" />
+      <el-avatar 
+        :size="size" 
+        :src="currentAvatar" 
+        fit="cover" 
+        class="user-avatar"
+        @error="handleImageError"
+      />
       
       <!-- 悬停时显示上传按钮 -->
       <div class="upload-overlay" v-if="editable">
@@ -32,8 +38,8 @@
 import { ref, computed, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Camera, Loading } from '@element-plus/icons-vue'
-import { getOssSignature } from '@/api/settings'
-import { getUserAvatar } from '@/utils/avatar'
+import { uploadAvatar } from '@/api/settings'
+import { getUserAvatar, getFullAvatarUrl } from '@/utils/avatar'
 
 interface Props {
   modelValue?: string  // 头像 URL
@@ -57,12 +63,20 @@ const emit = defineEmits<{
 
 // 当前头像
 const currentAvatar = computed(() => {
-  return props.modelValue || getUserAvatar()
+  const avatar = props.modelValue || getUserAvatar()
+  console.log('AvatarUploader - currentAvatar:', avatar)
+  return avatar
 })
 
 // 文件输入引用
 const fileInput = ref<HTMLInputElement | null>(null)
 const uploading = ref(false)
+
+// 处理图片加载错误
+const handleImageError = (e: Event) => {
+  console.error('头像图片加载失败:', currentAvatar)
+  console.error('错误事件:', e)
+}
 
 // 触发文件选择
 const triggerUpload = () => {
@@ -92,33 +106,23 @@ const handleFileChange = async (event: Event) => {
   await uploadFile(file)
 }
 
-// 上传文件到 OSS
+// 上传文件到 OSS（后端代理模式）
 const uploadFile = async (file: File) => {
   try {
     uploading.value = true
     
-    // 步骤 1：获取上传签名（从后端）
-    const signatureRes = await getOssSignature(file.name)
-    const { signatureUrl, fullUrl, relativePath } = signatureRes.data
+    console.log('开始上传头像:', file.name)
     
-    console.log('获取签名成功:', { signatureUrl, fullUrl, relativePath })
-    
-    // 步骤 2：使用签名直接上传到 OSS（PUT 方式）
-    const response = await fetch(signatureUrl, {
-      method: 'PUT',
-      body: file,
-      headers: {
-        'Content-Type': file.type
-      }
-    })
-    
-    if (!response.ok) {
-      throw new Error(`OSS 上传失败：${response.status} ${response.statusText}`)
-    }
+    // 调用后端 API 上传到 OSS
+    const res = await uploadAvatar(file)
+    const { relativePath } = res.data
     
     console.log('OSS 上传成功，相对路径:', relativePath)
     
-    // 步骤 3：通知父组件保存完整 URL 到数据库
+    // 将相对路径转换为完整 URL，用于前端显示
+    const fullUrl = getFullAvatarUrl(relativePath)
+    
+    // 通知父组件更新显示（完整 URL）
     emit('update:modelValue', fullUrl)
     emit('success', fullUrl)
     
@@ -139,6 +143,7 @@ const uploadFile = async (file: File) => {
 
 // 监听外部值变化
 watch(() => props.modelValue, (newVal) => {
+  console.log('AvatarUploader - modelValue 变化:', newVal)
   if (newVal) {
     // 由父组件处理缓存更新
   }
