@@ -43,7 +43,7 @@
           @click="navigateTo(item.key)"
         >
           <div class="nav-icon-wrapper">
-            <el-icon class="nav-icon" :component="item.icon" />
+            <component :is="item.icon" class="nav-icon" />
           </div>
           <span class="nav-label">{{ item.label }}</span>
           <div class="nav-indicator"></div>
@@ -67,19 +67,6 @@
         <component
           :is="currentComponent"
           v-bind="currentComponentProps"
-          @show-address="showAddressDialog = true"
-          @cancel-order="handleCancelOrder"
-          @contact-chef="handleContactChef"
-          @review-order="handleReviewOrder"
-          @book-again="handleBookAgain"
-          @book-chef="handleBookChef"
-          @join-activity="handleJoinActivity"
-          @view-detail="handleViewOrderDetail"
-          @remove-favorite="handleRemoveFavorite"
-          @edit-profile="handleEditProfile"
-          @change-phone="handleChangePhone"
-          @change-password="handleChangePassword"
-          @delete-account="handleDeleteAccount"
         />
       </transition>
     </main>
@@ -96,70 +83,6 @@
         </div>
       </div>
     </footer>
-
-    <!-- 地址管理对话框 -->
-    <el-dialog v-model="showAddressDialog" title="地址管理" width="600px" class="dark-dialog">
-      <div class="address-list">
-        <div 
-          v-for="(addr, index) in addresses" 
-          :key="index"
-          class="address-item"
-          :class="{ active: addr.isDefault }"
-          @click="selectAddress(addr)"
-        >
-          <div class="address-header">
-            <div class="address-info">
-              <span class="contact-name">{{ addr.name }}</span>
-              <span class="contact-phone">{{ addr.phone }}</span>
-              <el-tag v-if="addr.isDefault" size="small" type="success">默认</el-tag>
-            </div>
-            <div class="address-actions">
-              <el-button size="small" @click.stop="editAddress(addr)">编辑</el-button>
-              <el-button size="small" type="danger" @click.stop="deleteAddress(index)">删除</el-button>
-            </div>
-          </div>
-          <p class="address-detail">
-            <el-icon><Location /></el-icon>
-            {{ addr.fullAddress }}
-          </p>
-        </div>
-      </div>
-      
-      <template #footer>
-        <el-button @click="showAddAddressForm = true">新增地址</el-button>
-        <el-button type="primary" @click="showAddressDialog = false">完成</el-button>
-      </template>
-    </el-dialog>
-
-    <!-- 添加地址对话框 -->
-    <el-dialog v-model="showAddAddressForm" title="添加新地址" width="500px" class="dark-dialog">
-      <el-form :model="newAddress" label-width="80px">
-        <el-form-item label="联系人">
-          <el-input v-model="newAddress.name" placeholder="请输入联系人姓名" />
-        </el-form-item>
-        <el-form-item label="手机号">
-          <el-input v-model="newAddress.phone" placeholder="请输入手机号码" />
-        </el-form-item>
-        <el-form-item label="所在地区">
-          <el-input v-model="newAddress.district" placeholder="请选择所在地区" />
-        </el-form-item>
-        <el-form-item label="详细地址">
-          <el-input 
-            v-model="newAddress.detail" 
-            type="textarea" 
-            :rows="3"
-            placeholder="请输入详细地址，如街道、门牌号等" 
-          />
-        </el-form-item>
-        <el-form-item label="设为默认">
-          <el-switch v-model="newAddress.isDefault" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="showAddAddressForm = false">取消</el-button>
-        <el-button type="primary" @click="saveAddress">保存</el-button>
-      </template>
-    </el-dialog>
   </div>
 </template>
 
@@ -202,7 +125,6 @@ const navItems = [
 
 // 当前组件 - 根据 activeNav 动态返回对应组件 (使用同步组件)
 const currentComponent = computed(() => {
- console.log('[currentComponent] 计算属性触发，activeNav.value:', activeNav.value)
  const componentMap = {
   'profile': PersonalCenter,
   'booking': BookingChef,
@@ -211,36 +133,20 @@ const currentComponent = computed(() => {
   'favorites': Favorites,
   'settings': Settings
  }
- const result = componentMap[activeNav.value]
- console.log('[currentComponent] 返回组件:', result ? result.__name || 'unknown' : 'undefined')
- return result
+ return componentMap[activeNav.value]
 })
 
 // 导航跳转
 const navigateTo = (key) => {
- console.log('=== 导航切换开始 ===')
- console.log('[navigateTo] 当前激活的导航项:', activeNav.value)
- console.log('[navigateTo] 目标导航项:', key)
- console.log('[navigateTo] 调用时间:', new Date().toISOString())
-
  const currentIndex = navItems.findIndex(item => item.key === activeNav.value)
  const targetIndex = navItems.findIndex(item => item.key === key)
  
- console.log('[navigateTo] 当前位置索引:', currentIndex)
- console.log('[navigateTo] 目标位置索引:', targetIndex)
- 
  // 根据导航项位置判断方向
  if (targetIndex > currentIndex) {
- navDirection.value = 'left' // 向右切换，内容向左移出
- console.log('[navigateTo] 设置动画方向：向左 slide-left')
+ navDirection.value = 'left'
  } else if (targetIndex < currentIndex) {
- navDirection.value = 'right' // 向左切换，内容向右移出
- console.log('[navigateTo] 设置动画方向：向右 slide-right')
- } else {
- console.log('[navigateTo] 位置相同，不设置方向')
+ navDirection.value = 'right'
  }
- 
- console.log('[navigateTo] navDirection 当前值:', navDirection.value)
  
  const routeMap = {
   'profile': '/service/personal',
@@ -250,22 +156,15 @@ const navigateTo = (key) => {
   'favorites': '/service/favorites',
   'settings': '/service/settings'
  }
- console.log('[navigateTo] 即将路由跳转到:', routeMap[key])
  
  // 先设置 activeNav，等待 DOM 更新后再执行路由跳转
- console.log('[navigateTo] 设置 activeNav.value =', key)
  activeNav.value = key
  
- console.log('[navigateTo] 等待 nextTick...')
  // 使用 nextTick 确保组件已经准备好
  nextTick(() => {
- console.log('[navigateTo] nextTick 回调执行，当前 activeNav.value:', activeNav.value)
- console.log('[navigateTo] 执行 router.replace:', routeMap[key])
   // 使用 replace 而不是 push，避免在历史记录中堆叠
   // 重要：使用 replaceState 来避免触发组件重新创建
   window.history.replaceState({}, '', routeMap[key])
- console.log('[navigateTo] history.replaceState 完成')
- console.log('=== 导航切换结束 ===\n')
  })
 }
 
@@ -273,9 +172,6 @@ const navigateTo = (key) => {
 const currentComponentProps = computed(() => ({
  userPhone: userInfo.value.phone ? formatPhone(userInfo.value.phone) : ''
 }))
-
-// 主题切换 (已移除，固定使用暗色模式)
-// const isDarkMode = ref(false)
 const isNavHidden = ref(false)  // 导航栏隐藏状态 - 默认显示
 let lastScrollPosition = 0  // 上次滚动位置
 const mainContainer = ref(null)  // 主容器引用
@@ -336,37 +232,7 @@ const userInfo = ref({
 
 const defaultAvatar = 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png'
 
-// 地址管理
-const showAddressDialog = ref(false)
-const showAddAddressForm = ref(false)
-const addresses = ref([
-  {
-    name: '张三',
-    phone: '138****1234',
-    isDefault: true,
-    fullAddress: '北京市朝阳区建国路 93 号万达广场 A 座 1001 室'
-  },
-  {
-    name: '李四',
-    phone: '139****5678',
-    isDefault: false,
-    fullAddress: '上海市浦东新区陆家嘴环路 1000 号 B 座 2002 室'
-  }
-])
 
-const newAddress = ref({
-  name: '',
-  phone: '',
-  district: '',
-  detail: '',
-  isDefault: false
-})
-
-// 格式化手机号
-const formatPhone = (phone) => {
-  if (!phone) return ''
-  return phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2')
-}
 
 // 退出登录
 const handleLogout = () => {
@@ -415,190 +281,19 @@ const loadUserInfo = async () => {
   }
 }
 
-// 地址操作
-const selectAddress = (addr) => {
-  console.log('选择地址:', addr)
-}
 
-const editAddress = (addr) => {
-  newAddress.value = { ...addr }
-  showAddAddressForm.value = true
-}
 
-const deleteAddress = (index) => {
-  addresses.value.splice(index, 1)
-  ElMessage.success('地址已删除')
-}
+// 订单操作 - 基础方法（已移除，由子组件自行处理）
+// 联系厨师、评价订单等功能应该在各自的子组件中实现
 
-const saveAddress = () => {
-  if (!newAddress.value.name || !newAddress.value.phone) {
-    ElMessage.warning('请填写完整信息')
-    return
-  }
-  
-  addresses.value.push({
-    ...newAddress.value,
-    fullAddress: `${newAddress.value.district}${newAddress.value.detail}`
-  })
-  
-  showAddAddressForm.value = false
-  newAddress.value = {
-    name: '',
-    phone: '',
-    district: '',
-    detail: '',
-    isDefault: false
-  }
-  
-  ElMessage.success('地址保存成功')
-}
+// 事件处理代理方法（已移除，由子组件自行处理）
 
-// 订单操作 - 基础方法
-const cancelOrder = (orderId) => {
-  ElMessageBox.confirm('确定要取消这个订单吗？', '提示', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning'
-  }).then(() => {
-    ElMessage.success('订单已取消')
-  }).catch(() => {})
-}
+// 事件处理代理方法（已移除，由子组件自行处理）
 
-const contactChef = (order) => {
-  ElMessage.info(`正在联系${order.chefName}...`)
-}
 
-const reviewOrder = (order) => {
-  ElMessageBox.prompt('请为本次服务打分并写下评价', '评价', {
-    confirmButtonText: '提交',
-    cancelButtonText: '取消',
-    inputPattern: /.+/,
-    inputErrorMessage: '评价内容不能为空'
-  }).then(({ value }) => {
-    ElMessage.success('评价提交成功')
-  }).catch(() => {})
-}
-
-const bookAgain = (order) => {
-  ElMessage.success('正在为您重新预约...')
-}
-
-// 事件处理代理方法
-const handleCancelOrder = (orderId) => cancelOrder(orderId)
-const handleContactChef = (order) => contactChef(order)
-const handleReviewOrder = (order) => reviewOrder(order)
-const handleBookAgain = (order) => bookAgain(order)
-
-const handleBookChef = (chef) => {
-  ElMessageBox.confirm(`确定要预约${chef.name}师傅吗？`, '预约确认', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'success'
-  }).then(() => {
-    router.push('/chefs')
-    ElMessage.success('跳转至预约页面')
-  }).catch(() => {})
-}
-
-const handleJoinActivity = (activity) => {
-  ElMessage.success(`已参与${activity.title}`)
-}
-
-const handleViewOrderDetail = (order) => {
-  router.push(`/order/${order.id}`)
-}
-
-const handleRemoveFavorite = (id) => {
-  ElMessage.success('已取消收藏')
-}
-
-const handleEditProfile = () => {
-  ElMessage.info('个人信息编辑功能开发中')
-}
-
-const handleChangePhone = () => {
-  ElMessage.info('手机号修改功能开发中')
-}
-
-const handleChangePassword = () => {
-  ElMessage.info('密码修改功能开发中')
-}
-
-const handleDeleteAccount = () => {
-  ElMessageBox.confirm('确定要注销账户吗？此操作不可恢复！', '警告', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'error'
-  }).then(() => {
-    ElMessage.error('注销功能开发中')
-  }).catch(() => {})
-}
-
-// 动画钩子函数 - 用于调试
-const onBeforeEnter= (el) => {
- console.log('🎬 [动画钩子] before-enter')
- console.log('  navDirection:', navDirection.value)
- console.log('   el:', el)
- console.log('   el 类型:', el.constructor.name)
-}
-
-const onEnter = (el) => {
- console.log('🎬 [动画钩子] enter')
- console.log('  navDirection:', navDirection.value)
-  // 不需要调用 done，Vue 会自动等待 CSS 动画完成
-}
-
-const onAfterEnter= (el) => {
- console.log('🎬 [动画钩子] after-enter')
- console.log('  el:', el)
-}
-
-const onBeforeLeave = (el) => {
- console.log('🎬 [动画钩子] before-leave')
- console.log('  navDirection:', navDirection.value)
- console.log('   el:', el)
-}
-
-const onLeave = (el) => {
- console.log('🎬 [动画钩子] leave')
- console.log('  navDirection:', navDirection.value)
- console.log('   el:', el)
-  // 不要调用 done！Vue 会自动等待 CSS 动画完成
-  // 手动调用 done 会导致元素被立即移除而报错
-}
-
-const onAfterLeave = (el) => {
- console.log('🎬 [动画钩子] after-leave')
- console.log('  el:', el)
- // 动画完成后重置方向 - 移到下一帧执行，确保不会干扰渲染
- requestAnimationFrame(() => {
-  navDirection.value = ''
- console.log('动画完成，已重置 navDirection 为空')
- })
-}
-
-// 监听 navDirection 变化
-watch(navDirection, (newVal, oldVal) => {
-  console.log('👀 [Watch 监听] navDirection 变化:')
-  console.log('  旧值:', oldVal)
-  console.log('  新值:', newVal)
-  console.trace('调用堆栈:') // 打印调用堆栈，找出是谁修改了值
-})
-
-// 监听 activeNav 变化
-watch(activeNav, (newVal, oldVal) => {
- console.log('👀 [Watch 监听] activeNav 变化:')
- console.log('  旧值:', oldVal)
- console.log('  新值:', newVal)
- console.trace('调用堆栈:') // 打印调用堆栈，找出是谁修改了值
-})
 
 // 初始化
 onMounted(() => {
- console.log('[onMounted] ServiceCenter 组件挂载')
- console.log('[onMounted] 当前路由路径:', router.currentRoute.value.path)
- console.log('[onMounted] 当前 activeNav:', activeNav.value)
-
  // 延迟添加滚动监听，确保 DOM 已完全渲染
  setTimeout(() => {
    // 检查所有可能有滚动条的元素
@@ -629,7 +324,6 @@ onMounted(() => {
 // 根据路由路径更新激活的导航项
 const updateActiveNavFromRoute = (path) => {
  const currentPath = path || router.currentRoute.value.path
- console.log('[updateActiveNavFromRoute] 当前路径:', currentPath)
  const routeMap = {
   '/service/personal': 'profile',
   '/service/booking': 'booking',
@@ -640,7 +334,6 @@ const updateActiveNavFromRoute = (path) => {
  }
  
 if (routeMap[currentPath]) {
- console.log('[updateActiveNavFromRoute] 设置 activeNav 为:', routeMap[currentPath])
  activeNav.value = routeMap[currentPath]
  }
 }
@@ -941,8 +634,8 @@ onUnmounted(cleanupListeners)
 }
 
 .nav-icon-wrapper {
-  width: 40px;
-  height: 40px;
+  width: 30px;
+  height: 30px;
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -962,7 +655,7 @@ onUnmounted(cleanupListeners)
 
 .nav-icon {
   font-size: 20px;  /* 从 24px 减小到 20px */
-  color: #667eea;
+  color: #a5b4fc;  /* 使用更亮的颜色，提高对比度 */
   transition: var(--transition);
 }
 

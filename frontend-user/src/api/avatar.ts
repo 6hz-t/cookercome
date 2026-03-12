@@ -2,7 +2,7 @@
  * 头像上传 API
  */
 
-import request from './request'
+import request from '../utils/request'
 
 /**
  * 上传头像（后端代理模式）

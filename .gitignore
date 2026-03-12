@@ -1,8 +1,11 @@
+<<<<<<< HEAD
+=======
 # 忽略所有项目目录，除了 frontend-user 和 Backend/backend-user
 # 先忽略所有顶层目录
-front-admin/
+front-user/
 front-cooker/
 demo/
+Backend/backend-user/
 Backend/backend-cooker/
 Backend/backend-dp/
 
@@ -11,6 +14,7 @@ node_modules/
 .idea/
 .vscode/
 
+>>>>>>> 03258208715ef842f65c65ac962f4f9fe5f8eb86
 # Compiled class file
 *.class
 

@@ -32,8 +32,8 @@
 import { ref, computed, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Camera, Loading } from '@element-plus/icons-vue'
-import { uploadToOSS, getUploadSignature, saveAvatar } from '@/api/avatar'
-import { getUserAvatar, updateUserAvatar } from '@/utils/avatar'
+import { getOssSignature } from '@/api/settings'
+import { getUserAvatar } from '@/utils/avatar'
 
 interface Props {
   modelValue?: string  // 头像 URL
@@ -92,26 +92,33 @@ const handleFileChange = async (event: Event) => {
   await uploadFile(file)
 }
 
-// 上传文件
+// 上传文件到 OSS
 const uploadFile = async (file: File) => {
   try {
     uploading.value = true
     
-    // 方案 1：前端直传 OSS（推荐）
-    // 步骤 1：获取上传签名
-    const signatureRes = await getUploadSignature(file.name)
+    // 步骤 1：获取上传签名（从后端）
+    const signatureRes = await getOssSignature(file.name)
     const { signatureUrl, fullUrl, relativePath } = signatureRes.data
     
-    // 步骤 2：直接上传到 OSS
-    await uploadToOSS(signatureUrl, file)
+    console.log('获取签名成功:', { signatureUrl, fullUrl, relativePath })
     
-    // 步骤 3：保存相对路径到数据库
-    await saveAvatar(relativePath)
+    // 步骤 2：使用签名直接上传到 OSS（PUT 方式）
+    const response = await fetch(signatureUrl, {
+      method: 'PUT',
+      body: file,
+      headers: {
+        'Content-Type': file.type
+      }
+    })
     
-    // 更新本地缓存
-    updateUserAvatar(fullUrl, true)
+    if (!response.ok) {
+      throw new Error(`OSS 上传失败：${response.status} ${response.statusText}`)
+    }
     
-    // 通知父组件
+    console.log('OSS 上传成功，相对路径:', relativePath)
+    
+    // 步骤 3：通知父组件保存完整 URL 到数据库
     emit('update:modelValue', fullUrl)
     emit('success', fullUrl)
     
@@ -133,7 +140,7 @@ const uploadFile = async (file: File) => {
 // 监听外部值变化
 watch(() => props.modelValue, (newVal) => {
   if (newVal) {
-    updateUserAvatar(newVal, true)
+    // 由父组件处理缓存更新
   }
 })
 </script>

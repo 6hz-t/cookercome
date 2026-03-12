@@ -47,8 +47,8 @@
           <div class="order-amount">¥{{ order.totalAmount }}</div>
         </div>
         <div class="order-actions">
-          <el-button size="small" @click="$emit('view-detail', order)">查看详情</el-button>
-          <el-button v-if="order.status === 'completed'" size="small" type="primary" @click="$emit('review-order', order)">评价</el-button>
+          <el-button size="small" @click="viewOrderDetail(order)">查看详情</el-button>
+          <el-button v-if="order.status === 'completed'" size="small" type="primary" @click="reviewOrder(order)">评价</el-button>
         </div>
       </div>
     </div>
@@ -58,8 +58,7 @@
 <script setup>
 import { ref } from 'vue'
 import { Document, Menu, Clock, CircleCheck, Close, Calendar } from '@element-plus/icons-vue'
-
-const emit = defineEmits(['view-detail', 'review-order'])
+import { ElMessage } from 'element-plus'
 
 const orderTab = ref('all')
 
@@ -105,11 +104,43 @@ const getOrderStatusText = (status) => {
   }
   return textMap[status] || status
 }
+
+// 订单操作
+const viewOrderDetail = (order) => {
+  // TODO: 跳转到订单详情页或打开详情对话框
+  console.log('查看订单详情:', order)
+}
+
+const reviewOrder = (order) => {
+  // TODO: 打开评价对话框并提交到后端
+  ElMessage.success('评价功能开发中')
+}
 </script>
 
 <style scoped>
 .my-orders {
   min-height: 600px;
+}
+
+/* 面板头部 */
+.panel-header {
+  margin-bottom: 25px;
+}
+
+.panel-title {
+  font-size: 24px;
+  font-weight: bold;
+  color: var(--text-primary);
+  margin: 0 0 10px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.panel-desc {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin: 0;
 }
 
 .order-tabs {

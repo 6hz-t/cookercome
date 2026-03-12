@@ -46,7 +46,7 @@
     </div>
 
     <div class="order-actions">
-     
+      <button class="refuse-btn" @click="handleRefuse">拒单</button>
       <button class="accept-btn" @click="handleAccept">接单</button>
     </div>
 
@@ -73,6 +73,9 @@ export default {
   methods: {
     handleAccept() {
       this.$emit('accept', this.order);
+    },
+    handleReject() {
+      this.$emit('reject', this.order);
     }
   },
   created() {
