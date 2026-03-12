@@ -22,8 +22,16 @@
             <el-form-item label="姓名" prop="name">
                 <el-input v-model="chef.name" placeholder="请输入姓名"></el-input>
             </el-form-item>
-
-            <el-form-item label="头像">
+            <el-form-item label="性别" prop="sex">
+                <el-radio-group v-model="chef.sex">
+                    <el-radio label="1">男</el-radio>
+                    <el-radio label="0">女</el-radio>
+                </el-radio-group>
+            </el-form-item>
+            <el-form-item label="身份证号" prop="sfzid">
+                <el-input v-model="chef.sfzid" placeholder="请输入身份证号"></el-input>
+            </el-form-item>
+            <el-form-item label="身份证正面">
                 <el-upload class="avatar-uploader" action="https://run.mocky.io/v3/9d059bf9-4660-45f2-925d-ce80ad6c4d15"
                     :show-file-list="false" :on-success="handleAvatarSuccess" :before-upload="beforeAvatarUpload">
                     <img v-if="imageUrl" :src="imageUrl" class="avatar" />
@@ -32,18 +40,23 @@
                     </el-icon>
                 </el-upload>
             </el-form-item>
+            <el-form-item label="身份证反面">
+                <el-upload class="avatar-uploader" action="https://run.mocky.io/v3/9d059bf9-4660-45f2-925d-ce80ad6c4d15"
+                    :show-file-list="false" :on-success="handleAvatarSuccess" :before-upload="beforeAvatarUpload">
+                    <img v-if="imageUrl" :src="imageUrl" class="avatar" />
+                    <el-icon v-else class="avatar-uploader-icon">
+                        <Plus />
+                    </el-icon>
+                </el-upload>
+            </el-form-item>
+
+
             <el-form-item label="电话" prop="phone">
                 <el-input v-model="chef.phone" placeholder="请输入电话号码"></el-input>
             </el-form-item>
-            <el-form-item label="身份证号" prop="sfzid">
-                <el-input v-model="chef.sfzid" placeholder="请输入身份证号"></el-input>
-            </el-form-item>
+
             <el-form-item label="常驻地址">
-                <el-input
-                    v-model="chef.address.fullAddress"
-                    placeholder="请输入地址或点击右侧图标选择"
-                    clearable
-                >
+                <el-input v-model="chef.address.fullAddress" placeholder="请输入地址或点击右侧图标选择" clearable>
                     <template #append>
                         <el-button :icon="Position" @click="openMapPicker" title="地图选点">
                             地图选点
@@ -100,6 +113,27 @@
         </el-dialog>
     </div>
 </template>
+<!--         /*
+        * 姓名
+        * 手机号
+        * 身份证正面
+        * 身份证反面
+        * 性别
+        * 身份证号
+        * 头像
+        * 注册时间
+        * 状态（0：在线，1：离线）
+        * 评分
+        * 位置经度
+        * 位置纬度
+        * 位置全址
+        * 简介
+        * 审核状态
+        * 菜系
+  
+        *
+        *
+        * */ -->
 
 <script>
 import { Position, UploadFilled, Plus } from '@element-plus/icons-vue'
@@ -153,8 +187,6 @@ export default {
         };
     },
     methods: {
-<<<<<<< HEAD
-=======
         /**
          * 将百度地图墨卡托坐标转换为经纬度坐标
          * @param {number} mercatorX - 墨卡托 X 坐标（米）
@@ -167,7 +199,6 @@ export default {
             y = 180 / Math.PI * (2 * Math.atan(Math.exp(y * Math.PI / 180)) - Math.PI / 2);
             return { lng: x, lat: y };
         },
->>>>>>> 03258208715ef842f65c65ac962f4f9fe5f8eb86
         openMapPicker() {
             this.mapDialogVisible = true;
             this.$nextTick(() => {
@@ -176,6 +207,14 @@ export default {
                 }, 100);
             });
         },
+        /**
+         * 初始化百度地图选择器
+         * 创建地图实例并设置点击事件监听，当用户点击地图时：
+         * - 将墨卡托坐标转换为经纬度坐标
+         * - 在点击位置添加标记点
+         * - 通过逆地理编码获取地址信息
+         * @returns {void} 无返回值
+         */
         initMapPicker() {
             if (!this.$refs.mapContainer) {
                 console.error('地图容器未找到');
@@ -200,34 +239,12 @@ export default {
             this.map.addControl(new BMap.NavigationControl());
             this.map.addControl(new BMap.ScaleControl());
 
-            // 点击地图事件
+            /**
+             * 地图点击事件处理
+             * 处理用户点击地图后的坐标获取、标记点更新和地址解析
+             */
             this.map.addEventListener('click', (e) => {
-                console.log('点击事件完整对象 e:', e);
-                console.log('e 的所有属性:', Object.keys(e));
-                
-                // BMapGL 点击事件返回的坐标在 e.point，但是墨卡托坐标
-                // 需要使用 map.pixelToPoint 或直接从 e 中获取
                 let lngLatPoint = null;
-<<<<<<< HEAD
-                
-                // 尝试多种方式获取经纬度
-                if (e.lngLat) {
-                    lngLatPoint = e.lngLat;
-                    console.log('使用 e.lngLat');
-                } else if (e.latLng) {
-                    lngLatPoint = e.latLng;
-                    console.log('使用 e.latLng');
-                } else if (e.point) {
-                    console.log('e.point:', e.point);
-                    console.log('e.point.lng:', e.point?.lng, 'e.point.lat:', e.point?.lat);
-                    // 如果 e.point 直接有 lng/lat 属性
-                    if (e.point.lng && e.point.lat) {
-                        lngLatPoint = e.point;
-                        console.log('使用 e.point (已有 lng/lat)');
-                    }
-                }
-                
-=======
                 let lng, lat;
 
                 // BMapGL 点击事件返回的 e.point 是墨卡托坐标（单位：米），需要转换为经纬度
@@ -245,14 +262,10 @@ export default {
                     console.log('转换后的经纬度:', lng, lat);
                 }
 
->>>>>>> 03258208715ef842f65c65ac962f4f9fe5f8eb86
                 if (!lngLatPoint) {
                     console.error('无法获取经纬度坐标');
                     return;
                 }
-                
-                const lng = lngLatPoint.lng;
-                const lat = lngLatPoint.lat;
 
                 console.log('点击位置坐标 (经纬度):', lng, lat);
                 this.selectedPoint = lngLatPoint;
@@ -283,7 +296,7 @@ export default {
         },
         handleGeocodeResult(rs, lng, lat) {
             console.log('handleGeocodeResult 收到:', rs);
-            
+
             // BMapGL 返回的是 addressComponent 而不是 addressComponents
             const comp = rs.addressComponent || rs.addressComponents || {};
             const address = rs.address || rs.formatted_address || '';
@@ -362,6 +375,7 @@ export default {
 }
 
 .avatar-uploader .el-upload {
+    /* 虚线框 */
     border: 1px dashed #409eff;
     border-radius: 6px;
     cursor: pointer;
