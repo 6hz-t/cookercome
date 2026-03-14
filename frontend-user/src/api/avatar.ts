@@ -1,26 +1,8 @@
 /**
- * 头像上传 API
+ * 头像上传 API（前端直传 OSS 模式）
  */
 
 import request from '../utils/request'
-
-/**
- * 上传头像（后端代理模式）
- * @param file 头像文件
- */
-export function uploadAvatar(file: File) {
-  const formData = new FormData()
-  formData.append('file', file)
-  
- return request({
-  url: '/avatar/upload',
-  method: 'post',
-  data: formData,
-  headers: {
-     'Content-Type': 'multipart/form-data'
-   }
-  })
-}
 
 /**
  * 获取上传签名（前端直传 OSS 模式）
@@ -28,31 +10,9 @@ export function uploadAvatar(file: File) {
  */
 export function getUploadSignature(filename: string) {
  return request({
-  url: '/avatar/signature',
+  url: '/customer/settings/oss/signature',
   method: 'get',
   params: { filename }
-  })
-}
-
-/**
- * 保存头像路径到数据库（前端直传 OSS 后调用）
- * @param relativePath 相对路径
- */
-export function saveAvatar(relativePath: string) {
- return request({
-  url: '/avatar/save',
-  method: 'post',
-  data: { relativePath },
-  headers: {
-     'Content-Type': 'application/x-www-form-urlencoded'
-   },
-  transformRequest: [(data:any) => {
-    let ret = ''
-    for (const key in data) {
-     ret += encodeURIComponent(key) + '=' + encodeURIComponent(data[key]) + '&'
-    }
-   return ret
-  }]
   })
 }
 

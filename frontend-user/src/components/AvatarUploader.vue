@@ -38,8 +38,8 @@
 import { ref, computed, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Camera, Loading } from '@element-plus/icons-vue'
-import { uploadAvatar } from '@/api/settings'
-import { getUserAvatar, getFullAvatarUrl } from '@/utils/avatar'
+import { uploadToOSS, getUploadSignature } from '@/api/avatar'
+import { getUserAvatar } from '@/utils/avatar'
 
 interface Props {
   modelValue?: string  // 头像 URL
@@ -106,25 +106,27 @@ const handleFileChange = async (event: Event) => {
   await uploadFile(file)
 }
 
-// 上传文件到 OSS（后端代理模式）
+// 上传文件到 OSS（前端直传模式）
 const uploadFile = async (file: File) => {
   try {
     uploading.value = true
     
     console.log('开始上传头像:', file.name)
     
-    // 调用后端 API 上传到 OSS
-    const res = await uploadAvatar(file)
-    const { relativePath } = res.data
+    // 1. 向后端请求上传签名
+    const signatureRes = await getUploadSignature(file.name)
+    const { signatureUrl, relativePath, fullUrl } = signatureRes.data
     
-    console.log('OSS 上传成功，相对路径:', relativePath)
+    console.log('获取签名成功，相对路径:', relativePath)
     
-    // 将相对路径转换为完整 URL，用于前端显示
-    const fullUrl = getFullAvatarUrl(relativePath)
+    // 2. 直接使用签名 URL 上传到 OSS
+    await uploadToOSS(signatureUrl, file)
     
-    // 通知父组件更新显示（完整 URL）
+    console.log('OSS 上传成功')
+    
+    // 3. 通知父组件更新显示（使用完整 URL）
     emit('update:modelValue', fullUrl)
-    emit('success', fullUrl)
+    emit('success', fullUrl, relativePath)
     
     ElMessage.success('头像上传成功')
     

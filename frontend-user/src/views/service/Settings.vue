@@ -249,12 +249,13 @@ const saveProfile = async () => {
 }
 
 // 头像上传成功
-const handleAvatarSuccess = async (fullUrl) => {
+const handleAvatarSuccess = async (fullUrl, relativePath) => {
   // fullUrl 是完整 URL，用于前端显示
+  // relativePath 是相对路径，用于保存到数据库
   profileForm.value.avatar = fullUrl
-  console.log('头像上传成功，完整 URL:', fullUrl)
+  console.log('头像上传成功，完整 URL:', fullUrl, '相对路径:', relativePath)
   
-  // 立即保存到数据库
+  // 立即保存到数据库（使用完整 URL，后端会自动提取相对路径）
   try {
     saving.value = true
     await updateProfile(profileForm.value)

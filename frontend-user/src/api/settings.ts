@@ -22,7 +22,7 @@ export function updateProfile(data: any) {
 }
 
 /**
- * 获取 OSS 上传签名（用于头像直传）
+ * 获取 OSS 上传签名（用于头像前端直传）
  */
 export function getOssSignature(fileName: string) {
   return request({
@@ -32,19 +32,5 @@ export function getOssSignature(fileName: string) {
   })
 }
 
-/**
- * 后端代理上传头像到 OSS（避免 CORS 问题）
- */
-export function uploadAvatar(file: File) {
-  const formData = new FormData()
-  formData.append('file', file)
-  
-  return request({
-    url: '/customer/settings/avatar/upload',
-    method: 'post',
-    data: formData,
-    headers: {
-      'Content-Type': 'multipart/form-data'
-    }
-  })
-}
+// 注意：后端代理上传接口已删除，现在使用前端直传 OSS 模式
+// 请使用 avatar.ts 中的 getUploadSignature 和 uploadToOSS 方法
