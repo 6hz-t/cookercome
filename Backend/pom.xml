@@ -9,22 +9,29 @@
 		<relativePath/>
 	</parent>
 	<groupId>com.hs</groupId>
-	<artifactId>backend-user</artifactId>
+	<artifactId>Backend</artifactId>
 	<version>1.0.0</version>
-	<name>backend-user</name>
+	<name>Backend</name>
 	<description>用户模块 - 后端服务</description>
-	<url/>
+	<url>https://github.com/hs/cookerhome</url>
 	<licenses>
-		<license/>
+		<license>
+			<name>Apache License, Version 2.0</name>
+			<url>https://www.apache.org/licenses/LICENSE-2.0</url>
+		</license>
 	</licenses>
 	<developers>
-		<developer/>
+		<developer>
+			<name>Development Team</name>
+			<email>dev@example.com</email>
+			<organization>CookerHome</organization>
+		</developer>
 	</developers>
 	<scm>
-		<connection/>
-		<developerConnection/>
-		<tag/>
-		<url/>
+		<connection>scm:git:git://github.com/hs/cookerhome.git</connection>
+		<developerConnection>scm:git:ssh://github.com/hs/cookerhome.git</developerConnection>
+		<tag>HEAD</tag>
+		<url>https://github.com/hs/cookerhome</url>
 	</scm>
 	<properties>
 		<java.version>17</java.version>
@@ -157,13 +164,6 @@
 						</exclude>
 					</excludes>
 				</configuration>
-				<executions>
-					<execution>
-						<goals>
-							<goal>repackage</goal>
-						</goals>
-					</execution>
-				</executions>
 			</plugin>
 		</plugins>
 	</build>

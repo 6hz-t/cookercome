@@ -137,7 +137,7 @@
           <el-badge :value="stats.ongoingOrders" :hidden="stats.ongoingOrders === 0" class="func-badge" />
         </div>
 
-        <div class="function-card func-2" @click="$emit('show-address')">
+        <div class="function-card func-2" @click="showAddressDialog = true">
           <div class="func-icon-wrapper">
             <el-icon class="func-icon"><Location /></el-icon>
           </div>
@@ -231,8 +231,8 @@
               </div>
 
               <div class="booking-actions" v-if="order.status === 'confirmed'">
-                <el-button size="small" plain @click.stop="$emit('cancel-order', order.id)">取消订单</el-button>
-                <el-button size="small" type="primary" @click.stop="$emit('contact-chef', order)">联系厨师</el-button>
+                <el-button size="small" plain @click.stop="cancelOrder(order.id)">取消订单</el-button>
+                <el-button size="small" type="primary" @click.stop="contactChef(order)">联系厨师</el-button>
               </div>
             </div>
 
@@ -278,8 +278,8 @@
               </div>
 
               <div class="booking-actions">
-                <el-button size="small" plain @click.stop="$emit('review-order', order)">评价</el-button>
-                <el-button size="small" type="primary" @click.stop="$emit('book-again', order)">再次预约</el-button>
+                <el-button size="small" plain @click.stop="reviewOrder(order)">评价</el-button>
+                <el-button size="small" type="primary" @click.stop="bookAgain(order)">再次预约</el-button>
               </div>
             </div>
 
@@ -288,6 +288,70 @@
         </el-tab-pane>
       </el-tabs>
     </div>
+
+    <!-- 地址管理对话框 -->
+    <el-dialog v-model="showAddressDialog" title="地址管理" width="600px" class="dark-dialog">
+      <div class="address-list">
+        <div 
+          v-for="(addr, index) in addresses" 
+          :key="index"
+          class="address-item"
+          :class="{ active: addr.isDefault }"
+          @click="selectAddress(addr)"
+        >
+          <div class="address-header">
+            <div class="address-info">
+              <span class="contact-name">{{ addr.name }}</span>
+              <span class="contact-phone">{{ addr.phone }}</span>
+              <el-tag v-if="addr.isDefault" size="small" type="success">默认</el-tag>
+            </div>
+            <div class="address-actions">
+              <el-button size="small" @click.stop="editAddress(addr)">编辑</el-button>
+              <el-button size="small" type="danger" @click.stop="deleteAddress(index)">删除</el-button>
+            </div>
+          </div>
+          <p class="address-detail">
+            <el-icon><Location /></el-icon>
+            {{ addr.fullAddress }}
+          </p>
+        </div>
+      </div>
+      
+      <template #footer>
+        <el-button @click="showAddAddressForm = true">新增地址</el-button>
+        <el-button type="primary" @click="showAddressDialog = false">完成</el-button>
+      </template>
+    </el-dialog>
+
+    <!-- 添加地址对话框 -->
+    <el-dialog v-model="showAddAddressForm" title="添加新地址" width="500px" class="dark-dialog">
+      <el-form :model="newAddress" label-width="80px">
+        <el-form-item label="联系人">
+          <el-input v-model="newAddress.name" placeholder="请输入联系人姓名" />
+        </el-form-item>
+        <el-form-item label="手机号">
+          <el-input v-model="newAddress.phone" placeholder="请输入手机号码" />
+        </el-form-item>
+        <el-form-item label="所在地区">
+          <el-input v-model="newAddress.district" placeholder="请选择所在地区" />
+        </el-form-item>
+        <el-form-item label="详细地址">
+          <el-input 
+            v-model="newAddress.detail" 
+            type="textarea" 
+            :rows="3"
+            placeholder="请输入详细地址，如街道、门牌号等" 
+          />
+        </el-form-item>
+        <el-form-item label="设为默认">
+          <el-switch v-model="newAddress.isDefault" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="showAddAddressForm = false">取消</el-button>
+        <el-button type="primary" @click="saveAddress">保存</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -298,6 +362,7 @@ import {
   Camera, Phone, ShoppingCart, CircleCheck, Clock, Star, Top, Right, Finished,
   Menu, Document, Location, Collection, ChatDotRound, Ticket, Service, Calendar, User, Money
 } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
 
 const router = useRouter()
 const emit = defineEmits(['show-address', 'cancel-order', 'contact-chef', 'review-order', 'book-again'])
@@ -406,6 +471,92 @@ const getStatusText = (status) => {
     'cancelled': '已取消'
   }
   return textMap[status] || status
+}
+
+// 地址管理
+const showAddressDialog = ref(false)
+const showAddAddressForm = ref(false)
+const addresses = ref([
+  {
+    name: '张三',
+    phone: '138****1234',
+    isDefault: true,
+    fullAddress: '北京市朝阳区建国路 93 号万达广场 A 座 1001 室'
+  },
+  {
+    name: '李四',
+    phone: '139****5678',
+    isDefault: false,
+    fullAddress: '上海市浦东新区陆家嘴环路 1000 号 B 座 2002 室'
+  }
+])
+
+const newAddress = ref({
+  name: '',
+  phone: '',
+  district: '',
+  detail: '',
+  isDefault: false
+})
+
+// 地址操作
+const selectAddress = (addr) => {
+  // TODO: 选择地址后通知父组件或更新用户默认地址
+  console.log('选择地址:', addr)
+}
+
+const editAddress = (addr) => {
+  newAddress.value = { ...addr }
+  showAddAddressForm.value = true
+}
+
+const deleteAddress = (index) => {
+  addresses.value.splice(index, 1)
+  ElMessage.success('地址已删除')
+}
+
+const saveAddress = () => {
+  if (!newAddress.value.name || !newAddress.value.phone) {
+    ElMessage.warning('请填写完整信息')
+    return
+  }
+  
+  addresses.value.push({
+    ...newAddress.value,
+    fullAddress: `${newAddress.value.district}${newAddress.value.detail}`
+  })
+  
+  showAddAddressForm.value = false
+  newAddress.value = {
+    name: '',
+    phone: '',
+    district: '',
+    detail: '',
+    isDefault: false
+  }
+  
+  ElMessage.success('地址保存成功')
+}
+
+// 订单操作
+const cancelOrder = (orderId) => {
+  // TODO: 调用后端 API 取消订单
+  ElMessage.success('订单已取消')
+}
+
+const contactChef = (order) => {
+  // TODO: 实现联系厨师功能（拨打电话或在线聊天）
+  ElMessage.info(`正在联系${order.chefName}...`)
+}
+
+const reviewOrder = (order) => {
+  // TODO: 打开评价对话框并提交到后端
+  ElMessage.success('评价功能开发中')
+}
+
+const bookAgain = (order) => {
+  // TODO: 跳转到预约页面并填充订单信息
+  ElMessage.info('再次预约功能开发中')
 }
 
 onMounted(() => {

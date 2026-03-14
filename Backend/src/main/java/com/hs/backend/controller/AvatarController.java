@@ -8,6 +8,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -54,8 +56,10 @@ public class AvatarController {
                 return Result.error("图片大小不能超过 5MB");
             }
             
-            // 上传到 OSS
-            String relativePath = ossService.uploadFile(file, "avatar");
+            // 从 SecurityContext 中获取当前登录用户 ID
+            Long userId = getCurrentUserId();
+            Map<String, String> uploadResult = ossService.uploadFile(file, userId, "avatar");
+            String relativePath = uploadResult.get("relativePath");
             
             // 获取完整 URL
           String fullUrl = ossConfig.getFullUrl(relativePath);
@@ -139,5 +143,18 @@ public class AvatarController {
             return "";
         }
         return filename.substring(filename.lastIndexOf("."));
+    }
+    
+    /**
+     * 从 SecurityContext 中获取当前登录用户 ID
+     */
+    private Long getCurrentUserId() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication != null && authentication.getPrincipal() instanceof org.springframework.security.core.userdetails.UserDetails) {
+            org.springframework.security.core.userdetails.UserDetails userDetails = 
+                (org.springframework.security.core.userdetails.UserDetails) authentication.getPrincipal();
+            return Long.parseLong(userDetails.getUsername());
+        }
+        throw new RuntimeException("未找到当前登录用户");
     }
 }

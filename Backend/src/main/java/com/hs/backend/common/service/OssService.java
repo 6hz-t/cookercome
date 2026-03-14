@@ -31,12 +31,55 @@ public class OssService {
     private final OssConfig ossConfig;
     
     /**
-     * 上传文件到 OSS（后端代理模式）
+     * 上传文件到 OSS（后端代理模式，包含完整 URL）
+     * @param file 文件
+     * @param userId 用户 ID
+     * @param dir 目录
+     * @return 包含相对路径和完整 URL 的 Map
+     */
+    public Map<String, String> uploadFile(MultipartFile file, Long userId, String dir) throws IOException {
+        // 生成唯一的文件路径（相对路径）
+        String relativePath = generateRelativePath(file.getOriginalFilename(), userId);
+        
+        try {
+            // 创建文件元数据
+            ObjectMetadata metadata = new ObjectMetadata();
+            metadata.setContentLength(file.getSize());
+            metadata.setContentType(file.getContentType());
+            
+            // 上传文件（带元数据）
+            PutObjectRequest putObjectRequest = new PutObjectRequest(
+                ossConfig.getBucketName(), 
+                relativePath, 
+                file.getInputStream(),
+                metadata
+            );
+            
+            ossClient.putObject(putObjectRequest);
+            
+            // 生成完整 URL
+            String fullUrl = ossConfig.getFullUrl(relativePath);
+            
+            Map<String, String> result = new HashMap<>();
+            result.put("relativePath", relativePath);
+            result.put("fullUrl", fullUrl);
+            
+            log.info("文件上传成功：{}, 完整 URL: {}", relativePath, fullUrl);
+            return result;
+            
+        } catch (IOException e) {
+            log.error("文件上传失败：{}", relativePath, e);
+            throw e;
+        }
+    }
+    
+    /**
+     * 上传文件到 OSS（后端代理模式 - 旧版本，保持兼容）
      * @param file 文件
      * @param dir 目录
      * @return 相对路径
      */
-   public String uploadFile(MultipartFile file, String dir) throws IOException {
+   public String uploadFileToDir(MultipartFile file, String dir) throws IOException {
         // 生成唯一文件名
         String originalFilename = file.getOriginalFilename();
         String extension = "";
@@ -51,28 +94,26 @@ public class OssService {
         try {
             // 创建文件元数据
             ObjectMetadata metadata = new ObjectMetadata();
-            // 设置公共读权限（允许前端直接访问）
-           metadata.setObjectAcl(CannedAccessControlList.PublicRead);
             
             // 上传文件（带元数据）
             PutObjectRequest putObjectRequest = new PutObjectRequest(
                 ossConfig.getBucketName(), 
                 objectKey, 
                 file.getInputStream(),
-               metadata
+                metadata
             );
             
             ossClient.putObject(putObjectRequest);
             
-           log.info("文件上传成功：{}", objectKey);
-           return objectKey;
+            log.info("文件上传成功：{}", objectKey);
+            return objectKey;
             
         } catch (IOException e) {
-           log.error("文件上传失败：{}", objectKey, e);
+            log.error("文件上传失败：{}", objectKey, e);
             throw e;
         }
     }
-    
+
     /**
      * 获取上传签名 URL（用于前端直传）
      * @param filename 文件名（包含目录）

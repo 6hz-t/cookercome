@@ -28,39 +28,30 @@ CREATE TABLE `t_user` (
   KEY `idx_role` (`role`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='统一用户表（客户 + 厨师 + 管理员）';
 
-
 -- ============================================
 -- 2. 厨师专属信息表（关联 t_user.id）
--- 字段补充：姓名、性别、身份证号、手机号、省市区详细地址、头像URL、资质URL
--- 优化：经纬度非空约束、空间索引适配、字段长度/类型合理化、新增必要索引
 -- ============================================
 DROP TABLE IF EXISTS `t_chef_info`;
 CREATE TABLE `t_chef_info` (
-    `id` bigint NOT NULL AUTO_INCREMENT COMMENT '厨师信息 ID',
-    `user_id` varchar(20) NOT NULL COMMENT '关联用户 ID（逻辑外键：t_user.phone）',
-    `real_name` varchar(50) DEFAULT '' COMMENT '厨师真实姓名',
-    `gender` tinyint  DEFAULT 0 COMMENT '性别：0-未知，1-男，2-女',
-    `id_card_no` varchar(18) DEFAULT '' COMMENT '身份证号码（18位）',
-    `phone` varchar(20) DEFAULT '' COMMENT '手机号（支持国际号码，预留长度）',
-    `id_card_front` varchar(512) DEFAULT '' COMMENT '身份证正面照 URL（加长长度适配OSS地址）',
-    `id_card_back` varchar(512) DEFAULT '' COMMENT '身份证背面照 URL',
-    `detail_address` varchar(500) DEFAULT '' COMMENT '详细地址（街道、门牌号等）',
-    `avatar_url` varchar(512) DEFAULT '' COMMENT '厨师头像 URL',
-    `qualification_url` varchar(512) DEFAULT '' COMMENT '厨师资质证书 URL（如厨师证）',
-    `experience_years` tinyint unsigned DEFAULT 0 COMMENT '烹饪年限（无负数，用unsigned）',
-    `introduction` text COMMENT '厨师简介',
-    `audit_status` tinyint  DEFAULT 0 COMMENT '审核状态：0-待审核，1-审核通过，2-审核拒绝',
-    `audit_remark` varchar(500) DEFAULT '' COMMENT '审核备注（加长长度满足备注需求）',
-    `latitude` decimal(10,8)  COMMENT '常驻位置纬度（-90~90，精度约1米）',
-    `longitude` decimal(11,8)  COMMENT '常驻位置经度（-180~180，精度约1米）',
-    `create_time` datetime  DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
-    `update_time` datetime  DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_user_id` (`user_id`) COMMENT '一个用户仅一条厨师信息',
-    UNIQUE KEY `uk_id_card_no` (`id_card_no`) COMMENT '身份证号唯一，避免重复注册',
-    KEY `idx_mobile` (`phone`) COMMENT '手机号索引，便于通过手机号查询',
-    KEY `idx_chef_location` (`latitude`, `longitude`) COMMENT '地理位置索引，用于附近厨师匹配',
-    KEY `idx_audit_status` (`audit_status`) COMMENT '审核状态索引，筛选已审核厨师'
+  `id` bigint NOT NULL AUTO_INCREMENT COMMENT '厨师信息 ID',
+  `user_id` bigint NOT NULL COMMENT '关联用户 ID（逻辑外键：t_user.id）',
+  `id_card_front` varchar(255) DEFAULT '' COMMENT '身份证正面照 URL',
+  `id_card_back` varchar(255) DEFAULT '' COMMENT '身份证背面照 URL',
+  `experience_years` tinyint DEFAULT 0 COMMENT '烹饪年限',
+  `introduction` text COMMENT '厨师简介',
+  `audit_status` tinyint NOT NULL DEFAULT 0 COMMENT '审核状态：0-待审核，1-审核通过，2-审核拒绝',
+  `audit_remark` varchar(255) DEFAULT '' COMMENT '审核备注',
+  `latitude` decimal(10,8) DEFAULT NULL COMMENT '常驻位置纬度',
+  `longitude` decimal(11,8) DEFAULT NULL COMMENT '常驻位置经度',
+  `service_radius` int NOT NULL DEFAULT 5000 COMMENT '服务半径（米）',
+  `price_per_meal` decimal(10,2) DEFAULT 0.00 COMMENT '每餐基础定价',
+  `service_status` tinyint NOT NULL DEFAULT 0 COMMENT '服务状态：0-休息，1-可接单',
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_user_id` (`user_id`) COMMENT '一个用户仅一条厨师信息',
+  KEY `idx_chef_location` (`latitude`, `longitude`) COMMENT '地理位置索引，用于附近厨师匹配',
+  KEY `idx_audit_status` (`audit_status`) COMMENT '审核状态索引，筛选已审核厨师'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='厨师专属信息表';
 
 -- ============================================

@@ -131,6 +131,11 @@ request.interceptors.response.use(
       }
       
       console.log('✅ 开始刷新 token...')
+      console.log('🔍 当前存储检查:')
+      console.log('  - localStorage refreshToken:', localStorage.getItem('refresh_token') ? '存在' : '不存在')
+      console.log('  - sessionStorage refreshToken:', sessionStorage.getItem('refresh_token') ? '存在' : '不存在')
+      console.log('  - localStorage accessToken:', localStorage.getItem('access_token') ? '存在' : '不存在')
+      console.log('  - sessionStorage accessToken:', sessionStorage.getItem('access_token') ? '存在' : '不存在')
       
       // 如果已经在刷新 token，加入队列
       if (isRefreshing) {
@@ -167,8 +172,21 @@ request.interceptors.response.use(
         }
         
         console.log('💾 保存新 token...')
-        // 保存新的 token
-        saveToken(accessToken, newRefreshToken)
+        console.log('  - 新 accessToken 长度:', accessToken?.length)
+        console.log('  - 新 refreshToken 长度:', newRefreshToken?.length)
+        
+        // 🔥 关键：根据 refresh_token 的存储位置判断是否记住我
+        const rememberMe = localStorage.getItem('refresh_token') !== null
+        console.log('📌 刷新时 rememberMe 判断:', rememberMe ? 'localStorage' : 'sessionStorage')
+        
+        // 保存新的 token（传递 rememberMe 参数，确保本地刷本地，会话刷会话）
+        saveToken(accessToken, newRefreshToken, rememberMe)
+        
+        // 🔍 验证保存后是否真的存入了
+        console.log('💾 保存后立即验证:')
+        console.log('  - localStorage accessToken:', localStorage.getItem('access_token') ? '✅ 已保存' : '❌ 未保存')
+        console.log('  - sessionStorage accessToken:', sessionStorage.getItem('access_token') ? '✅ 已保存' : '❌ 未保存')
+        console.log('  - getAccessToken():', getAccessToken() ? '✅ 可获取' : '❌ 无法获取')
         
         // 处理队列中的请求
         processQueue(null, accessToken)

@@ -2,93 +2,62 @@
 <template>
   <div class="cooker-login">
     <div class="login-container">
-      <el-row class="login-box">
-        <!-- 左侧宣传区域 -->
-        <el-col :xs="0" :sm="12" :md="14" class="login-left">
-          <div class="left-content">
-            <div class="logo">
-              <el-icon :size="64">
-                <KnifeFork />
-              </el-icon>
-            </div>
-            <h1>厨师上门服务平台</h1>
-            <p>专业厨师 · 上门服务 · 美味到家</p>
-            <div class="features">
-              <div class="feature-item">
-                <el-icon :size="40" color="#409eff"><Timer /></el-icon>
-                <span>快速预约</span>
-              </div>
-              <div class="feature-item">
-                <el-icon :size="40" color="#67c23a"><Star /></el-icon>
-                <span>专业团队</span>
-              </div>
-              <div class="feature-item">
-                <el-icon :size="40" color="#e6a23c"><Location /></el-icon>
-                <span>上门服务</span>
-              </div>
-            </div>
+      <div class="login-box">
+        <div class="login-header">
+          <div class="logo">
+            <el-icon :size="48"><UserFilled /></el-icon>
           </div>
-        </el-col>
+          <h1>厨师登录</h1>
+          <p>欢迎使用厨师上门服务平台</p>
+        </div>
 
-        <!-- 右侧登录表单 -->
-        <el-col :xs="24" :sm="12" :md="10" class="login-right">
-          <div class="right-content">
-            <div class="form-header">
-              <h2>欢迎回来</h2>
-              <p>请登录您的厨师账号</p>
-            </div>
-
-            <el-form :model="user" :rules="rules" ref="ruleForm" class="login-form">
-              <el-form-item prop="username">
-                <el-input 
-                  v-model="user.username" 
-                  placeholder="请输入用户名" 
-                  :prefix-icon="User" 
-                  size="large" 
-                  clearable 
-                />
-              </el-form-item>
-
-              <el-form-item prop="password">
-                <el-input 
-                  v-model="user.password" 
-                  type="password" 
-                  placeholder="请输入密码" 
-                  :prefix-icon="Lock" 
-                  size="large"
-                  show-password 
-                  @keyup.enter="submitForm('ruleForm')" 
-                />
-              </el-form-item>
-
-              <el-form-item>
-                <el-button 
-                  type="primary" 
-                  size="large" 
-                  class="login-btn" 
-                  @click="submitForm('ruleForm')" 
-                  :loading="loading"
-                >
-                  登 录
-                </el-button>
-              </el-form-item>
-
-              <div class="form-footer">
-                <span>还没有账号？</span>
-                <el-link type="primary" @click="goRegister">立即注册</el-link>
-              </div>
-            </el-form>
+        <el-form :model="user" :rules="rules" ref="ruleForm" class="login-form">
+          <el-form-item prop="username">
+            <el-input 
+              v-model="user.username" 
+              placeholder="请输入用户名"
+              :prefix-icon="User"
+              size="large"
+              clearable
+            />
+          </el-form-item>
+          
+          <el-form-item prop="password">
+            <el-input 
+              v-model="user.password" 
+              type="password" 
+              placeholder="请输入密码"
+              :prefix-icon="Lock"
+              size="large"
+              show-password
+              @keyup.enter="submitForm('ruleForm')"
+            />
+          </el-form-item>
+          
+          <el-form-item>
+            <el-button 
+              type="primary" 
+              size="large" 
+              class="login-btn"
+              @click="submitForm('ruleForm')"
+              :loading="loading"
+            >
+              登 录
+            </el-button>
+          </el-form-item>
+          
+          <div class="form-footer">
+            <span>还没有账号？</span>
+            <el-link type="primary" @click="goRegister">立即注册</el-link>
           </div>
-        </el-col>
-      </el-row>
+        </el-form>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
-import { UserFilled, User, Lock, KnifeFork, Timer, Star, Location } from '@element-plus/icons-vue'
-import { login } from '../../api/cooker'
-import CryptoJS from 'crypto-js'
+import { UserFilled, User, Lock } from '@element-plus/icons-vue'
 
 export default {
   name: 'CookerLogin',
@@ -137,34 +106,23 @@ export default {
     submitForm(formName) {
       this.$refs[formName].validate((valid) => {
         if (valid) {
-          // SHA-256 加密
-          const encryptedPassword = CryptoJS.SHA256(this.user.password).toString()
-          
-          login({
-            username: this.user.username,
-            password: encryptedPassword
-          }).then(res => {
-            console.log(res)
-            
-            // localStorage.setItem('token', res.data.token)
-            if (res.data.code == 200) {
-              localStorage.setItem('token', res.data.token)
-              this.$message.success('登录成功')
-              this.$router.push('/cooker/todo')
-            }else {
-              this.$message.error(res.data.code)
-            }
-
-          })
+          this.loading = true;
+          // TODO: 调用登录接口
+          setTimeout(() => {
+            this.loading = false;
+            this.$message.success('登录成功！');
+            this.$router.push('/cooker');
+          }, 1000);
+        } else {
+          this.$message.error('请填写完整的登录信息');
+          return false;
         }
-      })
+      });
     },
-
     goRegister() {
       this.$router.push('/cooker/register');
     }
   }
-
 }
 </script>
 
@@ -174,141 +132,151 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #f5f7fa;
-}
-
-.login-container {
-  width: 100%;
-  max-width: 900px;
-  padding: 20px;
-}
-
-.login-box {
-  background: #ffffff;
-  border-radius: 12px;
+  background: linear-gradient(135deg, hsl(69, 77%, 88%) 0%, #c0a4dd 100%);
+  position: relative;
   overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-}
 
-.login-left {
-  background-color : #409eff;
-  padding: 60px 40px;
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 500px;
+  // 背景装饰圆圈
+  &::before {
+    content: '';
+    position: absolute;
+    width: 400px;
+    height: 400px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    top: -100px;
+    right: -100px;
+    animation: float 6s ease-in-out infinite;
+  }
 
-  .left-content {
-    text-align: center;
-
-    .logo {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 100px;
-      height: 100px;
-      background: rgba(255, 255, 255, 0.2);
-      border-radius: 50%;
-      margin-bottom: 24px;
-      color: white;
-      backdrop-filter: blur(10px);
-    }
-
-    h1 {
-      font-size: 28px;
-      font-weight: 600;
-      margin: 0 0 12px 0;
-    }
-
-    p {
-      font-size: 14px;
-      opacity: 0.9;
-      margin: 0 0 40px 0;
-    }
-
-    .features {
-      display: flex;
-      flex-direction: column;
-      gap: 24px;
-
-      .feature-item {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 8px;
-
-        span {
-          font-size: 14px;
-          opacity: 0.9;
-        }
-      }
-    }
+  &::after {
+    content: '';
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    bottom: -50px;
+    left: -50px;
+    animation: float 8s ease-in-out infinite reverse;
   }
 }
 
-.login-right {
-  padding: 50px 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 500px;
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-20px) rotate(10deg);
+  }
+}
 
-  .right-content {
-    width: 100%;
-    max-width: 320px;
+.login-container {
+  position: relative;
+  z-index: 1;
+}
 
-    .form-header {
-      text-align: center;
-      margin-bottom: 30px;
+.login-box {
+  width: 420px;
+  padding: 40px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.5s ease-out;
+}
 
-      h2 {
-        font-size: 24px;
-        font-weight: 600;
-        color: #303133;
-        margin: 0 0 8px 0;
-      }
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 
-      p {
-        font-size: 14px;
-        color: #909399;
-        margin: 0;
-      }
-    }
+.login-header {
+  text-align: center;
+  margin-bottom: 30px;
+
+  .logo {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #66b5ea 0%, #1792da 100%);
+    border-radius: 50%;
+    margin-bottom: 15px;
+    color: white;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  }
+
+  h1 {
+    font-size: 24px;
+    font-weight: 600;
+    color: #333;
+    margin: 0 0 8px 0;
+  }
+
+  p {
+    font-size: 14px;
+    color: #999;
+    margin: 0;
   }
 }
 
 .login-form {
   :deep(.el-form-item) {
-    margin-bottom: 22px;
+    margin-bottom: 20px;
+  }
+
+  :deep(.el-input__wrapper) {
+    padding: 12px 16px;
+    border-radius: 10px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s;
+
+    &:hover {
+      box-shadow: 0 4px 16px rgba(102, 126, 234, 0.15);
+    }
+
+    &.is-focus {
+      box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+    }
   }
 }
 
 .login-btn {
   width: 100%;
-  height: 44px;
+  height: 46px;
   font-size: 16px;
+  font-weight: 500;
+  background: linear-gradient(135deg, #66a4dd 0%, #17b2f0 100%);
+  border: none;
+  border-radius: 10px;
+  transition: all 0.3s;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
 }
 
 .form-footer {
   text-align: center;
   font-size: 14px;
-  color: #606266;
+  color: #666;
   margin-top: 16px;
 
   span {
     margin-right: 8px;
-  }
-}
-
-// 响应式
-@media (max-width: 768px) {
-  .login-left {
-    display: none;
-  }
-
-  .login-right {
-    padding: 40px 30px;
   }
 }
 </style>

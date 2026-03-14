@@ -5,6 +5,9 @@
 
 import { getAvatarCache, saveAvatarCache, isAvatarCacheExpired } from './token'
 
+// OSS 基础 URL（从环境变量获取）
+const OSS_BASE_URL = import.meta.env.VITE_OSS_BASE_URL || 'https://lihuahua-cookhome.oss-cn-hangzhou.aliyuncs.com'
+
 // 默认头像（本地静态资源）
 const DEFAULT_AVATAR = 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png'
 
@@ -14,19 +17,38 @@ const DEFAULT_AVATAR = 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e
  * @returns 头像 URL
  */
 export function getUserAvatar(userInfo?: any): string {
-  // 1. 如果传入了 userInfo 且有 avatar，直接使用
+  // 1. 如果传入了 userInfo 且有 avatar，判断是相对路径还是完整 URL
   if (userInfo && userInfo.avatar) {
-    return userInfo.avatar
+    return getFullAvatarUrl(userInfo.avatar)
   }
   
   // 2. 尝试从缓存获取
   const cache = getAvatarCache()
   if (cache && cache.url) {
-    return cache.url
+    return getFullAvatarUrl(cache.url)
   }
   
   // 3. 返回默认头像
   return DEFAULT_AVATAR
+}
+
+/**
+ * 将相对路径转换为完整 URL
+ * @param avatar - 头像路径（可能是相对路径或完整 URL）
+ * @returns 完整的头像 URL
+ */
+export function getFullAvatarUrl(avatar: string): string {
+  if (!avatar) {
+    return DEFAULT_AVATAR
+  }
+  
+  // 如果已经是完整 URL，直接返回
+  if (avatar.startsWith('http://') || avatar.startsWith('https://')) {
+    return avatar
+  }
+  
+  // 如果是相对路径，拼接 OSS 基础 URL
+  return `${OSS_BASE_URL}/${avatar}`
 }
 
 /**

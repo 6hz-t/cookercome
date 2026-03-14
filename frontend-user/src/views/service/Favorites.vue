@@ -62,6 +62,27 @@ const favorites = ref([
   min-height: 600px;
 }
 
+/* 面板头部 */
+.panel-header {
+  margin-bottom: 25px;
+}
+
+.panel-title {
+  font-size: 24px;
+  font-weight: bold;
+  color: var(--text-primary);
+  margin: 0 0 10px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.panel-desc {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
 .favorites-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

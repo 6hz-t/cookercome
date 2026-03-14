@@ -1,13 +1,14 @@
-# 忽略所有项目目录，除了 frontend-user 和 Backend/backend-user
-# 先忽略所有顶层目录
-front-user/
-front-cooker/
-demo/
-Backend/backend-user/
-Backend/backend-cooker/
-Backend/backend-dp/
+# 前端项目目录（如果不需要忽略，请删除前面的 #）
+# front-user/
+# front-cooker/
+# demo/
 
-# 忽略其他不相关的目录
+# Backend 子模块目录（如果不需要忽略，请删除前面的 #）
+# Backend/backend-user/
+# Backend/backend-cooker/
+# Backend/backend-dp/
+
+# 通用忽略
 node_modules/
 .idea/
 .vscode/

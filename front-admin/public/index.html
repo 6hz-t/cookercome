@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>上门服务管理端</title>
+  <!-- 引入Element Plus样式 -->
+  <link rel="stylesheet" href="https://unpkg.com/element-plus/dist/index.css">
+  <!-- 引入Vue3 -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <!-- 引入Element Plus -->
+  <script src="https://unpkg.com/element-plus/dist/index.full.js"></script>
+  <!-- 简单样式（新手先不改，后续再调） -->
+  <style>
+    * { margin: 0; padding: 0; }
+    body { height: 100vh; }
+  </style>
+</head>
+<body>
+  
+<div id="app">
+  <!-- 整个页面容器：侧边栏+主内容区 -->
+  <div style="display: flex; height: 100vh;">
+    <!-- 侧边栏：宽度200px，背景色深一点 -->
+    <div style="width: 200px; background-color: #d1dae1; color: white;">
+      <!-- 侧边栏logo -->
+      <div style="padding: 16px; text-align: center; border-bottom: 1px solid #404e61;">
+        <h3>管理端</h3>
+      </div>
+
+      <!-- 侧边栏菜单：用Element Plus的el-menu -->
+      <el-menu
+        default-active="1"
+        class="el-menu-vertical-demo"
+        background-color="#f8f9fa"
+        text-color="#333"
+        active-text-color="#409eff"
+      >
+        <!-- 核心管理分组 -->
+        <el-menu-item-group title="核心管理">
+          <el-menu-item index="1">
+            <el-icon><User /></el-icon>
+            <span>账号管控</span>
+          </el-menu-item>
+          <el-menu-item index="2">
+            <el-icon><Document /></el-icon>
+            <span>厨师审核</span>
+          </el-menu-item>
+          <el-menu-item index="3">
+            <el-icon><DataLine /></el-icon>
+            <span>基础数据管理</span>
+          </el-menu-item>
+        </el-menu-item-group>
+
+        <!-- 业务运营分组 -->
+        <el-menu-item-group title="业务运营">
+          <el-menu-item index="4">
+            <el-icon><Document /></el-icon>
+            <span>订单管控</span>
+          </el-menu-item>
+          <el-menu-item index="5">
+            <el-icon><DataAnalysis /></el-icon>
+            <span>数据统计</span>
+          </el-menu-item>
+        </el-menu-item-group>
+      </el-menu>
+    </div>
+
+    <!-- 主内容区：占满剩余宽度 -->
+    <div style="flex: 1; display: flex; flex-direction: column;">
+      <!-- 顶部导航：显示管理员名称+退出按钮 -->
+      <div style="padding: 0 20px; height: 60px; line-height: 60px; border-bottom: 1px solid #e6e6e6; display: flex; justify-content: space-between;">
+        <div>欢迎，超级管理员</div>
+        <el-button type="text" @click="logout">退出登录</el-button>
+      </div>
+
+      <!-- 内容主体：占满剩余高度，padding让内容不贴边 -->
+      <div style="flex: 1; padding: 20px; background-color: #f5f7fa; overflow: auto;">
+
+        <!-- 这里后续放仪表盘/用户列表等内容 -->
+        <h2>首页</h2>
+        <!-- 内容主体：仪表盘 -->
+        <div style="flex: 1; padding: 20px; background-color: #f5f7fa; overflow: auto;">
+          <!-- 第一步：数据卡片（4个卡片并排，用el-row+el-col布局） -->
+          <el-row :gutter="20" style="margin-bottom: 20px;">
+            <!-- 总用户数卡片 -->
+            <el-col :span="6">
+              <el-card>
+                <div style="font-size: 14px; color: #666; margin-bottom: 10px;">总用户数</div>
+                <div style="font-size: 24px; font-weight: bold;">12580</div>
+                <div style="font-size: 12px; color: #3ac277; margin-top: 10px;">↑ 较昨日 +12%</div>
+              </el-card>
+            </el-col>
+            <!-- 今日新增卡片 -->
+            <el-col :span="6">
+              <el-card>
+                <div style="font-size: 14px; color: #666; margin-bottom: 10px;">今日新增</div>
+                <div style="font-size: 24px; font-weight: bold;">236</div>
+                <div style="font-size: 12px; color: #67c23a; margin-top: 10px;">↑ 较昨日 +8%</div>
+              </el-card>
+            </el-col>
+            <!-- 订单总数卡片 -->
+            <el-col :span="6">
+              <el-card>
+                <div style="font-size: 14px; color: #666; margin-bottom: 10px;">今日订单</div>
+                <div style="font-size: 24px; font-weight: bold;">8960</div>
+                <div style="font-size: 12px; color: #f56c6c; margin-top: 10px;">↓ 较昨日 -3%</div>
+              </el-card>
+            </el-col>
+            <!-- 待处理任务卡片 -->
+            <el-col :span="6">
+              <el-card>
+                <div style="font-size: 14px; color: #666; margin-bottom: 10px;">待处理</div>
+                <div style="font-size: 24px; font-weight: bold;">128</div>
+                <div style="font-size: 12px; color: #67c23a; margin-top: 10px;">↑ 较昨日 +5%</div>
+              </el-card>
+            </el-col>
+          </el-row>
+
+          <!-- 第二步：最近操作日志表格 -->
+          <el-card title="最近操作日志">
+            <el-table :data="logList" border style="width: 100%;">
+              <!-- 表格列：操作人 -->
+              <el-table-column prop="operateUser" label="操作人" width="120" />
+              <!-- 表格列：操作类型 -->
+              <el-table-column prop="operateType" label="操作类型" width="120" />
+              <!-- 表格列：操作描述 -->
+              <el-table-column prop="operateDesc" label="操作描述" />
+              <!-- 表格列：操作时间 -->
+              <el-table-column prop="operateTime" label="操作时间" width="180" />
+            </el-table>
+          </el-card>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const { createApp } = Vue
+createApp({
+  setup() {
+    // 退出登录逻辑（新手先模拟，点击提示即可）
+    const logout = () => {
+      ElMessage.success('退出登录成功！')
+    }
+    return { logout }
+  }
+}).use(ElementPlus).mount('#app')
+</script>
+</body>
+</html>
