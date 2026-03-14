@@ -4,6 +4,8 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.hs.backend.common.Result;
 import com.hs.backend.entity.Chef;
 import com.hs.backend.service.ChefService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -11,6 +13,7 @@ import java.util.List;
 /**
  * 厨师控制器
  */
+@Tag(name = "厨师管理", description = "厨师列表查询、详情查看、审核等厨师相关接口")
 @RestController
 @RequestMapping("/api/chef")
 public class ChefController {
@@ -35,6 +38,7 @@ public class ChefController {
 //        return Result.success(chefPage);
 //    }
     @GetMapping("/list")
+    @Operation(summary = "获取厨师列表", description = "获取厨师列表信息（测试接口）")
     public Result<String> getChefList() {
         return Result.success("成功调用");
     }
@@ -42,6 +46,7 @@ public class ChefController {
      * 获取厨师详情
      */
     @GetMapping("/detail/{id}")
+    @Operation(summary = "获取厨师详情", description = "根据厨师 ID 获取厨师详细信息")
     public Result<Chef> getChefDetail(@PathVariable Long id) {
         Chef chef = chefService.getChefDetail(id);
         return Result.success(chef);
@@ -51,6 +56,7 @@ public class ChefController {
      * 搜索附近厨师
      */
     @GetMapping("/nearby")
+    @Operation(summary = "搜索附近厨师", description = "根据经纬度搜索指定半径范围内的厨师")
     public Result<List<Chef>> getNearbyChefs(
             @RequestParam Double longitude,
             @RequestParam Double latitude,
@@ -64,6 +70,7 @@ public class ChefController {
      * 创建厨师信息（仅管理员）
      */
     @PostMapping
+    @Operation(summary = "创建厨师信息", description = "创建新的厨师信息（需要管理员权限）")
     public Result<Chef> createChef(@RequestBody Chef chef) {
         Chef createdChef = chefService.createChef(chef);
         return Result.success(createdChef);
@@ -73,6 +80,7 @@ public class ChefController {
      * 更新厨师信息
      */
     @PutMapping
+    @Operation(summary = "更新厨师信息", description = "更新指定厨师的信息")
     public Result<String> updateChef(@RequestBody Chef chef) {
         chefService.updateChef(chef);
         return Result.success("更新成功");
@@ -82,6 +90,7 @@ public class ChefController {
      * 审核厨师（仅管理员）
      */
     @PostMapping("/audit/{id}")
+    @Operation(summary = "审核厨师", description = "管理员审核厨师资质，可设置通过或拒绝")
     public Result<String> auditChef(
             @PathVariable Long id,
             @RequestParam Integer status,

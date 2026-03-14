@@ -51,7 +51,12 @@ public class SecurityConfig {
                 .requestMatchers(
                     "/api/auth/**",      // 认证相关接口（登录、注册、刷新 Token）
                     "/error",            // 错误页面
-                    "/favicon.ico"       // 网站图标
+                    "/favicon.ico",      // 网站图标
+                        "/doc.html",    // swagger
+                        "/webjars/**",  // swagger-ui 静态资源
+                        "/swagger-resources/**",// swagger
+                        "/v3/api-docs/**"
+
                 ).permitAll()
                 
                 // 其他所有请求需要认证
