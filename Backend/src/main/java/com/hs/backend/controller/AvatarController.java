@@ -4,6 +4,8 @@ import com.hs.backend.common.Result;
 import com.hs.backend.common.service.OssService;
 import com.hs.backend.common.config.OssConfig;
 import com.hs.backend.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +19,7 @@ import java.util.Map;
  * 头像上传控制器
  */
 @Slf4j
+@Tag(name = "头像管理", description = "头像上传、签名获取等头像相关接口")
 @RestController
 @RequestMapping("/api/avatar")
 @RequiredArgsConstructor
@@ -32,6 +35,7 @@ public class AvatarController {
      * @return 完整 URL
      */
     @PostMapping("/upload")
+    @Operation(summary = "上传头像", description = "通过后端代理模式上传头像图片到阿里云 OSS（最大 5MB）")
     public Result<Map<String, String>> uploadAvatar(@RequestParam("file") MultipartFile file) {
         try {
             // 验证文件
@@ -78,6 +82,7 @@ public class AvatarController {
      * @return 签名 URL 和完整访问地址
      */
     @GetMapping("/signature")
+    @Operation(summary = "获取上传签名", description = "生成前端直传阿里云 OSS 的签名 URL（有效期 10 分钟）")
     public Result<Map<String, String>> getUploadSignature(@RequestParam("filename") String filename) {
         try {
             // 生成唯一文件名
@@ -111,6 +116,7 @@ public class AvatarController {
      * @return 成功消息
      */
     @PostMapping("/save")
+    @Operation(summary = "保存头像路径", description = "前端直传 OSS 成功后，将头像路径保存到数据库")
     public Result<String> saveAvatar(@RequestParam("relativePath") String relativePath) {
         try {
             // TODO: 这里需要获取当前登录用户的 ID

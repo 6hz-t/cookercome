@@ -32,6 +32,12 @@
 
 	<!-- 继承父 POM 的依赖管理 -->
 	<dependencies>
+		<dependency>
+			<groupId>com.github.xiaoymin</groupId>
+			<artifactId>knife4j-openapi3-jakarta-spring-boot-starter</artifactId>
+			<version>4.4.0</version>
+		</dependency>
+
 		<!-- Web 支持 -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -96,6 +102,13 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-validation</artifactId>
+		</dependency>
+
+		<!-- SpringDoc OpenAPI (Swagger) -->
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+			<version>2.3.0</version>
 		</dependency>
 
 		<!-- 阿里云 OSS SDK -->
