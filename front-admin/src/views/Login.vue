@@ -74,8 +74,8 @@ const handleLogin = () => {
         // 登录成功：保存token到本地存储（持久化，刷新页面不丢失）
         localStorage.setItem('admin-token', res.data)
         ElMessage.success('登录成功！')
-        // 跳转到仪表盘页面
-        router.push('/dashboard')
+        // 根据规范，登录成功后跳转至/account主界面
+        router.push('/account')
       })
       .catch((err) => {
         ElMessage.error(err.msg || '登录失败，请检查账号密码')
