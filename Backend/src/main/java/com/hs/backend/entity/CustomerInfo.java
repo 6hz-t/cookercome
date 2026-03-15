@@ -33,7 +33,12 @@ public class CustomerInfo implements Serializable {
      * 用户名
      */
     private String username;
-
+    
+    /**
+     * 手机号（从 User 表关联查询，非数据库字段）
+     */
+    @TableField(exist = false)
+    private String phone;
 
     /**
      * 头像 URL

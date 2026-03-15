@@ -3,7 +3,7 @@ package com.hs.backend.controller;
 import com.hs.backend.common.Result;
 import com.hs.backend.entity.CustomerInfo;
 import com.hs.backend.entity.UserAddress;
-import com.hs.backend.service.PersonalCenterService;
+import com.hs.backend.service.CustomerPersonalCenterService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
@@ -20,9 +20,9 @@ import java.util.List;
 @RequestMapping("/api/customer")
 public class CustomerController {
 
-    private final PersonalCenterService personalCenterService;
+    private final CustomerPersonalCenterService personalCenterService;
 
-   public CustomerController(PersonalCenterService personalCenterService) {
+   public CustomerController(CustomerPersonalCenterService personalCenterService) {
         this.personalCenterService = personalCenterService;
     }
 

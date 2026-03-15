@@ -435,8 +435,8 @@ create table t_user_address
     city           varchar(50)                        not null comment '城市',
     district       varchar(50)                        not null comment '区县',
     detail_address varchar(255)                       not null comment '详细地址',
-    latitude       decimal(10, 8)                     not null comment '地址纬度',
-    longitude      decimal(11, 8)                     not null comment '地址经度',
+    latitude       decimal(10, 8) default null         null comment '地址纬度',
+    longitude      decimal(11, 8) default null         null comment '地址经度',
     is_default     tinyint  default 0                 not null comment '是否默认地址：1-是，0-否',
     create_time    datetime default CURRENT_TIMESTAMP not null comment '创建时间',
     update_time    datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间'

@@ -82,8 +82,7 @@
               @click="handleLogin"
               class="login-btn"
             >
-              <span v-if="!loading">登 录</span>
-              <span v-else>登录中...</span>
+              {{ loading ? '登录中...' : '登 录' }}
             </el-button>
           </el-form-item>
           

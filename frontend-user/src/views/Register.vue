@@ -105,8 +105,7 @@
               class="register-btn"
               :disabled="!agreeTerms"
             >
-              <span v-if="!loading">注 册</span>
-              <span v-else>注册中...</span>
+              {{ loading ? '注册中...' : '注 册' }}
             </el-button>
           </el-form-item>
           

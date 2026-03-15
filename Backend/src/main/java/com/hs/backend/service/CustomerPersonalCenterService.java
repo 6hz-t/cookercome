@@ -8,7 +8,7 @@ import java.util.List;
 /**
  * 个人中心服务接口
  */
-public interface PersonalCenterService {
+public interface CustomerPersonalCenterService {
 
     /**
      * 获取当前客户个人信息

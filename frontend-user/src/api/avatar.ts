@@ -1,44 +1,39 @@
 /**
- * 头像上传 API（前端直传 OSS 模式）
+ * 头像上传 API（前端传后端模式）
  */
 
 import request from '../utils/request'
 
 /**
- * 获取上传签名（前端直传 OSS 模式）
- * @param filename 文件名
+ * 上传头像到后端（后端再传 OSS）
+ * @param file 头像文件
  */
-export function getUploadSignature(filename: string) {
- return request({
-  url: '/customer/settings/oss/signature',
-  method: 'get',
-  params: { filename }
+export function uploadAvatar(file: File) {
+  const formData = new FormData()
+  formData.append('file', file)
+  
+  return request({
+    url: '/customer/settings/avatar',
+    method: 'post',
+    data: formData,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
   })
 }
 
 /**
- * 直接上传文件到 OSS（使用签名 URL）
- * @param signatureUrl 签名 URL
- * @param file 文件
+ * 获取图片的预签名 URL
+ * @param objectKey 文件在 OSS 中的路径
+ * @param expireMinutes 有效期（分钟）
  */
-export async function uploadToOSS(signatureUrl: string, file: File) {
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest()
-    xhr.open('PUT', signatureUrl, true)
-    xhr.setRequestHeader('Content-Type', file.type)
-    
-    xhr.onload = function () {
-      if (xhr.status === 200) {
-        resolve({ success: true })
-      } else {
-        reject(new Error(`上传失败：${xhr.status}`))
-      }
+export function getImageSignatureUrl(objectKey: string, expireMinutes?: number) {
+  return request({
+    url: '/oss/signature',
+    method: 'get',
+    params: {
+      objectKey,
+      expireMinutes: expireMinutes || 60  // 默认 60 分钟
     }
-    
-    xhr.onerror = function () {
-      reject(new Error('网络错误'))
-    }
-    
-    xhr.send(file)
   })
 }
