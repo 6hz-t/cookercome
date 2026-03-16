@@ -50,12 +50,4 @@ public class User implements Serializable {
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updateTime;
 
-    // 添加一个status属性
-    private String status;
-
-    //添加一个name属性
-    private String name;
-
-
-
 }

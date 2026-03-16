@@ -1,0 +1,155 @@
+// ============================================
+// 厨师端主题配色方案预览
+// ============================================
+
+// 方案 1：经典灰 - 专业稳重
+$themes: (
+  // ─────────────────────────────────────
+  // 方案 1：经典灰 (Classic Gray)
+  // ─────────────────────────────────────
+  'classic-gray': (
+    'name': '经典灰',
+    'primary': #4A4A4A,
+    'primary-light': #6B6B6B,
+    'primary-dark': #2D2D2D,
+    'accent': #8C8C8C,
+    'accent-hover': #6F6F6F,
+    'bg-white': #FFFFFF,
+    'bg-soft': #F5F5F5,
+    'bg-mute': #EBEBEB,
+    'text-primary': #333333,
+    'text-secondary': #999999,
+    'text-light': #BFBFBF,
+    'border': #EDEDED,
+    'border-light': #F5F5F5,
+    'border-dark': #DCDCDC
+  ),
+
+  // ─────────────────────────────────────
+  // 方案 2：暖米棕 (Warm Beige)
+  // ─────────────────────────────────────
+  'warm-beige': (
+    'name': '暖米棕',
+    'primary': #E8C39E,
+    'primary-light': #F0D5B8,
+    'primary-dark': #D4A97A,
+    'accent': #D97F4A,
+    'accent-hover': #C96A38,
+    'bg-white': #FFFFFF,
+    'bg-soft': #F7F5F2,
+    'bg-mute': #EFECE8,
+    'text-primary': #4A443E,
+    'text-secondary': #9A9086,
+    'text-light': #B5ADA6,
+    'border': #EAE5E0,
+    'border-light': #F2EEEA,
+    'border-dark': #D9D3CE
+  ),
+
+  // ─────────────────────────────────────
+  // 方案 3：薄荷绿 (Fresh Mint)
+  // ─────────────────────────────────────
+  'fresh-mint': (
+    'name': '薄荷绿',
+    'primary': #9ED2BE,
+    'primary-light': #B8E0D0,
+    'primary-dark': #7AC4A9,
+    'accent': #5A9367,
+    'accent-hover': #4A7F56,
+    'bg-white': #FFFFFF,
+    'bg-soft': #F2F8F5,
+    'bg-mute': #E8F0EC,
+    'text-primary': #3A4B3F,
+    'text-secondary': #7A8C80,
+    'text-light': #A3B3A8,
+    'border': #E6EEE9,
+    'border-light': #F0F5F2,
+    'border-dark': #D4E0D8
+  ),
+
+  // ─────────────────────────────────────
+  // 方案 4：深海蓝 (Ocean Blue)
+  // ─────────────────────────────────────
+  'ocean-blue': (
+    'name': '深海蓝',
+    'primary': #2D5A7B,
+    'primary-light': #4A7FA3,
+    'primary-dark': #1A3D54,
+    'accent': #4A90B8,
+    'accent-hover': #3A7FA3,
+    'bg-white': #FFFFFF,
+    'bg-soft': #F0F6FA,
+    'bg-mute': #E6EFF5,
+    'text-primary': #2C3E50,
+    'text-secondary': #7F8C8D,
+    'text-light': #BDC3C7,
+    'border': #E1E8ED,
+    'border-light': #F0F5F8,
+    'border-dark': #D0DCE3
+  ),
+
+  // ─────────────────────────────────────
+  // 方案 5：樱花粉 (Sakura Pink)
+  // ─────────────────────────────────────
+  'sakura-pink': (
+    'name': '樱花粉',
+    'primary': #D4A5A5,
+    'primary-light': #E0B8B8,
+    'primary-dark': #C49494,
+    'accent': #C97B7B,
+    'accent-hover': #B86B6B,
+    'bg-white': #FFFFFF,
+    'bg-soft': #FAF5F5,
+    'bg-mute': #F5EBEB,
+    'text-primary': #4A3A3A,
+    'text-secondary': #9A8A8A,
+    'text-light': #B5A5A5,
+    'border': #EAE0E0,
+    'border-light': #F2E8E8,
+    'border-dark': #D9CFCF
+  ),
+
+  // ─────────────────────────────────────
+  // 方案 6：柠檬黄 (Lemon Yellow)
+  // ─────────────────────────────────────
+  'lemon-yellow': (
+    'name': '柠檬黄',
+    'primary': #E8D060,
+    'primary-light': #F0E080,
+    'primary-dark': #D0B840,
+    'accent': #D4A020,
+    'accent-hover': #C09018,
+    'bg-white': #FFFFFF,
+    'bg-soft': #FDFBF5,
+    'bg-mute': #F9F5EB,
+    'text-primary': #3D3420,
+    'text-secondary': #8C8060,
+    'text-light': #B5A890,
+    'border': #EAE5D0,
+    'border-light': #F5F0E0,
+    'border-dark': #D9D0C0
+  )
+);
+
+// 导出为 CSS 变量（当前使用：经典灰）
+:root {
+  --color-primary: #4A4A4A;
+  --color-primary-light: #6B6B6B;
+  --color-primary-dark: #2D2D2D;
+  --color-accent: #8C8C8C;
+  --color-accent-hover: #6F6F6F;
+  --color-accent-light: #A8A8A8;
+  --color-bg-white: #FFFFFF;
+  --color-bg-soft: #F5F5F5;
+  --color-bg-mute: #EBEBEB;
+  --color-text-primary: #333333;
+  --color-text-secondary: #999999;
+  --color-text-light: #BFBFBF;
+  --color-border: #EDEDED;
+  --color-border-light: #F5F5F5;
+  --color-border-dark: #DCDCDC;
+  --color-success: #52C41A;
+  --color-warning: #FAAD14;
+  --color-danger: #F5222D;
+  --color-info: #1890FF;
+}

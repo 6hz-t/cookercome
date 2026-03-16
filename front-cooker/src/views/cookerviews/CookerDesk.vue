@@ -208,7 +208,7 @@ onMounted(() => {
 
 /* 顶部样式 */
 .header {
-  background: linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-bg-soft) 100%);
+  background-color: var(--color-bg-soft);
   padding: 24px 32px;
   border-radius: 8px;
   display: flex;
@@ -232,6 +232,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
+  color: #fff;
 }
 
 .welcome h2 {

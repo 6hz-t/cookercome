@@ -72,17 +72,19 @@ export default {
   width: 100%;
   z-index: 1000;
   background-color: var(--color-bg-white);
-  box-shadow: 0 2px 8px rgba(74, 68, 62, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   text-align: center;
 }
 
 .el-menu {
   background-color: var(--color-bg-white) !important;
   border-color: var(--color-border) !important;
+  border-bottom: none !important;
 }
 
 .el-menu-item {
   color: var(--color-text-primary) !important;
+  font-weight: 500;
 }
 
 .el-menu-item:hover {
@@ -91,8 +93,21 @@ export default {
 }
 
 .el-menu-item.is-active {
-  background-color: var(--color-primary) !important;
+  background-color: var(--color-accent) !important;
   color: var(--color-bg-white) !important;
+}
+
+/* 选中状态下边框指示器 */
+.el-menu-item.is-active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 3px;
+  background-color: var(--color-accent);
+  border-radius: 2px;
 }
 
 .my-profile {
