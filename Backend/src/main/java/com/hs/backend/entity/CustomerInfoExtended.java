@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
-@TableName("t_customer_info")
+@TableName("t_customer_info_extended")
 public class CustomerInfoExtended implements Serializable {
 
     private static final long serialVersionUID = 1L;
