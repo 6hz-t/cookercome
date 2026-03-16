@@ -1,68 +1,79 @@
 <!-- 厨师登录 -->
 <template>
   <div class="cooker-login">
-    <div class="login-container">
-      <div class="login-box">
-        <div class="login-header">
-          <div class="logo">
-            <el-icon :size="48"><UserFilled /></el-icon>
+    <div class="login-background">
+      <div class="bg-circle circle-1"></div>
+      <div class="bg-circle circle-2"></div>
+      <div class="bg-circle circle-3"></div>
+    </div>
+    
+    <el-card class="login-card" shadow="hover">
+      <template #header>
+        <div class="card-header">
+          <div class="logo-wrapper">
+            <el-icon :size="48" color="#fff"><Cooking /></el-icon>
           </div>
-          <h1>厨师登录</h1>
+          <h2>厨师登录</h2>
           <p>欢迎使用厨师上门服务平台</p>
         </div>
+      </template>
 
-        <el-form :model="user" :rules="rules" ref="ruleForm" class="login-form">
-          <el-form-item prop="username">
-            <el-input 
-              v-model="user.username" 
-              placeholder="请输入用户名"
-              :prefix-icon="User"
-              size="large"
-              clearable
-            />
-          </el-form-item>
-          
-          <el-form-item prop="password">
-            <el-input 
-              v-model="user.password" 
-              type="password" 
-              placeholder="请输入密码"
-              :prefix-icon="Lock"
-              size="large"
-              show-password
-              @keyup.enter="submitForm('ruleForm')"
-            />
-          </el-form-item>
-          
-          <el-form-item>
-            <el-button 
-              type="primary" 
-              size="large" 
-              class="login-btn"
-              @click="submitForm('ruleForm')"
-              :loading="loading"
-            >
-              登 录
-            </el-button>
-          </el-form-item>
-          
-          <div class="form-footer">
-            <span>还没有账号？</span>
-            <el-link type="primary" @click="goRegister">立即注册</el-link>
-          </div>
-        </el-form>
-      </div>
-    </div>
+      <el-form :model="user" :rules="rules" ref="ruleForm" label-width="0">
+        <el-form-item prop="username">
+          <el-input 
+            v-model="user.username" 
+            placeholder="请输入用户名"
+            :prefix-icon="User"
+            size="large"
+            clearable
+          />
+        </el-form-item>
+        
+        <el-form-item prop="password">
+          <el-input 
+            v-model="user.password" 
+            type="password" 
+            placeholder="请输入密码"
+            :prefix-icon="Lock"
+            size="large"
+            show-password
+            @keyup.enter="submitForm('ruleForm')"
+          />
+        </el-form-item>
+
+        <el-form-item>
+          <el-checkbox v-model="rememberMe" size="large">记住我</el-checkbox>
+        </el-form-item>
+        
+        <el-form-item>
+          <el-button 
+            type="primary" 
+            size="large" 
+            class="login-btn"
+            @click="submitForm('ruleForm')"
+            :loading="loading"
+          >
+            登 录
+          </el-button>
+        </el-form-item>
+        
+        <div class="form-footer">
+          <span>还没有账号？</span>
+          <el-link type="primary" @click="goRegister">立即注册</el-link>
+        </div>
+      </el-form>
+    </el-card>
   </div>
 </template>
 
 <script>
-import { UserFilled, User, Lock } from '@element-plus/icons-vue'
+import { UserFilled, User, Lock, Food } from '@element-plus/icons-vue'
 
 export default {
   name: 'CookerLogin',
   components: {
-    UserFilled
+    UserFilled,
+    Food
   },
   data() {
     var validateUsername = (rule, value, callback) => {
@@ -88,6 +99,7 @@ export default {
       User,
       Lock,
       loading: false,
+      rememberMe: false,
       user: {
         username: '',
         password: ''
@@ -111,7 +123,7 @@ export default {
           setTimeout(() => {
             this.loading = false;
             this.$message.success('登录成功！');
-            this.$router.push('/cooker');
+            this.$router.push('/cooker/todo');
           }, 1000);
         } else {
           this.$message.error('请填写完整的登录信息');
@@ -132,33 +144,46 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, hsl(69, 77%, 88%) 0%, #c0a4dd 100%);
+  background: linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-accent) 100%);
   position: relative;
   overflow: hidden;
+}
 
-  // 背景装饰圆圈
-  &::before {
-    content: '';
+.login-background {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+
+  .bg-circle {
     position: absolute;
-    width: 400px;
-    height: 400px;
-    background: rgba(255, 255, 255, 0.1);
     border-radius: 50%;
-    top: -100px;
-    right: -100px;
+    background: rgba(255, 255, 255, 0.15);
     animation: float 6s ease-in-out infinite;
   }
 
-  &::after {
-    content: '';
-    position: absolute;
+  .circle-1 {
     width: 300px;
     height: 300px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 50%;
+    top: -100px;
+    right: -100px;
+    animation-delay: 0s;
+  }
+
+  .circle-2 {
+    width: 200px;
+    height: 200px;
     bottom: -50px;
     left: -50px;
-    animation: float 8s ease-in-out infinite reverse;
+    animation-delay: 2s;
+  }
+
+  .circle-3 {
+    width: 150px;
+    height: 150px;
+    top: 50%;
+    left: 10%;
+    animation-delay: 4s;
   }
 }
 
@@ -171,97 +196,82 @@ export default {
   }
 }
 
-.login-container {
+.login-card {
+  width: 440px;
   position: relative;
   z-index: 1;
-}
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(74, 68, 62, 0.12);
 
-.login-box {
-  width: 420px;
-  padding: 40px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 20px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  animation: slideUp 0.5s ease-out;
-}
-
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.login-header {
-  text-align: center;
-  margin-bottom: 30px;
-
-  .logo {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 80px;
-    height: 80px;
-    background: linear-gradient(135deg, #66b5ea 0%, #1792da 100%);
-    border-radius: 50%;
-    margin-bottom: 15px;
-    color: white;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  :deep(.el-card__header) {
+    background: transparent;
+    border: none;
+    padding: 0;
   }
 
-  h1 {
-    font-size: 24px;
-    font-weight: 600;
-    color: #333;
-    margin: 0 0 8px 0;
-  }
+  .card-header {
+    text-align: center;
+    padding: 20px 0 30px;
 
-  p {
-    font-size: 14px;
-    color: #999;
-    margin: 0;
-  }
-}
-
-.login-form {
-  :deep(.el-form-item) {
-    margin-bottom: 20px;
-  }
-
-  :deep(.el-input__wrapper) {
-    padding: 12px 16px;
-    border-radius: 10px;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
-    transition: all 0.3s;
-
-    &:hover {
-      box-shadow: 0 4px 16px rgba(102, 126, 234, 0.15);
+    .logo-wrapper {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
+      border-radius: 50%;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 15px rgba(217, 127, 74, 0.3);
     }
 
-    &.is-focus {
-      box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+    h2 {
+      font-size: 22px;
+      font-weight: 600;
+      color: var(--color-text-primary);
+      margin: 0 0 8px;
     }
+
+    p {
+      font-size: 14px;
+      color: var(--color-text-secondary);
+      margin: 0;
+    }
+  }
+}
+
+:deep(.el-form-item) {
+  margin-bottom: 20px;
+}
+
+:deep(.el-input__wrapper) {
+  border-radius: 8px;
+  padding: 12px 16px;
+  box-shadow: 0 0 0 1px var(--color-border) inset;
+  transition: all 0.3s;
+
+  &:hover {
+    box-shadow: 0 0 0 1px var(--color-border-dark) inset;
+  }
+
+  &.is-focus {
+    box-shadow: 0 0 0 1px var(--color-accent) inset;
   }
 }
 
 .login-btn {
   width: 100%;
-  height: 46px;
+  height: 44px;
   font-size: 16px;
   font-weight: 500;
-  background: linear-gradient(135deg, #66a4dd 0%, #17b2f0 100%);
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
   border: none;
-  border-radius: 10px;
   transition: all 0.3s;
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 6px 20px rgba(217, 127, 74, 0.4);
   }
 
   &:active {
@@ -272,8 +282,8 @@ export default {
 .form-footer {
   text-align: center;
   font-size: 14px;
-  color: #666;
-  margin-top: 16px;
+  color: var(--color-text-secondary);
+  margin-top: 20px;
 
   span {
     margin-right: 8px;

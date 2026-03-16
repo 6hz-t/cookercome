@@ -132,21 +132,9 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: url('@/assets/b1g.jpg') no-repeat center center/cover;
+  background: linear-gradient(135deg, #E5E4E2 0%, #C0C0C0 100%);
   position: relative;
   overflow: hidden;
-
-  // 遮罩层，让背景图变暗以突出内容
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.8) 0%, rgba(118, 75, 162, 0.85) 50%, rgba(102, 126, 234, 0.8) 100%);
-    z-index: 0;
-  }
 }
 
 // 粒子效果
@@ -249,7 +237,7 @@ export default {
 
 .content {
   text-align: center;
-  color: white;
+  color: #2c3e50;
   position: relative;
   z-index: 2;
   max-width: 1000px;
@@ -268,7 +256,7 @@ export default {
       transform: translate(-50%, -50%);
       width: 140px;
       height: 140px;
-      background: radial-gradient(circle, rgba(255, 255, 255, 0.4) 0%, transparent 70%);
+      background: radial-gradient(circle, rgba(102, 126, 234, 0.3) 0%, transparent 70%);
       border-radius: 50%;
       animation: glow 2s ease-in-out infinite;
     }
@@ -280,14 +268,10 @@ export default {
       justify-content: center;
       width: 120px;
       height: 120px;
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.25) 0%, rgba(255, 255, 255, 0.1) 100%);
-      backdrop-filter: blur(20px);
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       border-radius: 50%;
       color: white;
-      box-shadow: 
-        0 8px 32px rgba(0, 0, 0, 0.3),
-        inset 0 2px 10px rgba(255, 255, 255, 0.3);
-      border: 2px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 8px 32px rgba(102, 126, 234, 0.4);
       animation: logoFloat 3s ease-in-out infinite;
       z-index: 1;
     }
@@ -299,7 +283,7 @@ export default {
       transform: translate(-50%, -50%);
       width: 160px;
       height: 160px;
-      border: 2px solid rgba(255, 255, 255, 0.2);
+      border: 3px solid rgba(102, 126, 234, 0.3);
       border-radius: 50%;
       animation: ringPulse 3s ease-in-out infinite;
     }
@@ -356,11 +340,10 @@ export default {
   position: relative;
 
   .title-text {
-    background: linear-gradient(180deg, #ffffff 0%, #e0e0e0 100%);
+    background: linear-gradient(180deg, #2c3e50 0%, #4a5568 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    text-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
     animation: titleGlow 3s ease-in-out infinite;
   }
 }
@@ -376,7 +359,7 @@ export default {
 
 .subtitle {
   font-size: 18px;
-  opacity: 0.9;
+  color: #4a5568;
   margin: 0 0 30px 0;
   letter-spacing: 3px;
   font-weight: 300;
@@ -386,7 +369,7 @@ export default {
 .divider-line {
   width: 100px;
   height: 3px;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent);
+  background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.6), transparent);
   margin: 0 auto 40px;
   border-radius: 2px;
   animation: lineExpand 1s ease-out 0.3s both;

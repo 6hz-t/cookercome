@@ -4,24 +4,36 @@
   width: 100%;
   min-height: 100vh;
   font-weight: normal;
+  background-color: var(--color-bg-soft);
 }
 
-a,
-.green {
+a {
   text-decoration: none;
-  color: hsla(160, 100%, 37%, 1);
-  transition: 0.4s;
-  padding: 3px;
+  color: var(--color-accent);
+  transition: 0.3s;
 }
 
-@media (hover: hover) {
-  a:hover {
-    background-color: hsla(160, 100%, 37%, 0.2);
-  }
+a:hover {
+  color: var(--color-accent-hover);
 }
 
 body {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+}
+
+/* 全局滚动条样式 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--color-border-dark);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-track {
+  background-color: var(--color-bg-soft);
 }

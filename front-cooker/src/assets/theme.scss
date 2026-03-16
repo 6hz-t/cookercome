@@ -1,0 +1,66 @@
+// 厨师端主题配色 - Theme Variables for Cooker Frontend
+
+// 主色 - Primary Colors (暖米棕)
+$primary: #D97F4A;
+$primary-light: #F0D5B8;
+$primary-dark: #D4A97A;
+
+// 强调色 - Accent Colors (焦糖橙)
+$accent: #E8C39E;
+$accent-hover: #C96A38;
+$accent-light: #E5996B;
+
+// 背景色 - Background Colors
+$bg-white: #FFFFFF;
+$bg-soft: #F7F5F2;
+$bg-mute: #EFECE8;
+
+// 文字颜色 - Text Colors
+$text-primary: #4A443E;
+$text-secondary: #9A9086;
+$text-light: #B5ADA6;
+
+// 边框颜色 - Border Colors
+$border: #EAE5E0;
+$border-light: #F2EEEA;
+$border-dark: #D9D3CE;
+
+// 功能色 - Functional Colors
+$success: #7CB342;
+$warning: #FFA726;
+$danger: #EF5350;
+$info: #42A5F5;
+
+// 导出为 CSS 变量
+:root {
+  // 主色
+  --color-primary: #{$primary};
+  --color-primary-light: #{$primary-light};
+  --color-primary-dark: #{$primary-dark};
+  
+  // 强调色
+  --color-accent: #{$accent};
+  --color-accent-hover: #{$accent-hover};
+  --color-accent-light: #{$accent-light};
+  
+  // 背景色
+  --color-bg-white: #{$bg-white};
+  --color-bg-soft: #{$bg-soft};
+  --color-bg-mute: #{$bg-mute};
+  
+  // 文字色
+  --color-text-primary: #{$text-primary};
+  --color-text-secondary: #{$text-secondary};
+  --color-text-light: #{$text-light};
+  
+  // 边框色
+  --color-border: #{$border};
+  --color-border-light: #{$border-light};
+  --color-border-dark: #{$border-dark};
+  
+  // 功能色
+  --color-success: #{$success};
+  --color-warning: #{$warning};
+  --color-danger: #{$danger};
+  --color-info: #{$info};
+}

@@ -202,20 +202,20 @@ onMounted(() => {
   max-width: 1200px;
   margin: 0 auto;
   padding: 24px;
-  background-color: #ffffff;
+  background-color: var(--color-bg-white);
   min-height: calc(100vh - 60px);
 }
 
 /* 顶部样式 */
 .header {
-  background-color: #f8f7f7;
+  background: linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-bg-soft) 100%);
   padding: 24px 32px;
   border-radius: 8px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24px;
-  color: rgb(0, 0, 0);
+  color: var(--color-text-primary);
 }
 
 .welcome-section {
@@ -228,22 +228,22 @@ onMounted(() => {
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--color-primary);
   display: flex;
   align-items: center;
   justify-content: center;
-  backdrop-filter: blur(10px);
 }
 
 .welcome h2 {
   font-size: 20px;
   font-weight: 600;
   margin: 0 0 4px 0;
+  color: var(--color-text-primary);
 }
 
 .welcome .date {
   font-size: 13px;
-  opacity: 0.9;
+  color: var(--color-text-secondary);
   margin: 0;
 }
 
@@ -251,13 +251,14 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 12px;
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--color-bg-white);
   padding: 10px 20px;
   border-radius: 20px;
 }
 
 .status-label {
   font-size: 14px;
+  color: var(--color-text-primary);
 }
 
 .status-text {
@@ -265,11 +266,12 @@ onMounted(() => {
   font-weight: 500;
   padding: 4px 12px;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.25);
+  background: var(--color-bg-mute);
+  color: var(--color-text-secondary);
 }
 
 .status-text.online {
-  background: rgba(103, 194, 58, 0.4);
+  background: var(--color-success);
   color: #fff;
 }
 
@@ -282,19 +284,20 @@ onMounted(() => {
 }
 
 .stats-card {
-  background: #fff;
+  background: var(--color-bg-white);
   border-radius: 8px;
   padding: 24px;
   display: flex;
   align-items: center;
   gap: 20px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 12px rgba(74, 68, 62, 0.08);
   transition: all 0.3s ease;
+  border: 1px solid var(--color-border);
 }
 
 .stats-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 16px rgba(74, 68, 62, 0.12);
 }
 
 .stats-icon {
@@ -320,7 +323,7 @@ onMounted(() => {
 
 .stats-content .label {
   font-size: 14px;
-  color: #999;
+  color: var(--color-text-secondary);
 }
 
 /* 核心功能区 */
@@ -332,14 +335,14 @@ onMounted(() => {
 
 .core-card {
   --el-card-border-radius: 16px;
-  --el-card-box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  --el-card-box-shadow: 0 4px 20px rgba(74, 68, 62, 0.06);
   --el-card-padding: 24px;
-  border: none;
+  border: 1px solid var(--color-border);
   transition: all 0.3s ease;
 }
 
 .core-card:hover {
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 32px rgba(74, 68, 62, 0.1);
 }
 
 .card-header {
@@ -354,11 +357,11 @@ onMounted(() => {
   gap: 8px;
   font-size: 16px;
   font-weight: 600;
-  color: #333;
+  color: var(--color-text-primary);
 }
 
 .card-title .el-icon {
-  color: #667eea;
+  color: var(--color-accent);
 }
 
 /* 常用功能样式 */
@@ -377,13 +380,13 @@ onMounted(() => {
   border-radius: 12px;
   cursor: pointer;
   transition: all 0.3s ease;
-  background: #f8f9fa;
+  background: var(--color-bg-soft);
 }
 
 .func-item:hover {
   transform: translateY(-4px);
-  background: #fff;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  background: var(--color-bg-white);
+  box-shadow: 0 8px 24px rgba(74, 68, 62, 0.08);
 }
 
 .func-icon {
@@ -404,38 +407,38 @@ onMounted(() => {
 
 .func-text {
   font-size: 13px;
-  color: #666;
+  color: var(--color-text-primary);
   font-weight: 500;
 }
 
 /* 收入统计样式 */
 .income-chart {
   height: 220px;
-  background-color: #f5f7fa;
+  background-color: var(--color-bg-soft);
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   margin: 16px 0;
-  color: #909399;
+  color: var(--color-text-secondary);
   font-size: 14px;
 }
 
 .chart-placeholder {
   text-align: center;
-  color: #909399;
+  color: var(--color-text-secondary);
 }
 
 .chart-placeholder p {
   font-size: 16px;
   font-weight: 500;
   margin: 12px 0 4px 0;
-  color: #606266;
+  color: var(--color-text-primary);
 }
 
 .chart-placeholder span {
   font-size: 12px;
-  color: #909399;
+  color: var(--color-text-secondary);
 }
 
 .income-detail {
@@ -450,25 +453,25 @@ onMounted(() => {
   align-items: center;
   gap: 12px;
   padding: 16px;
-  background: #f8f9fa;
+  background: var(--color-bg-soft);
   border-radius: 12px;
   transition: all 0.3s ease;
 }
 
 .detail-item:hover {
-  background: #fff;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  background: var(--color-bg-white);
+  box-shadow: 0 4px 16px rgba(74, 68, 62, 0.06);
 }
 
 .detail-icon {
   width: 44px;
   height: 44px;
   border-radius: 10px;
-  background: #fff;
+  background: var(--color-bg-white);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #667eea;
+  color: var(--color-accent);
 }
 
 .detail-content {
@@ -483,7 +486,7 @@ onMounted(() => {
 
 .detail-label {
   font-size: 12px;
-  color: #999;
+  color: var(--color-text-secondary);
 }
 
 /* 响应式 */
