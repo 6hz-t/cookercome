@@ -5,17 +5,20 @@ import com.hs.backend.common.Result;
 import com.hs.backend.entity.User;
 import com.hs.backend.service.impl.SysUserServiceImpl;
 import com.hs.backend.vo.UserQueryVo;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/user")
-
+@Tag(name = "管理员用户")
 public class SysUserController {
 
     @Autowired  // 自动注入Service
     private SysUserServiceImpl sysUserService;
 
+    @Operation(summary = "获取用户列表", description = "获取用户列表（分页+搜索）")
     // 1. 获取用户列表（分页+搜索）
     @GetMapping("/list")
     public Result<Object> getUserList(UserQueryVo queryVo) {
@@ -23,7 +26,7 @@ public class SysUserController {
         return Result.success(userList);
     }
 
-    // 2. 切换用户状态
+    @Operation(summary = "切换用户状态", description = "根据用户ID切换用户状态")
     @PutMapping("/status/{userId}")
     public Result<Boolean> changeUserStatus(
             @PathVariable Long userId,  // 路径中的用户ID
@@ -37,7 +40,7 @@ public class SysUserController {
         }
     }
 
-    // 3. 重置用户密码
+    @Operation(summary = "重置用户密码", description = "根据用户ID重置用户密码")
     @PutMapping("/reset-password/{userId}")
     public Result<Boolean> resetPassword(@PathVariable Long userId) {
         boolean success = sysUserService.resetPassword(userId);
