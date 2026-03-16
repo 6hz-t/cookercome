@@ -1,35 +1,35 @@
-/* 厨师端主题配色 - Cooker Theme */
+/* 厨师端主题配色 - Cooker Theme (薄荷绿) */
 :root {
-  /* 主色 - Primary (暖米棕) */
-  --color-primary: #E8C39E;
-  --color-primary-light: #F0D5B8;
-  --color-primary-dark: #D4A97A;
+  /* 主色 - Primary (薄荷绿) */
+  --color-primary: #9ED2BE;
+  --color-primary-light: #B8E0D0;
+  --color-primary-dark: #7AC4A9;
 
-  /* 强调色 - Accent (焦糖橙) */
-  --color-accent: #D97F4A;
-  --color-accent-hover: #C96A38;
-  --color-accent-light: #E5996B;
+  /* 强调色 - Accent (森绿) */
+  --color-accent: #5A9367;
+  --color-accent-hover: #4A7F56;
+  --color-accent-light: #75A87F;
 
   /* 背景色 - Background */
   --color-bg-white: #FFFFFF;
-  --color-bg-soft: #F7F5F2;
-  --color-bg-mute: #EFECE8;
+  --color-bg-soft: #F2F8F5;
+  --color-bg-mute: #E8F0EC;
 
   /* 文字色 - Text */
-  --color-text-primary: #4A443E;
-  --color-text-secondary: #9A9086;
-  --color-text-light: #B5ADA6;
+  --color-text-primary: #3A4B3F;
+  --color-text-secondary: #7A8C80;
+  --color-text-light: #A3B3A8;
 
   /* 边框色 - Border */
-  --color-border: #EAE5E0;
-  --color-border-light: #F2EEEA;
-  --color-border-dark: #D9D3CE;
+  --color-border: #E6EEE9;
+  --color-border-light: #F0F5F2;
+  --color-border-dark: #D4E0D8;
 
   /* 功能色 - Functional */
-  --color-success: #7CB342;
-  --color-warning: #FFA726;
-  --color-danger: #EF5350;
-  --color-info: #42A5F5;
+  --color-success: #52C41A;
+  --color-warning: #FAAD14;
+  --color-danger: #F5222D;
+  --color-info: #1890FF;
 
   /* 语义化变量 - Semantic Variables */
   --color-background: var(--color-bg-white);

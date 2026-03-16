@@ -333,7 +333,7 @@ export default {
 /* 总价金额 */
 .total-price {
   font-size: 20px;
-  color: var(--color-accent);
+  color: var(--color-danger);
   font-weight: bold;
   margin-left: 10px;
 }
