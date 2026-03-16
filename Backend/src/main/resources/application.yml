@@ -9,6 +9,19 @@ spring:
   data:
     mongodb:
       auto-index-creation: false
+    redis:
+      host: localhost
+      port: 6379
+      password: 654321
+      timeout: 5000ms
+      database: 0
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: -1ms
+          shutdown-timeout: 100ms
   
   # 数据库配置
   datasource:
@@ -16,20 +29,19 @@ spring:
     url: jdbc:mysql://124.221.15.13:3306/cookercome?useUnicode=true&characterEncoding=utf-8&useSSL=true&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true&zeroDateTimeBehavior=convertToNull&allowMultiQueries=true&connectTimeout=30000&socketTimeout=60000
     username: cookercome
     password: 998877
+    # HikariCP 连接池配置（解决连接失效问题）
+    hikari:
+      max-lifetime: 540000  # 连接最大生命周期 9 分钟（比 MySQL wait_timeout 短）
+      idle-timeout: 300000  # 空闲连接超时时间 5 分钟
+      connection-timeout: 30000  # 连接超时时间 30 秒
+      validation-timeout: 5000  # 验证连接超时时间 5 秒
+      maximum-pool-size: 20  # 最大连接数
+      minimum-idle: 5  # 最小空闲连接数
+      keepalive-time: 300000  # 心跳检测间隔 5 分钟
+      connection-test-query: SELECT 1  # 连接测试查询
 
   # Redis 配置
-  redis:
-    host: localhost
-    port: 6379
-    password: 654321
-    timeout: 3000ms
-    database: 0
-    lettuce:
-      pool:
-        max-active: 10
-        max-idle: 10
-        max-wait: -1ms
-        min-idle: 0
+
 
   # 文件上传配置
   servlet:

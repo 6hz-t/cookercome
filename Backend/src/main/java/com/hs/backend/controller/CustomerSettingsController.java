@@ -2,8 +2,12 @@ package com.hs.backend.controller;
 
 import com.hs.backend.common.Result;
 import com.hs.backend.common.service.OssService;
+import com.hs.backend.dto.request.CustomerAddressRequest;
+import com.hs.backend.dto.request.CustomerPasswordChangeRequest;
+import com.hs.backend.dto.request.CustomerPhoneBindRequest;
 import com.hs.backend.dto.request.SettingsProfileUpdateRequest;
 import com.hs.backend.entity.CustomerInfo;
+import com.hs.backend.entity.UserAddress;
 import com.hs.backend.service.CustomerSettingsService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,8 +16,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.security.Principal;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -53,21 +60,113 @@ public class CustomerSettingsController {
     }
 
     /**
-     * 获取 OSS 上传签名（用于头像前端直传）
-     * @param filename 文件名
+     * 上传头像（前端传后端，后端再传 OSS）
+     * @param file 头像文件
      * @param principal 当前用户
-     * @return 签名 URL、完整 URL、相对路径
+     * @return 头像完整 URL
      */
-    @GetMapping("/oss/signature")
-    public Result<Map<String, String>> getOssSignature(
-            @RequestParam("filename") String fileName,
+    @PostMapping("/avatar")
+    public Result<Map<String, String>> uploadAvatar(
+            @RequestParam("file") MultipartFile file,
             Principal principal) {
-        // 从 SecurityContext 中获取当前登录用户 ID
+        
         Long userId = getCurrentUserId();
         
-        // 调用 OSS 服务生成签名（5 分钟有效期）
-        Map<String, String> signatureInfo = ossService.getUploadSignatureInfo(fileName, userId, 5);
-        return Result.success(signatureInfo);
+        try {
+            Map<String, String> uploadResult = ossService.uploadAvatar(file, userId);
+            return Result.success(uploadResult);
+        } catch (IOException e) {
+            log.error("头像上传失败", e);
+            return Result.error(500, "上传失败：" + e.getMessage());
+        }
+    }
+    
+    /**
+     * 绑定新手机号
+     */
+    @PostMapping("/phone/bind")
+    public Result<String> bindPhone(
+            @RequestBody @Validated CustomerPhoneBindRequest request,
+            Principal principal) {
+        
+        Long userId = getCurrentUserId();
+        customerSettingsService.bindPhone(userId, request.getNewPhone(), request.getCurrentPassword());
+        return Result.success("手机号绑定成功");
+    }
+    
+    /**
+     * 修改密码
+     */
+    @PostMapping("/password/change")
+    public Result<String> changePassword(
+            @RequestBody @Validated CustomerPasswordChangeRequest request,
+            Principal principal) {
+        
+        Long userId = getCurrentUserId();
+        customerSettingsService.changePassword(userId, request.getOldPassword(), request.getNewPassword());
+        return Result.success("密码修改成功");
+    }
+    
+    /**
+     * 获取用户地址列表
+     */
+    @GetMapping("/address/list")
+    public Result<List<UserAddress>> getAddressList(Principal principal) {
+        Long userId = getCurrentUserId();
+        List<UserAddress> addressList = customerSettingsService.getAddressList(userId);
+        return Result.success(addressList);
+    }
+    
+    /**
+     * 添加用户地址
+     */
+    @PostMapping("/address/add")
+    public Result<String> addAddress(
+            @RequestBody @Validated CustomerAddressRequest request,
+            Principal principal) {
+        
+        Long userId = getCurrentUserId();
+        customerSettingsService.addAddress(userId, request);
+        return Result.success("地址添加成功");
+    }
+    
+    /**
+     * 更新用户地址
+     */
+    @PutMapping("/address/update")
+    public Result<String> updateAddress(
+            @RequestBody @Validated CustomerAddressRequest request,
+            Principal principal) {
+        
+        Long userId = getCurrentUserId();
+        customerSettingsService.updateAddress(userId, request);
+        return Result.success("地址更新成功");
+    }
+    
+    /**
+     * 删除用户地址
+     */
+    @DeleteMapping("/address/delete/{addressId}")
+    public Result<String> deleteAddress(
+            @PathVariable Long addressId,
+            Principal principal) {
+        
+        Long userId = getCurrentUserId();
+        customerSettingsService.deleteAddress(userId, addressId);
+        return Result.success("地址删除成功");
+    }
+    
+    /**
+     * 设置默认地址
+     */
+    @PutMapping("/address/set-default/{addressId}")
+    public Result<String> setDefaultAddress(
+            @PathVariable Long addressId,
+            Principal principal) {
+        
+        Long userId = getCurrentUserId();
+        customerSettingsService.setDefaultAddress(userId, addressId);
+        return Result.success("默认地址设置成功");
     }
     
     /**

@@ -11,6 +11,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 /**
  * 全局异常处理器
@@ -78,5 +79,15 @@ public class GlobalExceptionHandler {
     public Result<Void> handleOtherException(Exception e) {
         log.error("系统异常：{}", e.getMessage(), e);
         return Result.error("系统繁忙，请稍后再试");
+    }
+
+    /**
+     * 资源未找到异常（NoResourceFoundException）
+     */
+    @ExceptionHandler(NoResourceFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public Result<Void> handleNoResourceFoundException(NoResourceFoundException e) {
+        log.error("资源未找到：{}", e.getMessage());
+        return Result.error(404, "接口不存在：" + e.getMessage());
     }
 }

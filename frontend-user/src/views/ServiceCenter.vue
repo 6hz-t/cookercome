@@ -17,14 +17,9 @@
           <h1 class="app-title">厨师上门服务中心</h1>
         </div>
         
-        <div class="user-info-mini">
-          <el-avatar :size="40" :src="userInfo.avatar || defaultAvatar" />
-          <span class="user-name">{{ userInfo.name || '用户' }}</span>
-        </div>
-        
         <div class="header-actions">
           <el-tooltip content="退出登录" placement="bottom">
-            <el-button circle type="danger" @click="handleLogout">
+            <el-button circle class="logout-btn" @click="handleLogout">
               <el-icon><SwitchButton /></el-icon>
             </el-button>
           </el-tooltip>
@@ -83,6 +78,29 @@
         </div>
       </div>
     </footer>
+
+    <!-- 退出确认对话框 -->
+    <el-dialog 
+      v-model="logoutDialogVisible" 
+      title="退出确认"
+      width="420px"
+      :close-on-click-modal="false"
+      :close-on-press-escape="false"
+      class="logout-dialog"
+      append-to-body
+      top="30vh"
+    >
+      <div class="logout-message">
+        <el-icon class="warning-icon"><Warning /></el-icon>
+        <span>确定要退出登录吗？</span>
+      </div>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="logoutDialogVisible = false">再想想</el-button>
+          <el-button type="danger" @click="confirmLogout">确定退出</el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -93,11 +111,11 @@ import {
   Food, SwitchButton, Camera, Phone,
   ShoppingCart, CircleCheck, Clock, Star, Top, Right, Finished,
   Menu, Document, Location, Collection, ChatDotRound, 
-  Ticket, Service, Calendar, User, Money, Setting, Close, Bell, Lock, Delete
+  Ticket, Service, Calendar, User, Money, Setting, Close, Bell, Lock, Delete, Warning
 } from '@element-plus/icons-vue'
 import { getAccessToken, removeToken, getUserInfo } from '@/utils/token'
 import { getUserAvatar } from '@/utils/avatar'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus'
 
 // 导入所有子组件 (同步导入，避免 transition 动画问题)
 import PersonalCenter from '@/views/service/PersonalCenter.vue'
@@ -240,17 +258,20 @@ const defaultAvatar = 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e5
 
 
 
+// 退出登录对话框
+const logoutDialogVisible = ref(false)
+
 // 退出登录
 const handleLogout = () => {
-  ElMessageBox.confirm('确定要退出登录吗？', '提示', {
-    confirmButtonText: '确定',
-    cancelButtonText: '取消',
-    type: 'warning'
-  }).then(() => {
-    removeToken()
-    router.push('/login')
-    ElMessage.success('已退出登录')
-  }).catch(() => {})
+  logoutDialogVisible.value = true
+}
+
+// 确认退出
+const confirmLogout = () => {
+  logoutDialogVisible.value = false
+  removeToken()
+  router.push('/login')
+  ElMessage.success('已退出登录')
 }
 
 // 加载用户信息
@@ -575,6 +596,29 @@ onUnmounted(cleanupListeners)
   gap: 10px;
 }
 
+/* 退出按钮样式 */
+.logout-btn {
+  background: linear-gradient(135deg, #f56c6c 0%, #e74c3c 100%);
+  border: none;
+  box-shadow: 0 4px 15px rgba(245, 108, 108, 0.3);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.logout-btn:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 6px 20px rgba(245, 108, 108, 0.5);
+  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+}
+
+.logout-btn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.logout-btn .el-icon {
+  font-size: 18px;
+  color: white;
+}
+
 /* 横向功能导航栏 */
 .function-nav {
   background: var(--card-bg);
@@ -805,6 +849,102 @@ onUnmounted(cleanupListeners)
   color: var(--text-primary);
 }
 
+/* 退出对话框美化 - 科技感风格 */
+:deep(.logout-dialog) {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border: 1px solid rgba(102, 126, 234, 0.3);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6), 0 0 60px rgba(102, 126, 234, 0.2);
+  max-width: 420px;
+}
+
+:deep(.logout-dialog .el-message-box__header) {
+  padding-bottom: 15px;
+  border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+}
+
+:deep(.logout-dialog .el-message-box__title) {
+  color: #fff;
+  font-size: 18px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+:deep(.logout-dialog .el-message-box__title .el-icon-warning) {
+  color: #f56c6c;
+  font-size: 22px;
+  animation: warning-pulse 2s ease-in-out infinite;
+}
+
+@keyframes warning-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.1); }
+}
+
+:deep(.logout-dialog .el-message-box__content) {
+  padding: 25px 0;
+}
+
+:deep(.logout-dialog .logout-message) {
+  color: #ccc;
+  font-size: 15px;
+  line-height: 1.6;
+  text-align: center;
+}
+
+:deep(.logout-dialog .el-message-box__btns) {
+  padding-top: 15px;
+  border-top: 1px solid rgba(102, 126, 234, 0.2);
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+:deep(.logout-dialog .el-button--primary) {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  padding: 10px 30px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+:deep(.logout-dialog .el-button--primary:hover) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+}
+
+:deep(.logout-dialog .el-button--primary:active) {
+  transform: translateY(0);
+}
+
+:deep(.logout-dialog .el-button--default) {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(102, 126, 234, 0.3);
+  color: #ccc;
+  padding: 10px 30px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 8px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+:deep(.logout-dialog .el-button--default:hover) {
+  background: rgba(102, 126, 234, 0.15);
+  border-color: #667eea;
+  color: #fff;
+  transform: translateY(-2px);
+}
+
+:deep(.logout-dialog .el-button--default:active) {
+  transform: translateY(0);
+}
+
 /* 地址列表 */
 .address-list {
   display: flex;
@@ -892,5 +1032,122 @@ onUnmounted(cleanupListeners)
   .sc-main {
     padding: 15px;
   }
+}
+</style>
+
+<!-- 全局样式：用于覆盖 Element Plus Dialog 默认样式（因为 Dialog 使用 Teleport 挂载到 body，scoped 样式无法生效） -->
+<style>
+/* 退出对话框美化 - 科技感风格（全局样式，强制覆盖） */
+.el-dialog.logout-dialog {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%) !important;
+  border: 1px solid rgba(102, 126, 234, 0.3) !important;
+  border-radius: 16px !important;
+  padding: 20px !important;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6), 0 0 60px rgba(102, 126, 234, 0.2) !important;
+  max-width: 420px;
+}
+
+.el-dialog.logout-dialog .el-dialog__header {
+  padding-bottom: 15px !important;
+  border-bottom: 1px solid rgba(102, 126, 234, 0.2) !important;
+}
+
+.el-dialog.logout-dialog .el-dialog__title {
+  color: #fff !important;
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+
+/* 警告图标动画 */
+.el-dialog.logout-dialog .warning-icon {
+  color: #f56c6c !important;
+  font-size: 22px !important;
+  animation: warning-pulse 2s ease-in-out infinite !important;
+}
+
+@keyframes warning-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.1); }
+}
+
+.el-dialog.logout-dialog .el-dialog__body {
+  padding: 25px 0 !important;
+}
+
+.el-dialog.logout-dialog .logout-message {
+  color: #ccc !important;
+  font-size: 15px !important;
+  line-height: 1.6 !important;
+  text-align: center !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 10px !important;
+}
+
+.el-dialog.logout-dialog .el-dialog__footer {
+  padding-top: 15px !important;
+  border-top: 1px solid rgba(102, 126, 234, 0.2) !important;
+  display: flex !important;
+  gap: 12px !important;
+  justify-content: center !important;
+}
+
+.el-dialog.logout-dialog .el-button--primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  border: none !important;
+  padding: 10px 30px !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.el-dialog.logout-dialog .el-button--primary:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5) !important;
+}
+
+.el-dialog.logout-dialog .el-button--primary:active {
+  transform: translateY(0) !important;
+}
+
+.el-dialog.logout-dialog .el-button--default {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border: 1px solid rgba(102, 126, 234, 0.3) !important;
+  color: #ccc !important;
+  padding: 10px 30px !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  border-radius: 8px !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.el-dialog.logout-dialog .el-button--default:hover {
+  background: rgba(102, 126, 234, 0.15) !important;
+  border-color: #667eea !important;
+  color: #fff !important;
+  transform: translateY(-2px) !important;
+}
+
+.el-dialog.logout-dialog .el-button--default:active {
+  transform: translateY(0) !important;
+}
+
+/* 修复 Dialog 打开时滚动条导致的布局偏移问题 */
+body.el-popup-parent--hidden {
+  width: 100% !important;
+  overflow: hidden !important;
+  padding-right: 0 !important; /* 强制移除 Element Plus 自动添加的右侧内边距 */
+}
+
+/* 确保内容区域不受滚动条影响 */
+.service-center {
+  width: 100%;
+  overflow-x: hidden;
 }
 </style>
