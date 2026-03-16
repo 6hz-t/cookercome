@@ -140,7 +140,7 @@
             style="width: 300px; margin-left: 20px;"
           ></el-input>
         </div>
-        <el-table border :data="filteredUserList" style="width: 100%;">
+        <el-table border :data="filteredUserList" style="width: 100%;" v-loading="loading">
           <el-table-column prop="id" label="用户ID" />
           <el-table-column prop="name" label="用户名" />
           <el-table-column prop="role" label="角色">
@@ -170,7 +170,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 // 引入Element Plus图标
 import { 
@@ -179,6 +179,8 @@ import {
 } from '@element-plus/icons-vue'
 // 引入Element Plus提示框
 import { ElMessageBox, ElMessage } from 'element-plus'
+// 导入接口方法
+import { getUserList, changeUserStatus, resetPassword } from '@/api/user'
 
 // 创建路由器实例
 const router = useRouter()
@@ -194,6 +196,89 @@ const totalUsers = ref(12842)
 const pendingChefs = ref(45)
 const todayOrders = ref(856)
 const abnormalOrders = ref(3)
+
+// 搜索关键词
+const searchKeyword = ref('')
+
+// 用户列表（从后端获取）
+const userList = ref([])
+const loading = ref(false)
+
+// 页面加载时获取用户列表
+onMounted(() => {
+  loadUserList()
+})
+
+// 加载用户列表
+const loadUserList = () => {
+  loading.value = true
+  // 传递分页+搜索参数
+  getUserList({
+    keyword: searchKeyword.value,
+    pageNum: 1,
+    pageSize: 10
+  }).then(res => {
+    // 后端返回的data里是分页数据，取records（用户列表）
+    userList.value = res.data.records || []
+  }).finally(() => {
+    loading.value = false
+  })
+}
+
+// 切换用户状态（调用后端接口）
+const toggleUserStatus = (row) => {
+  ElMessageBox.confirm(
+    `确定要${row.status === 'active' ? '禁用' : '启用'}用户「${row.name}」吗？`,
+    '提示',
+    { 
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    }
+  ).then(() => {
+    // 调用切换状态接口
+    changeUserStatus(row.id, row.status === 'active' ? 'disabled' : 'active').then(() => {
+      ElMessage.success(`用户「${row.name}」已${row.status === 'active' ? '禁用' : '启用'}！`)
+      loadUserList() // 重新加载列表
+    }).catch(error => {
+      console.error('切换用户状态失败:', error)
+      ElMessage.error('操作失败，请稍后重试')
+    })
+  }).catch(() => {
+    ElMessage.info('已取消操作')
+  })
+}
+
+// 重置密码（调用后端接口）
+const resetPassword = (row) => {
+  ElMessageBox.confirm(
+    `确定要重置用户「${row.name}」的密码吗？重置后密码将恢复为默认值`,
+    '警告',
+    { 
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    }
+  ).then(() => {
+    resetPassword(row.id).then(() => {
+      ElMessage.success(`用户「${row.name}」密码已重置！`)
+    }).catch(error => {
+      console.error('重置密码失败:', error)
+      ElMessage.error('重置密码失败，请稍后重试')
+    })
+  }).catch(() => {
+    ElMessage.info('已取消重置密码')
+  })
+}
+
+// 过滤后的用户列表（保持不变）
+const filteredUserList = computed(() => {
+  if (!searchKeyword.value) return userList.value
+  return userList.value.filter(user => 
+    user.name.includes(searchKeyword.value) || 
+    user.id.toString().includes(searchKeyword.value)
+  )
+})
 
 // 导航到不同页面的函数
 const navigateToAccount = () => {
@@ -219,77 +304,6 @@ const navigateToOrderControl = () => {
 const navigateToStatistics = () => {
   activeMenu.value = 'stats'
   router.push('/statistics')
-}
-
-// 搜索关键词
-const searchKeyword = ref('')
-
-// 用户列表数据
-const userList = ref([
-  { id: 10001, name: '超级管理员', role: 2, status: 'active' },
-  { id: 10002, name: '张三', role: 1, status: 'active' },
-  { id: 10003, name: '李四', role: 1, status: 'disabled' },
-  { id: 10004, name: '王五', role: 1, status: 'active' },
-  { id: 10005, name: '赵六', role: 2, status: 'active' },
-  { id: 10006, name: '孙七', role: 1, status: 'disabled' },
-])
-
-// 过滤后的用户列表
-const filteredUserList = computed(() => {
-  if (!searchKeyword.value) return userList.value
-  return userList.value.filter(user => 
-    user.name.includes(searchKeyword.value) || 
-    user.id.toString().includes(searchKeyword.value)
-  )
-})
-
-// 切换用户状态
-const toggleUserStatus = (row) => {
-  ElMessageBox.confirm(
-    `确定要${row.status === 'active' ? '禁用' : '启用'}用户「${row.name}」吗？`,
-    '提示',
-    {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    }
-  ).then(() => {
-    row.status = row.status === 'active' ? 'disabled' : 'active'
-    ElMessage({
-      type: 'success',
-      message: `用户「${row.name}」已${row.status === 'active' ? '启用' : '禁用'}！`
-    })
-    console.log('Toggle user status:', row)
-  }).catch(() => {
-    ElMessage({
-      type: 'info',
-      message: '已取消操作'
-    })
-  })
-}
-
-// 重置用户密码
-const resetPassword = (row) => {
-  ElMessageBox.confirm(
-    `确定要重置用户「${row.name}」的密码吗？重置后密码将恢复为默认值123456`,
-    '警告',
-    {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    }
-  ).then(() => {
-    ElMessage({
-      type: 'success',
-      message: `用户「${row.name}」密码已重置！`
-    })
-    console.log('Reset password:', row)
-  }).catch(() => {
-    ElMessage({
-      type: 'info',
-      message: '已取消重置密码'
-    })
-  })
 }
 
 // 处理安全退出
@@ -324,6 +338,10 @@ const handleLogout = () => {
   })
 }
 
+// 监听搜索关键词变化
+watch(searchKeyword, () => {
+  loadUserList()
+})
 </script>
 
 <style scoped>
