@@ -24,10 +24,6 @@ public interface UserService extends IService<User> {
      */
     AuthResponse refreshToken(String refreshToken);
 
-    /**
-     * 根据用户名查找用户
-     */
-    User getByUsername(String username);
 
     /**
      * 根据手机号查找用户

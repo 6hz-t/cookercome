@@ -1,5 +1,5 @@
 <template>
-  <div class="chef-dashboard">
+  <div class="chefInfo-dashboard">
     <!-- 顶部：欢迎语 + 在线状态 -->
     <header class="header">
       <div class="welcome-section">
@@ -197,7 +197,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.chef-dashboard {
+.chefInfo-dashboard {
   width: 100%;
   max-width: 1200px;
   margin: 0 auto;
@@ -491,7 +491,7 @@ onMounted(() => {
 
 /* 响应式 */
 @media (max-width: 768px) {
-  .chef-dashboard {
+  .chefInfo-dashboard {
     padding: 16px;
   }
 

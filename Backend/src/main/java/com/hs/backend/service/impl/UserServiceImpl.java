@@ -176,9 +176,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
                 .build();
     }
 
-    //待修改
-    @Override
-    public User getByUsername(String username) {
-        return null;
-    }
+
+
 }

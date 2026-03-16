@@ -16,6 +16,7 @@ public class AdminInfo {
     private Integer gender;      // 性别：0-未知，1-男，2-女
     private String email;        // 邮箱
     private LocalDate birthday;  // 生日
+    private Integer status;      // 状态：0-禁用，1-启用
     private LocalDateTime createTime;
     private LocalDateTime updateTime;
 }

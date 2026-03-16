@@ -1,5 +1,5 @@
 <template>
-  <div class="chef-list">
+  <div class="chefInfo-list">
     <h2>厨师列表</h2>
     
     <!-- 搜索筛选 -->
@@ -16,28 +16,28 @@
     
     <!-- 厨师列表 -->
     <el-row :gutter="20">
-      <el-col :span="8" v-for="chef in chefList" :key="chef.id">
-        <el-card class="chef-card">
-          <div class="chef-header">
+      <el-col :span="8" v-for="chefInfo in chefList" :key="chefInfo.id">
+        <el-card class="chefInfo-card">
+          <div class="chefInfo-header">
             <el-avatar :size="60" src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png" />
-            <div class="chef-info">
-              <h4>{{ chef.name || '厨师' }}</h4>
-              <el-tag size="small" v-if="chef.level === 1">初级</el-tag>
-              <el-tag size="small" type="success" v-else-if="chef.level === 2">中级</el-tag>
-              <el-tag size="small" type="warning" v-else-if="chef.level === 3">高级</el-tag>
-              <el-tag size="small" type="danger" v-else-if="chef.level === 4">名厨</el-tag>
+            <div class="chefInfo-info">
+              <h4>{{ chefInfo.name || '厨师' }}</h4>
+              <el-tag size="small" v-if="chefInfo.level === 1">初级</el-tag>
+              <el-tag size="small" type="success" v-else-if="chefInfo.level === 2">中级</el-tag>
+              <el-tag size="small" type="warning" v-else-if="chefInfo.level === 3">高级</el-tag>
+              <el-tag size="small" type="danger" v-else-if="chefInfo.level === 4">名厨</el-tag>
             </div>
           </div>
           
-          <div class="chef-detail">
-            <p><el-icon><Location /></el-icon> 服务半径：{{ chef.serviceRadius || 10 }}km</p>
-            <p><el-icon><Star /></el-icon> 评分：{{ chef.rating || 5.0 }}</p>
-            <p><el-icon><User /></el-icon> 服务次数：{{ chef.serviceCount || 0 }}</p>
-            <p>擅长：{{ chef.specialty || '川菜、湘菜' }}</p>
-            <p>起步价：¥{{ chef.basePrice || 100 }}</p>
+          <div class="chefInfo-detail">
+            <p><el-icon><Location /></el-icon> 服务半径：{{ chefInfo.serviceRadius || 10 }}km</p>
+            <p><el-icon><Star /></el-icon> 评分：{{ chefInfo.rating || 5.0 }}</p>
+            <p><el-icon><User /></el-icon> 服务次数：{{ chefInfo.serviceCount || 0 }}</p>
+            <p>擅长：{{ chefInfo.specialty || '川菜、湘菜' }}</p>
+            <p>起步价：¥{{ chefInfo.basePrice || 100 }}</p>
           </div>
           
-          <el-button type="primary" style="width: 100%" @click="$router.push(`/chef/${chef.id}`)">
+          <el-button type="primary" style="width: 100%" @click="$router.push(`/chefInfo/${chefInfo.id}`)">
             查看详情
           </el-button>
         </el-card>
@@ -62,7 +62,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { Location, Star, User } from '@element-plus/icons-vue'
-import { getChefList } from '@/api/chef'
+import { getChefList } from '@/api/chefInfo'
 
 const searchForm = reactive({
   specialty: '',
@@ -114,7 +114,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.chef-list {
+.chefInfo-list {
   max-width: 1200px;
   margin: 0 auto;
   padding: 40px 20px;
@@ -131,26 +131,26 @@ h2 {
   margin-bottom: 30px;
 }
 
-.chef-card {
+.chefInfo-card {
   margin-bottom: 20px;
 }
 
-.chef-header {
+.chefInfo-header {
   display: flex;
   align-items: center;
   margin-bottom: 20px;
 }
 
-.chef-info {
+.chefInfo-info {
   margin-left: 15px;
 }
 
-.chef-info h4 {
+.chefInfo-info h4 {
   margin: 0 0 10px 0;
   color: #333;
 }
 
-.chef-detail p {
+.chefInfo-detail p {
   margin: 8px 0;
   color: #666;
   font-size: 14px;
@@ -158,7 +158,7 @@ h2 {
   align-items: center;
 }
 
-.chef-detail .el-icon {
+.chefInfo-detail .el-icon {
   margin-right: 5px;
 }
 

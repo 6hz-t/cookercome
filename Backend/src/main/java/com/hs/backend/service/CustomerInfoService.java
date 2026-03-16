@@ -15,4 +15,11 @@ public interface CustomerInfoService extends IService<CustomerInfo> {
      * @return 客户信息
      */
     CustomerInfo createDefaultCustomerInfo(Long userId, String username);
+
+    /**
+     * 根据用户 ID 获取客户信息
+     * @param userId 用户 ID
+     * @return 客户信息
+     */
+    CustomerInfo getByUserId(Long userId);
 }

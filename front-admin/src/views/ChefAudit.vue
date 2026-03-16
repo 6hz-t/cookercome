@@ -1,5 +1,5 @@
 <template>
-  <div class="chef-audit">
+  <div class="chefInfo-audit">
     <!-- 左侧导航栏 -->
     <div class="sidebar">
       <div class="sidebar-header">
@@ -19,8 +19,8 @@
           </div>
           <div
             class="menu-item"
-            :class="{ active: activeMenu === 'chef' }"
-            @click="navigateTo('/chef-audit')"
+            :class="{ active: activeMenu === 'chefInfo' }"
+            @click="navigateTo('/chefInfo-audit')"
           >
             <el-icon><UserFilled /></el-icon>
             <span>厨师审核</span>
@@ -170,7 +170,7 @@ import { ElMessageBox, ElMessage, ElInput } from 'element-plus'
 const router = useRouter()
 
 // 当前激活菜单
-const activeMenu = ref('chef')
+const activeMenu = ref('chefInfo')
 
 // 当前日期
 const currentDate = ref('2026年03月06日')
@@ -198,14 +198,14 @@ const filteredChefList = computed(() => {
   
   // 按状态筛选
   if (filterStatus.value) {
-    result = result.filter(chef => chef.auditStatus === filterStatus.value)
+    result = result.filter(chefInfo => chefInfo.auditStatus === filterStatus.value)
   }
   
   // 按姓名或ID搜索
   if (searchKeyword.value) {
-    result = result.filter(chef => 
-      chef.name.includes(searchKeyword.value) || 
-      chef.id.toString().includes(searchKeyword.value)
+    result = result.filter(chefInfo =>
+      chefInfo.name.includes(searchKeyword.value) ||
+      chefInfo.id.toString().includes(searchKeyword.value)
     )
   }
   
@@ -216,7 +216,7 @@ const filteredChefList = computed(() => {
 const showRejectReasonColumn = computed(() => {
   return filterStatus.value === 'rejected' || 
          (filterStatus.value === '' && 
-          chefList.value.some(chef => chef.auditStatus === 'rejected'))
+          chefList.value.some(chefInfo => chefInfo.auditStatus === 'rejected'))
 })
 
 // 获取状态文本
@@ -240,10 +240,10 @@ const getStatusType = (status) => {
 }
 
 // 审核通过
-const approveChef = async (chef) => {
+const approveChef = async (chefInfo) => {
   try {
     await ElMessageBox.confirm(
-      `确定要通过「${chef.name}」的厨师申请吗？`,
+      `确定要通过「${chefInfo.name}」的厨师申请吗？`,
       '审核通过',
       {
         confirmButtonText: '确定',
@@ -253,15 +253,15 @@ const approveChef = async (chef) => {
     )
     
     // 更新厨师审核状态
-    chef.auditStatus = 'approved'
+    chefInfo.auditStatus = 'approved'
     pendingChefs.value -= 1
     
-    ElMessage.success(`已通过「${chef.name}」的厨师申请`)
+    ElMessage.success(`已通过「${chefInfo.name}」的厨师申请`)
     
     // 记录操作日志
-    console.log('Approve chef:', {
-      chefId: chef.id,
-      chefName: chef.name,
+    console.log('Approve chefInfo:', {
+      chefId: chefInfo.id,
+      chefName: chefInfo.name,
       operator: '超级管理员',
       timestamp: new Date().toLocaleString(),
       action: 'approve'
@@ -274,7 +274,7 @@ const approveChef = async (chef) => {
 }
 
 // 审核拒绝
-const rejectChef = async (chef) => {
+const rejectChef = async (chefInfo) => {
   let reason = ''
   
   try {
@@ -296,16 +296,16 @@ const rejectChef = async (chef) => {
     reason = result.value
     
     // 更新厨师审核状态
-    chef.auditStatus = 'rejected'
-    chef.rejectReason = reason
+    chefInfo.auditStatus = 'rejected'
+    chefInfo.rejectReason = reason
     pendingChefs.value -= 1
     
-    ElMessage.warning(`已拒绝「${chef.name}」的厨师申请，原因：${reason}`)
+    ElMessage.warning(`已拒绝「${chefInfo.name}」的厨师申请，原因：${reason}`)
     
     // 记录操作日志
-    console.log('Reject chef:', {
-      chefId: chef.id,
-      chefName: chef.name,
+    console.log('Reject chefInfo:', {
+      chefId: chefInfo.id,
+      chefName: chefInfo.name,
       operator: '超级管理员',
       timestamp: new Date().toLocaleString(),
       action: 'reject',
@@ -363,7 +363,7 @@ const handleLogout = async () => {
 </script>
 
 <style scoped>
-.chef-audit {
+.chefInfo-audit {
   display: flex;
   height: 100vh;
   background-color: #f7f8fa;

@@ -202,9 +202,9 @@
               @click="$router.push(`/order/${order.id}`)"
             >
               <div class="booking-content">
-                <div class="chef-info">
+                <div class="chefInfo-info">
                   <el-avatar :size="50" :src="order.chefAvatar" />
-                  <div class="chef-details">
+                  <div class="chefInfo-details">
                     <h4>{{ order.chefName }}</h4>
                     <p>{{ order.serviceType }}</p>
                   </div>
@@ -256,9 +256,9 @@
               @click="$router.push(`/order/${order.id}`)"
             >
               <div class="booking-content">
-                <div class="chef-info">
+                <div class="chefInfo-info">
                   <el-avatar :size="50" :src="order.chefAvatar" />
-                  <div class="chef-details">
+                  <div class="chefInfo-details">
                     <h4>{{ order.chefName }}</h4>
                     <p>{{ order.serviceType }}</p>
                   </div>
@@ -365,7 +365,7 @@ import {
 import { ElMessage } from 'element-plus'
 
 const router = useRouter()
-const emit = defineEmits(['show-address', 'cancel-order', 'contact-chef', 'review-order', 'book-again'])
+const emit = defineEmits(['show-address', 'cancel-order', 'contact-chefInfo', 'review-order', 'book-again'])
 
 // 用户信息
 const userInfo = ref({
@@ -1213,13 +1213,13 @@ onMounted(() => {
   margin-bottom: 15px;
 }
 
-.chef-info {
+.chefInfo-info {
   display: flex;
   align-items: center;
   gap: 15px;
 }
 
-.chef-avatar-wrapper {
+.chefInfo-avatar-wrapper {
   position: relative;
 }
 
@@ -1240,14 +1240,14 @@ onMounted(() => {
   50% { transform: scale(1.2); opacity: 0.7; }
 }
 
-.chef-details h4 {
+.chefInfo-details h4 {
   font-size: 18px;
   font-weight: bold;
   color: white;
   margin: 0 0 5px 0;
 }
 
-.chef-details p {
+.chefInfo-details p {
   font-size: 14px;
   color: rgba(255, 255, 255, 0.6);
   margin: 0;
