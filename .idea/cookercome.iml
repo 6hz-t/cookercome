@@ -67,5 +67,7 @@
       </library>
     </orderEntry>
     <orderEntry type="library" name="Maven: jakarta.validation:jakarta.validation-api:3.0.2" level="project" />
+    <orderEntry type="library" name="Maven: com.fasterxml.jackson.core:jackson-annotations:2.15.3" level="project" />
+    <orderEntry type="library" name="Maven: org.springframework.data:spring-data-redis:3.2.0" level="project" />
   </component>
 </module>
