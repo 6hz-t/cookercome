@@ -1,12 +1,21 @@
 import axios from 'axios'
 
-const request = axios.create({
+const chefrequest = axios.create({
   baseURL: 'http://localhost:8080/api/chef', // 后端 API 基础路径
+  timeout: 10000
+
+  //api/auth
+
+  //api/chef
+})
+
+const authrequest = axios.create({
+  baseURL: 'http://localhost:8080/api/auth',
   timeout: 10000
 })
 
 // 请求拦截器
-request.interceptors.request.use(
+chefrequest.interceptors.request.use(
   config => {
     const token = localStorage.getItem('token')
     if (token) {
@@ -20,7 +29,7 @@ request.interceptors.request.use(
 )
 
 // 响应拦截器
-request.interceptors.response.use(
+  chefrequest.interceptors.response.use(
   response => {
     return response.data
   },
@@ -32,5 +41,7 @@ request.interceptors.response.use(
     return Promise.reject(error)
   }
 )
+
+
 
 export default request
