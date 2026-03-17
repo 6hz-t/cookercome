@@ -34,8 +34,7 @@
 
 <script setup>
 import { ref, reactive } from 'vue'
-import { useRouter } from 'vue-router' // 路由跳转用
-import request from '@/utils/request' // 引入封装的axios
+import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 
 // 路由实例
@@ -62,30 +61,24 @@ const loginRules = reactive({
 // 表单引用（用于验证）
 const loginFormRef = ref(null)
 
-// 登录按钮点击事件
+// 登录按钮点击事件（纯前端版本，无接口请求）
 const handleLogin = () => {
   // 先验证表单
   loginFormRef.value.validate((valid) => {
     if (!valid) return
 
-    // 表单验证通过，调用后端登录接口
-    request.post('/user/login', loginForm)
-      .then((res) => {
-        // 登录成功：保存token到本地存储（持久化，刷新页面不丢失）
-        localStorage.setItem('admin-token', res.data)
-        ElMessage.success('登录成功！')
-        // 跳转到仪表盘页面
-        router.push('/dashboard')
-      })
-      .catch((err) => {
-        ElMessage.error(err.msg || '登录失败，请检查账号密码')
-      })
+    // 仅前端模拟登录成功（无后端请求）
+    ElMessage.success('登录验证通过（前端测试）')
+    // 模拟保存token（可选）
+    localStorage.setItem('admin-token', 'test-token-123456')
+    // 跳转到仪表盘页面
+    router.push('/dashboard')
   })
 }
 </script>
 
 <style scoped>
-/* 登录页面样式，新手可直接用 */
+/* 登录页面样式 */
 .login-container {
   width: 100vw;
   height: 100vh;

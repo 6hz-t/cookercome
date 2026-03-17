@@ -12,8 +12,8 @@ import java.time.LocalDateTime;
  * 客户专属信息实体类
  */
 @Data
-@EqualsAndHashCode(callSuper = false)
 @TableName("t_customer_info")
+@EqualsAndHashCode(callSuper = false)
 public class CustomerInfo implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -101,4 +101,10 @@ public class CustomerInfo implements Serializable {
      */
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updateTime;
+
+    /*
+     * 状态：0-禁用，1-启用
+    * */
+    private Integer status;
+
 }

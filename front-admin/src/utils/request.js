@@ -1,17 +1,15 @@
-// src/utils/request.js
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
 
-// 创建axios实例
+// 创建axios实例，指向你的后端地址
 const request = axios.create({
-  baseURL: 'http://localhost:8080', // 后端接口地址（对应你之前的Spring Boot后端）
-  timeout: 5000 // 请求超时时间
+  baseURL: 'http://localhost:8080', // 后端Spring Boot的地址+端口
+  timeout: 5000
 })
 
-// 请求拦截器：给所有请求加token（登录后用）
+// 请求拦截器：加Token（登录后鉴权）
 request.interceptors.request.use(
   (config) => {
-    // 从本地存储获取token，添加到请求头
     const token = localStorage.getItem('admin-token')
     if (token) {
       config.headers['token'] = token
@@ -23,11 +21,11 @@ request.interceptors.request.use(
   }
 )
 
-// 响应拦截器：统一处理后端返回的结果
+// 响应拦截器：统一处理后端返回结果
 request.interceptors.response.use(
   (response) => {
-    // 后端返回的统一格式：{code:200, msg:"成功", data:xxx}
     const res = response.data
+    // 后端返回的code=200代表成功
     if (res.code !== 200) {
       ElMessage.error(res.msg || '请求失败')
       return Promise.reject(res)

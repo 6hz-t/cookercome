@@ -10,7 +10,7 @@
     <div class="banner scroll-animate" data-direction="top">
       <h1>厨师上门服务</h1>
       <p>专业厨师上门，为您烹饪美味佳肴</p>
-      <el-button type="primary" size="large" @click="$router.push('/chefs')">
+      <el-button type="primary" size="large" @click="$router.push('/chefInfos')">
         立即预约
       </el-button>
     </div>
@@ -53,26 +53,26 @@
     </div>
 
     <!-- 顶级大厨 -->
-    <div class="top-chefs scroll-animate" data-direction="bottom">
+    <div class="top-chefInfos scroll-animate" data-direction="bottom">
       <h2>顶级大厨</h2>
-      <div class="chef-showcase">
+      <div class="chefInfo-showcase">
         <!-- 第一位大厨：左图右文 -->
-        <div class="chef-highlight-item" @click="$router.push('/chef/1')">
-          <div class="chef-photo">
+        <div class="chefInfo-highlight-item" @click="$router.push('/chefInfo/1')">
+          <div class="chefInfo-photo">
             <img src="@/assets/images/banner-bg.jpeg" alt="大厨 1" />
-            <div class="chef-badge">
+            <div class="chefInfo-badge">
               <el-icon><Star /></el-icon>
               <span>好评率第一</span>
             </div>
           </div>
-          <div class="chef-info-content">
+          <div class="chefInfo-info-content">
             <div class="bg-gradient"></div>
             <div class="corner-tr"></div>
             <div class="corner-bl"></div>
             <h3>测试 1</h3>
-            <p class="chef-title">特级厨师 | 20 年经验</p>
-            <p class="chef-desc">擅长川菜和粤菜融合，曾就职于五星级酒店。对食材挑选极为严格，坚持使用最新鲜的本地有机食材。招牌菜“水煮鱼”被誉为全城最佳，辣而不燥，麻而不苦。</p>
-            <div class="chef-stats">
+            <p class="chefInfo-title">特级厨师 | 20 年经验</p>
+            <p class="chefInfo-desc">擅长川菜和粤菜融合，曾就职于五星级酒店。对食材挑选极为严格，坚持使用最新鲜的本地有机食材。招牌菜“水煮鱼”被誉为全城最佳，辣而不燥，麻而不苦。</p>
+            <div class="chefInfo-stats">
               <div class="stat-item">
                 <span class="stat-value">99.8%</span>
                 <span class="stat-label">好评率</span>
@@ -90,15 +90,15 @@
         </div>
 
         <!-- 第二位大厨：左文右图 -->
-        <div class="chef-highlight-item" @click="$router.push('/chef/2')">
-          <div class="chef-info-content">
+        <div class="chefInfo-highlight-item" @click="$router.push('/chefInfo/2')">
+          <div class="chefInfo-info-content">
             <div class="bg-gradient"></div>
             <div class="corner-tr"></div>
             <div class="corner-bl"></div>
             <h3>测试 2</h3>
-            <p class="chef-title">高级营养师 | 18 年经验</p>
-            <p class="chef-desc">专注健康养生菜品研发，擅长根据客户体质定制营养菜单。精通药膳调理，将中医理论与现代营养学完美结合。独创的“四季养生宴”深受高端客户喜爱。</p>
-            <div class="chef-stats">
+            <p class="chefInfo-title">高级营养师 | 18 年经验</p>
+            <p class="chefInfo-desc">专注健康养生菜品研发，擅长根据客户体质定制营养菜单。精通药膳调理，将中医理论与现代营养学完美结合。独创的“四季养生宴”深受高端客户喜爱。</p>
+            <div class="chefInfo-stats">
               <div class="stat-item ">
                 <span class="stat-value">95%</span>
                 <span class="stat-label">回头客</span>
@@ -113,9 +113,9 @@
               </div>
             </div>
           </div>
-          <div class="chef-photo">
+          <div class="chefInfo-photo">
             <img src="@/assets/images/banner-bg.jpeg" alt="大厨 2" />
-            <div class="chef-badge badge-gold">
+            <div class="chefInfo-badge badge-gold">
               <el-icon><Trophy /></el-icon>
               <span>回头客第一</span>
             </div>
@@ -123,22 +123,22 @@
         </div>
 
         <!-- 第三位大厨：左图右文 -->
-        <div class="chef-highlight-item" @click="$router.push('/chef/3')">
-          <div class="chef-photo">
+        <div class="chefInfo-highlight-item" @click="$router.push('/chefInfo/3')">
+          <div class="chefInfo-photo">
             <img src="@/assets/images/banner-bg.jpeg" alt="大厨 3" />
-            <div class="chef-badge badge-silver">
+            <div class="chefInfo-badge badge-silver">
               <el-icon><Medal /></el-icon>
               <span>创意菜品奖</span>
             </div>
           </div>
-          <div class="chef-info-content">
+          <div class="chefInfo-info-content">
             <div class="bg-gradient"></div>
             <div class="corner-tr"></div>
             <div class="corner-bl"></div>
             <h3>测试 3</h3>
-            <p class="chef-title">创新菜大师 | 15 年经验</p>
-            <p class="chef-desc">致力于传统菜品的创新改良，将分子料理技术融入中餐烹饪。擅长打造视觉与味觉的双重盛宴，每一道菜都是艺术品。代表作品“荷塘月色”获全国烹饪大赛金奖。</p>
-            <div class="chef-stats">
+            <p class="chefInfo-title">创新菜大师 | 15 年经验</p>
+            <p class="chefInfo-desc">致力于传统菜品的创新改良，将分子料理技术融入中餐烹饪。擅长打造视觉与味觉的双重盛宴，每一道菜都是艺术品。代表作品“荷塘月色”获全国烹饪大赛金奖。</p>
+            <div class="chefInfo-stats">
               <div class="stat-item">
                 <span class="stat-value">98.5%</span>
                 <span class="stat-label">好评率</span>
@@ -158,30 +158,30 @@
     </div>
 
     <!-- 推荐厨师 -->
-    <div class="recommended-chefs scroll-animate" data-direction="bottom">
+    <div class="recommended-chefInfos scroll-animate" data-direction="bottom">
       <h2>推荐厨师</h2>
       <p class="section-subtitle">精选优质厨师，为您提供专业服务</p>
       
-      <div class="chef-grid">
+      <div class="chefInfo-grid">
         <div 
-          v-for="(chef, index) in recommendedChefs" 
-          :key="chef.id"
-          class="chef-card"
+          v-for="(chefInfo, index) in recommendedChefs"
+          :key="chefInfo.id"
+          class="chefInfo-card"
           :style="{ animationDelay: `${index * 0.1}s` }"
-          @click="$router.push(`/chef/${chef.id}`)"
+          @click="$router.push(`/chefInfo/${chefInfo.id}`)"
         >
-          <div class="chef-avatar">
-            <el-avatar :size="90" :src="chef.avatar" />
-            <div class="chef-level-badge" :class="chef.levelClass">
-              {{ chef.level }}
+          <div class="chefInfo-avatar">
+            <el-avatar :size="90" :src="chefInfo.avatar" />
+            <div class="chefInfo-level-badge" :class="chefInfo.levelClass">
+              {{ chefInfo.level }}
             </div>
           </div>
           
-          <h4 class="chef-name">{{ chef.name }}</h4>
+          <h4 class="chefInfo-name">{{ chefInfo.name }}</h4>
           
-          <div class="chef-tags">
+          <div class="chefInfo-tags">
             <span 
-              v-for="(tag, tagIndex) in chef.skills" 
+              v-for="(tag, tagIndex) in chefInfo.skills"
               :key="tagIndex"
               class="skill-tag"
             >
@@ -189,20 +189,20 @@
             </span>
           </div>
           
-          <div class="chef-rating">
+          <div class="chefInfo-rating">
             <el-icon class="star-icon"><Star /></el-icon>
-            <span class="rating-value">{{ chef.rating }}</span>
-            <span class="rating-count">({{ chef.reviewCount }}条评价)</span>
+            <span class="rating-value">{{ chefInfo.rating }}</span>
+            <span class="rating-count">({{ chefInfo.reviewCount }}条评价)</span>
           </div>
           
-          <div class="chef-service-count">
+          <div class="chefInfo-service-count">
             <el-icon><User /></el-icon>
-            <span>已服务 {{ chef.serviceCount }}+ 次</span>
+            <span>已服务 {{ chefInfo.serviceCount }}+ 次</span>
           </div>
           
-          <div class="chef-price">
+          <div class="chefInfo-price">
             <span class="price-label">起步价</span>
-            <span class="price-value">¥{{ chef.price }}</span>
+            <span class="price-value">¥{{ chefInfo.price }}</span>
           </div>
           
           <el-button type="primary" round size="default" class="view-detail-btn">
@@ -685,14 +685,14 @@ onMounted(() => {
   opacity: 0;
 }
 
-.recommended-chefs {
+.recommended-chefInfos {
   padding: 60px 20px;
   width: 100%;
   max-width: 1400px;
   margin: 0 auto;
 }
 
-.recommended-chefs h2 {
+.recommended-chefInfos h2 {
   text-align: center;
   font-size: 36px;
   color: #333;
@@ -708,14 +708,14 @@ onMounted(() => {
 }
 
 /* 顶级大厨模块样式 */
-.top-chefs {
+.top-chefInfos {
   padding: 60px 20px;
   width: 100%;
   max-width: 1400px;
   margin: 0 auto;
 }
 
-.top-chefs h2 {
+.top-chefInfos h2 {
   text-align: center;
   margin-bottom: 50px;
   font-size: 36px;
@@ -723,13 +723,13 @@ onMounted(() => {
   font-weight: bold;
 }
 
-.chef-showcase {
+.chefInfo-showcase {
   display: flex;
   flex-direction: column;
   gap: 40px;
 }
 
-.chef-highlight-item {
+.chefInfo-highlight-item {
   display: flex;
   align-items: center;
   gap: 30px;
@@ -739,7 +739,7 @@ onMounted(() => {
 }
 
 /* 图片区域 */
-.chef-photo {
+.chefInfo-photo {
   position: relative;
   flex: 0 0 35%;
   overflow: hidden;
@@ -747,7 +747,7 @@ onMounted(() => {
 }
 
 /* 介绍区域 - 科技感四角边框 */
-.chef-info-content {
+.chefInfo-info-content {
   flex: 1;
   padding: 0;
   display: flex;
@@ -759,7 +759,7 @@ onMounted(() => {
 }
 
 /* 背景渐变层 - 鼠标移入时从左到右显示 */
-.chef-info-content .bg-gradient {
+.chefInfo-info-content .bg-gradient {
   position: absolute;
   top: 0;
   left: 0;
@@ -775,8 +775,8 @@ onMounted(() => {
 
 
 /* 四个角的边框 */
-.chef-info-content::before,
-.chef-info-content::after {
+.chefInfo-info-content::before,
+.chefInfo-info-content::after {
   content: '';
   position: absolute;
   width: 15px;
@@ -788,14 +788,14 @@ onMounted(() => {
 }
 
 /* 左上角和右下角 */
-.chef-info-content::before {
+.chefInfo-info-content::before {
   top: -5px;
   left: -5px;
   border-right: none;
   border-bottom: none;
 }
 
-.chef-info-content::after {
+.chefInfo-info-content::after {
   bottom: -5px;
   right: -5px;
   border-left: none;
@@ -803,8 +803,8 @@ onMounted(() => {
 }
 
 /* 右上角和左下角 - 使用额外元素 */
-.chef-info-content .corner-tr,
-.chef-info-content .corner-bl {
+.chefInfo-info-content .corner-tr,
+.chefInfo-info-content .corner-bl {
   position: absolute;
   width: 15px;
   height: 15px;
@@ -814,55 +814,55 @@ onMounted(() => {
   transition: all 0.3s ease;
 }
 
-.chef-info-content .corner-tr {
+.chefInfo-info-content .corner-tr {
   top: -5px;
   right: -5px;
   border-left: none;
   border-bottom: none;
 }
 
-.chef-info-content .corner-bl {
+.chefInfo-info-content .corner-bl {
   bottom: -5px;
   left: -5px;
   border-right: none;
   border-top: none;
 }
 
-.chef-highlight-item:hover .chef-info-content .bg-gradient {
+.chefInfo-highlight-item:hover .chefInfo-info-content .bg-gradient {
   transform: scaleX(1);
 }
 
-.chef-highlight-item:hover .chef-info-content::before,
-.chef-highlight-item:hover .chef-info-content::after,
-.chef-highlight-item:hover .corner-tr,
-.chef-highlight-item:hover .corner-bl {
+.chefInfo-highlight-item:hover .chefInfo-info-content::before,
+.chefInfo-highlight-item:hover .chefInfo-info-content::after,
+.chefInfo-highlight-item:hover .corner-tr,
+.chefInfo-highlight-item:hover .corner-bl {
   width: 18px;
   height: 18px;
   border-color: #764ba2;
 }
 
-.chef-highlight-item.reverse {
+.chefInfo-highlight-item.reverse {
   flex-direction: row-reverse;
 }
 
-.chef-photo {
+.chefInfo-photo {
   position: relative;
   flex: 0 0 40%;
   overflow: hidden;
 }
 
-.chef-photo img {
+.chefInfo-photo img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   transition: transform 0.4s ease;
 }
 
-.chef-highlight-item:hover .chef-photo img {
+.chefInfo-highlight-item:hover .chefInfo-photo img {
   transform: scale(1.05);
 }
 
-.chef-badge {
+.chefInfo-badge {
   position: absolute;
   top: 20px;
   left: 20px;
@@ -878,29 +878,29 @@ onMounted(() => {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
-.chef-badge.badge-gold {
+.chefInfo-badge.badge-gold {
   background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
 }
 
-.chef-badge.badge-silver {
+.chefInfo-badge.badge-silver {
   background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
 }
 
-.chef-info-content h3 {
+.chefInfo-info-content h3 {
   font-size: 22px;
   color: #333;
   margin-bottom: 8px;
   font-weight: bold;
 }
 
-.chef-title {
+.chefInfo-title {
   font-size: 14px;
   color: #667eea;
   margin-bottom: 15px;
   font-weight: 500;
 }
 
-.chef-desc {
+.chefInfo-desc {
   font-size: 13px;
   width: 98%;
   color: #666;
@@ -913,7 +913,7 @@ onMounted(() => {
   overflow: hidden;
 }
 
-.chef-stats {
+.chefInfo-stats {
   display: flex;
   gap: 20px;
   margin-bottom: 0;
@@ -936,11 +936,11 @@ onMounted(() => {
   color: #999;
 }
 
-.chef-info-content .el-button {
+.chefInfo-info-content .el-button {
   display: none;
 }
 
-.chef-info-content .el-button {
+.chefInfo-info-content .el-button {
   align-self: flex-start;
   padding: 12px 30px;
   font-size: 16px;
@@ -949,21 +949,21 @@ onMounted(() => {
   gap: 8px;
 }
 
-.chef-info-content .el-button .el-icon {
+.chefInfo-info-content .el-button .el-icon {
   transition: transform 0.3s ease;
 }
 
-.chef-info-content .el-button:hover .el-icon {
+.chefInfo-info-content .el-button:hover .el-icon {
   transform: translateX(5px);
 }
 
-.recommended-chefs {
+.recommended-chefInfos {
   text-align: center;
   margin-bottom: 40px;
   color: #333;
 }
 
-.chef-grid {
+.chefInfo-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 25px;
@@ -971,24 +971,24 @@ onMounted(() => {
 }
 
 @media (max-width: 1200px) {
-  .chef-grid {
+  .chefInfo-grid {
     grid-template-columns: repeat(3, 1fr);
   }
 }
 
 @media (max-width: 900px) {
-  .chef-grid {
+  .chefInfo-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
 
 @media (max-width: 600px) {
-  .chef-grid {
+  .chefInfo-grid {
     grid-template-columns: 1fr;
   }
 }
 
-.chef-card {
+.chefInfo-card {
   background: white;
   border-radius: 16px;
   padding: 25px;
@@ -1003,7 +1003,7 @@ onMounted(() => {
   overflow: hidden;
 }
 
-.chef-card::before {
+.chefInfo-card::before {
   content: '';
   position: absolute;
   top: 0;
@@ -1015,28 +1015,28 @@ onMounted(() => {
   z-index: 0;
 }
 
-.chef-card:hover::before {
+.chefInfo-card:hover::before {
   height: 100%;
 }
 
-.chef-card:hover {
+.chefInfo-card:hover {
   transform: translateY(-8px);
   box-shadow: 0 12px 28px rgba(102, 126, 234, 0.2);
   border-color: rgba(102, 126, 234, 0.3);
 }
 
-.chef-card > * {
+.chefInfo-card > * {
   position: relative;
   z-index: 1;
 }
 
-.chef-avatar {
+.chefInfo-avatar {
   position: relative;
   margin-bottom: 20px;
   display: inline-block;
 }
 
-.chef-level-badge {
+.chefInfo-level-badge {
   position: absolute;
   bottom: -5px;
   right: -5px;
@@ -1048,26 +1048,26 @@ onMounted(() => {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
-.chef-level-badge.level-gold {
+.chefInfo-level-badge.level-gold {
   background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
 }
 
-.chef-level-badge.level-silver {
+.chefInfo-level-badge.level-silver {
   background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
 }
 
-.chef-level-badge.level-bronze {
+.chefInfo-level-badge.level-bronze {
   background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
 }
 
-.chef-name {
+.chefInfo-name {
   font-size: 20px;
   color: #333;
   margin-bottom: 15px;
   font-weight: 600;
 }
 
-.chef-tags {
+.chefInfo-tags {
   display: flex;
   justify-content: center;
   gap: 8px;
@@ -1084,7 +1084,7 @@ onMounted(() => {
   font-weight: 500;
 }
 
-.chef-rating {
+.chefInfo-rating {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1108,7 +1108,7 @@ onMounted(() => {
   color: #999;
 }
 
-.chef-service-count {
+.chefInfo-service-count {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1118,11 +1118,11 @@ onMounted(() => {
   color: #666;
 }
 
-.chef-service-count .el-icon {
+.chefInfo-service-count .el-icon {
   color: #667eea;
 }
 
-.chef-price {
+.chefInfo-price {
   margin-bottom: 18px;
 }
 
@@ -1191,13 +1191,13 @@ onMounted(() => {
 
 /* 子元素的延迟动画 */
 .feature-item,
-.chef-card {
+.chefInfo-card {
   opacity: 0;
   animation: fadeInUp 0.6s ease-out forwards;
 }
 
 .scroll-animate.animate-active .feature-item,
-.scroll-animate.animate-active .chef-card {
+.scroll-animate.animate-active .chefInfo-card {
   /* 由父容器控制整体动画，子元素使用 delay */
 }
 

@@ -3,6 +3,7 @@ package com.hs.backend.entity;
 import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.extern.slf4j.Slf4j;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -14,7 +15,7 @@ import java.time.LocalDateTime;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @TableName("t_chef")
-public class Chef implements Serializable {
+public class ChefInfo implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -38,6 +39,11 @@ public class Chef implements Serializable {
      * 工作年限
      */
     private Integer workYears;
+
+    /*
+    * 厨师真实姓名
+    * */
+    private String realName;
 
     /**
      * 擅长菜系（逗号分隔）
@@ -121,4 +127,10 @@ public class Chef implements Serializable {
      */
     @TableLogic
     private Integer deleted;
+
+    /*
+    * 状态：0-禁用，1-启用
+    * */
+    private Integer status;
+
 }

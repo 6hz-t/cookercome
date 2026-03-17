@@ -1,5 +1,5 @@
 <template>
-  <div class="booking-chef">
+  <div class="booking-chefInfo">
     <div class="panel-header">
       <h2 class="panel-title">
         <el-icon><Calendar /></el-icon>
@@ -8,24 +8,24 @@
       <p class="panel-desc">专业厨师上门服务，为您定制专属美食</p>
     </div>
     
-    <div class="chef-cards">
-      <div v-for="chef in chefList" :key="chef.id" class="chef-card-item">
-        <div class="chef-card-img">
-          <img :src="chef.avatar" :alt="chef.name" />
-          <div class="chef-level-badge" :class="chef.levelClass">{{ chef.level }}</div>
+    <div class="chefInfo-cards">
+      <div v-for="chefInfo in chefList" :key="chefInfo.id" class="chefInfo-card-item">
+        <div class="chefInfo-card-img">
+          <img :src="chefInfo.avatar" :alt="chefInfo.name" />
+          <div class="chefInfo-level-badge" :class="chefInfo.levelClass">{{ chefInfo.level }}</div>
         </div>
-        <div class="chef-card-info">
-          <h3>{{ chef.name }}</h3>
-          <p class="chef-title">{{ chef.title }}</p>
-          <div class="chef-skills">
-            <el-tag v-for="skill in chef.skills" :key="skill" size="small" effect="plain">{{ skill }}</el-tag>
+        <div class="chefInfo-card-info">
+          <h3>{{ chefInfo.name }}</h3>
+          <p class="chefInfo-title">{{ chefInfo.title }}</p>
+          <div class="chefInfo-skills">
+            <el-tag v-for="skill in chefInfo.skills" :key="skill" size="small" effect="plain">{{ skill }}</el-tag>
           </div>
-          <div class="chef-stats-row">
-            <span><el-icon><Star /></el-icon> {{ chef.rating }}分</span>
-            <span><el-icon><ShoppingCart /></el-icon> {{ chef.orders }}单</span>
-            <span>¥{{ chef.price }}起</span>
+          <div class="chefInfo-stats-row">
+            <span><el-icon><Star /></el-icon> {{ chefInfo.rating }}分</span>
+            <span><el-icon><ShoppingCart /></el-icon> {{ chefInfo.orders }}单</span>
+            <span>¥{{ chefInfo.price }}起</span>
           </div>
-          <el-button type="primary" block @click="$emit('book-chef', chef)">立即预约</el-button>
+          <el-button type="primary" block @click="$emit('book-chefInfo', chefInfo)">立即预约</el-button>
         </div>
       </div>
     </div>
@@ -36,7 +36,7 @@
 import { ref } from 'vue'
 import { Calendar, Star, ShoppingCart } from '@element-plus/icons-vue'
 
-const emit = defineEmits(['book-chef'])
+const emit = defineEmits(['book-chefInfo'])
 
 const chefList = ref([
   {
@@ -79,7 +79,7 @@ const chefList = ref([
 </script>
 
 <style scoped>
-.booking-chef {
+.booking-chefInfo {
   min-height: 600px;
 }
 
@@ -109,13 +109,13 @@ const chefList = ref([
   color: var(--text-secondary);
 }
 
-.chef-cards {
+.chefInfo-cards {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 25px;
 }
 
-.chef-card-item {
+.chefInfo-card-item {
   background: linear-gradient(135deg, #3d3d3d 0%, #2d2d2d 100%);
   border-radius: 16px;
   overflow: hidden;
@@ -123,29 +123,29 @@ const chefList = ref([
   cursor: pointer;
 }
 
-.chef-card-item:hover {
+.chefInfo-card-item:hover {
   transform: translateY(-10px);
   box-shadow: 0 15px 35px rgba(102, 126, 234, 0.2);
 }
 
-.chef-card-img {
+.chefInfo-card-img {
   position: relative;
   height: 200px;
   overflow: hidden;
 }
 
-.chef-card-img img {
+.chefInfo-card-img img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   transition: var(--transition);
 }
 
-.chef-card-item:hover .chef-card-img img {
+.chefInfo-card-item:hover .chefInfo-card-img img {
   transform: scale(1.1);
 }
 
-.chef-level-badge {
+.chefInfo-level-badge {
   position: absolute;
   top: 15px;
   right: 15px;
@@ -157,35 +157,35 @@ const chefList = ref([
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
 }
 
-.chef-level-badge.gold { background: linear-gradient(135deg, #ffd700, #ffed4e); }
-.chef-level-badge.diamond { background: linear-gradient(135deg, #b9f2ff, #00d4ff); color: #333; }
-.chef-level-badge.silver { background: linear-gradient(135deg, #c0c0c0, #e8e8e8); color: #333; }
+.chefInfo-level-badge.gold { background: linear-gradient(135deg, #ffd700, #ffed4e); }
+.chefInfo-level-badge.diamond { background: linear-gradient(135deg, #b9f2ff, #00d4ff); color: #333; }
+.chefInfo-level-badge.silver { background: linear-gradient(135deg, #c0c0c0, #e8e8e8); color: #333; }
 
-.chef-card-info {
+.chefInfo-card-info {
   padding: 20px;
 }
 
-.chef-card-info h3 {
+.chefInfo-card-info h3 {
   font-size: 20px;
   font-weight: bold;
   color: var(--text-primary);
   margin: 0 0 8px 0;
 }
 
-.chef-title {
+.chefInfo-title {
   font-size: 14px;
   color: var(--text-secondary);
   margin: 0 0 15px 0;
 }
 
-.chef-skills {
+.chefInfo-skills {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 15px;
 }
 
-.chef-stats-row {
+.chefInfo-stats-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -196,13 +196,13 @@ const chefList = ref([
   color: var(--text-secondary);
 }
 
-.chef-stats-row span {
+.chefInfo-stats-row span {
   display: flex;
   align-items: center;
   gap: 5px;
 }
 
-.chef-stats-row .el-icon {
+.chefInfo-stats-row .el-icon {
   color: #faad14;
 }
 </style>

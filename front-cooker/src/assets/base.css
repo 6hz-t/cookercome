@@ -1,53 +1,48 @@
-/* color palette from <https://github.com/vuejs/theme> */
+/* 厨师端主题配色 - Cooker Theme (薄荷绿) */
 :root {
-  --vt-c-white: #ffffff;
-  --vt-c-white-soft: #f8f8f8;
-  --vt-c-white-mute: #f2f2f2;
+  /* 主色 - Primary (薄荷绿) */
+  --color-primary: #9ED2BE;
+  --color-primary-light: #B8E0D0;
+  --color-primary-dark: #7AC4A9;
 
-  --vt-c-black: #181818;
-  --vt-c-black-soft: #222222;
-  --vt-c-black-mute: #282828;
+  /* 强调色 - Accent (森绿) */
+  --color-accent: #5A9367;
+  --color-accent-hover: #4A7F56;
+  --color-accent-light: #75A87F;
 
-  --vt-c-indigo: #2c3e50;
+  /* 背景色 - Background */
+  --color-bg-white: #FFFFFF;
+  --color-bg-soft: #F2F8F5;
+  --color-bg-mute: #E8F0EC;
 
-  --vt-c-divider-light-1: rgba(60, 60, 60, 0.29);
-  --vt-c-divider-light-2: rgba(60, 60, 60, 0.12);
-  --vt-c-divider-dark-1: rgba(84, 84, 84, 0.65);
-  --vt-c-divider-dark-2: rgba(84, 84, 84, 0.48);
+  /* 文字色 - Text */
+  --color-text-primary: #3A4B3F;
+  --color-text-secondary: #7A8C80;
+  --color-text-light: #A3B3A8;
 
-  --vt-c-text-light-1: var(--vt-c-indigo);
-  --vt-c-text-light-2: rgba(60, 60, 60, 0.66);
-  --vt-c-text-dark-1: var(--vt-c-white);
-  --vt-c-text-dark-2: rgba(235, 235, 235, 0.64);
-}
+  /* 边框色 - Border */
+  --color-border: #E6EEE9;
+  --color-border-light: #F0F5F2;
+  --color-border-dark: #D4E0D8;
 
-/* semantic color variables for this project */
-:root {
-  --color-background: var(--vt-c-white);
-  --color-background-soft: var(--vt-c-white-soft);
-  --color-background-mute: var(--vt-c-white-mute);
+  /* 功能色 - Functional */
+  --color-success: #52C41A;
+  --color-warning: #FAAD14;
+  --color-danger: #F5222D;
+  --color-info: #1890FF;
 
-  --color-border: var(--vt-c-divider-light-2);
-  --color-border-hover: var(--vt-c-divider-light-1);
+  /* 语义化变量 - Semantic Variables */
+  --color-background: var(--color-bg-white);
+  --color-background-soft: var(--color-bg-soft);
+  --color-background-mute: var(--color-bg-mute);
 
-  --color-heading: var(--vt-c-text-light-1);
-  --color-text: var(--vt-c-text-light-1);
+  --color-border: var(--color-border);
+  --color-border-hover: var(--color-border-dark);
+
+  --color-heading: var(--color-text-primary);
+  --color-text: var(--color-text-primary);
 
   --section-gap: 160px;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-background: var(--vt-c-black);
-    --color-background-soft: var(--vt-c-black-soft);
-    --color-background-mute: var(--vt-c-black-mute);
-
-    --color-border: var(--vt-c-divider-dark-2);
-    --color-border-hover: var(--vt-c-divider-dark-1);
-
-    --color-heading: var(--vt-c-text-dark-1);
-    --color-text: var(--vt-c-text-dark-2);
-  }
 }
 
 *,
@@ -60,11 +55,8 @@
 
 body {
   min-height: 100vh;
-  color: var(--color-text);
-  background: var(--color-background);
-  transition:
-    color 0.5s,
-    background-color 0.5s;
+  color: var(--color-text-primary);
+  background: var(--color-bg-soft);
   line-height: 1.6;
   font-family:
     Inter,

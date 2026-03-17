@@ -10,6 +10,8 @@ import CookerMessageView from '../views/cookerviews/CookerMessage.vue'
 import CookerOrderView from '../views/cookerviews/CookerOrders.vue'
 import CookerDeskView from '../views/cookerviews/CookerDesk.vue'
 import CookerProfileView from '../views/cookerviews/CookerProfile.vue'
+import ThemePreviewView from '../views/cookerviews/ThemePreview.vue'
+import CookerRegisterView from '../views/cookerviews/CookerRegister.vue'
 
 
 
@@ -54,6 +56,18 @@ const routes = [{
         path: '/cooker/login',
         name: 'cookerlogin',
         component: CookerLoginView
+
+    },
+    {
+        path: '/cooker/register',
+        name: 'cookerregister',
+        component: CookerRegisterView
+
+    },
+    {
+        path: '/theme-preview',
+        name: 'themepreview',
+        component: ThemePreviewView
 
     }
 

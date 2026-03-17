@@ -37,9 +37,9 @@
           
           <div class="order-content">
             <div class="order-header-info">
-              <div class="chef-info">
+              <div class="chefInfo-info">
                 <el-avatar :size="45" :src="order.chefAvatar" />
-                <div class="chef-details">
+                <div class="chefInfo-details">
                   <h4>{{ order.chefName }}</h4>
                   <p>{{ order.serviceType }}</p>
                 </div>
@@ -119,11 +119,11 @@
       <div v-if="selectedOrder" class="order-detail-content">
         <div class="detail-section">
           <h4>厨师信息</h4>
-          <div class="chef-detail-row">
+          <div class="chefInfo-detail-row">
             <el-avatar :size="60" :src="selectedOrder.chefAvatar" />
-            <div class="chef-detail-info">
-              <p class="chef-name">{{ selectedOrder.chefName }}</p>
-              <p class="chef-type">{{ selectedOrder.serviceType }}</p>
+            <div class="chefInfo-detail-info">
+              <p class="chefInfo-name">{{ selectedOrder.chefName }}</p>
+              <p class="chefInfo-type">{{ selectedOrder.serviceType }}</p>
               <el-rate v-model="selectedOrder.chefRating" disabled text-color="#ff9900" />
             </div>
           </div>
@@ -448,19 +448,19 @@ onMounted(() => {
   margin-bottom: 15px;
 }
 
-.chef-info {
+.chefInfo-info {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-.chef-details h4 {
+.chefInfo-details h4 {
   font-size: 16px;
   color: var(--text-primary);
   margin: 0 0 5px 0;
 }
 
-.chef-details p {
+.chefInfo-details p {
   font-size: 13px;
   color: var(--text-secondary);
   margin: 0;
@@ -511,23 +511,23 @@ onMounted(() => {
   font-weight: bold;
 }
 
-.chef-detail-row {
+.chefInfo-detail-row {
   display: flex;
   align-items: center;
   gap: 15px;
 }
 
-.chef-detail-info {
+.chefInfo-detail-info {
   flex: 1;
 }
 
-.chef-name {
+.chefInfo-name {
   font-size: 16px;
   color: var(--text-primary);
   margin: 0 0 5px 0;
 }
 
-.chef-type {
+.chefInfo-type {
   font-size: 14px;
   color: var(--text-secondary);
   margin: 0 0 8px 0;

@@ -2,42 +2,47 @@ package com.hs.backend.service;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
-import com.hs.backend.entity.Chef;
+import com.hs.backend.entity.ChefInfo;
 
 import java.util.List;
 
 /**
  * 厨师服务接口
  */
-public interface ChefService extends IService<Chef> {
+public interface ChefInfoService extends IService<ChefInfo> {
 
     /**
      * 分页查询厨师列表
      */
-    Page<Chef> getChefPage(Integer page, Integer size, String specialty, Integer level);
+    Page<ChefInfo> getChefPage(Integer page, Integer size, String specialty, Integer level);
 
     /**
      * 根据 ID 获取厨师详情
      */
-    Chef getChefDetail(Long id);
+    ChefInfo getChefDetail(Long id);
 
     /**
      * 根据位置搜索附近厨师
      */
-    List<Chef> getNearbyChefs(Double longitude, Double latitude, Integer radius);
+    List<ChefInfo> getNearbyChefs(Double longitude, Double latitude, Integer radius);
 
     /**
      * 创建厨师信息
      */
-    Chef createChef(Chef chef);
+    ChefInfo createChef(ChefInfo chefInfo);
 
     /**
      * 更新厨师信息
      */
-    void updateChef(Chef chef);
+    void updateChef(ChefInfo chefInfo);
 
     /**
      * 审核厨师
      */
     void auditChef(Long chefId, Integer status, String reason);
+
+    /**
+     * 根据用户ID获取厨师信息
+     */
+    ChefInfo getByUserId(Long userId);
 }
