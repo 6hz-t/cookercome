@@ -13,8 +13,8 @@ import java.time.LocalDateTime;
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
-@TableName("t_orders")
-public class Orders implements Serializable {
+@TableName("t_order")
+public class Order implements Serializable {
 
     private static final long serialVersionUID = 1L;
 

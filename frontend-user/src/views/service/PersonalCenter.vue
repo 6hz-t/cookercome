@@ -658,7 +658,7 @@ const loadUserInfo = async () => {
     const profileRes = await getCustomerProfile()
     if (profileRes.data) {
       userInfo.value = {
-        id: profileRes.data.userId || 7,
+        id: profileRes.data.userId,
         name: profileRes.data.username ? profileRes.data.username : '未知用户',
         phone: profileRes.data.phone || '',
         avatar: profileRes.data.avatar || '',

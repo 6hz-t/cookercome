@@ -6,6 +6,7 @@ import com.hs.backend.dto.request.CustomerAddressRequest;
 import com.hs.backend.dto.request.SettingsProfileUpdateRequest;
 import com.hs.backend.entity.CustomerInfo;
 import com.hs.backend.common.exception.BusinessException;
+import com.hs.backend.entity.Order;
 import com.hs.backend.entity.User;
 import com.hs.backend.entity.UserAddress;
 import com.hs.backend.mapper.CustomerInfoMapper;
@@ -511,13 +512,13 @@ public class CustomerSettingsServiceImpl implements CustomerSettingsService {
             
             // 查询总订单数
             Long totalOrders = ordersMapper.selectCount(
-                new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<com.hs.backend.entity.Orders>()
+                new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<Order>()
                     .eq("user_id", userId)
             );
             
             // 查询已完成订单数
             Long completedOrders = ordersMapper.selectCount(
-                new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<com.hs.backend.entity.Orders>()
+                new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<Order>()
                     .eq("user_id", userId)
                     .in("status", completedStatuses)
             );

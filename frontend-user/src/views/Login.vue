@@ -161,9 +161,22 @@ const handleLogin = async () => {
       loading.value = true
       try {
         // 传入 rememberMe 参数
-        await userStore.loginAction(form.phone, form.password, rememberMe.value)
+        const res = await userStore.loginAction(form.phone, form.password, rememberMe.value)
         ElMessage.success('登录成功')
-        await router.push('/')
+        
+        // 根据角色跳转不同页面
+        // role: 0-客户，1-厨师，2-管理员
+        const role = res.userInfo?.role
+        if (role === 1) {
+          // 厨师角色，跳转到厨师端首页（使用 History 模式，不带 #）
+          window.location.href = 'http://localhost:5175/cooker/todo'
+        } else if (role === 2) {
+          // 管理员角色，跳转到管理后台（使用 History 模式，不带 #）
+          window.location.href = 'http://localhost:5174/dashboard'
+        } else {
+          // 默认客户角色，跳转到用户端首页
+          await router.push('/')
+        }
       } catch (error) {
         console.error('登录失败:', error)
       } finally {

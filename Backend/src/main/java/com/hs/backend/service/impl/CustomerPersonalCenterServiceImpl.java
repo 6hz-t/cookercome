@@ -1,10 +1,7 @@
 package com.hs.backend.service.impl;
 
 import com.hs.backend.common.exception.BusinessException;
-import com.hs.backend.entity.CustomerInfo;
-import com.hs.backend.entity.Review;
-import com.hs.backend.entity.User;
-import com.hs.backend.entity.UserAddress;
+import com.hs.backend.entity.*;
 import com.hs.backend.mapper.CustomerInfoMapper;
 import com.hs.backend.mapper.UserAddressMapper;
 import com.hs.backend.service.CustomerPersonalCenterService;
@@ -72,6 +69,7 @@ public class CustomerPersonalCenterServiceImpl implements CustomerPersonalCenter
     @Override
     public CustomerInfo getCustomerProfile(Long userId) {
         log.debug("========== [开始] 获取用户信息 userId={} ==========", userId);
+        log.info("[Service] getCustomerProfile 被调用，传入的 userId: {}", userId);
         
         // 先从缓存获取
         String cacheKey = USER_INFO_CACHE_KEY + userId;
@@ -79,10 +77,12 @@ public class CustomerPersonalCenterServiceImpl implements CustomerPersonalCenter
         
         if (customerInfo != null) {
             log.debug("[缓存命中] 用户信息 userId={}", userId);
+            log.info("[Service] 从缓存命中 userId={}", userId);
             return customerInfo;
         }
         
         log.debug("[缓存未命中] 查询数据库 userId={}", userId);
+        log.info("[Service] 缓存未命中，准备查询数据库 userId={}", userId);
         
         // 查询客户信息（使用 user_id 查询，不是主键 id）
         customerInfo = customerInfoMapper.selectOne(
@@ -359,13 +359,13 @@ public class CustomerPersonalCenterServiceImpl implements CustomerPersonalCenter
             
             // 查询总订单数
             Long totalOrders = orderMapper.selectCount(
-                new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<com.hs.backend.entity.Orders>()
+                new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<Order>()
                     .eq("user_id", userId)
             );
             
             // 查询已完成订单数
             Long completedOrders = orderMapper.selectCount(
-                new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<com.hs.backend.entity.Orders>()
+                new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<Order>()
                     .eq("user_id", userId)
                     .in("status", completedStatuses)
             );

@@ -295,18 +295,15 @@ const loadUserInfo = async () => {
       }
     }
     
-    // 2. （可选）如果需要，可以从后端获取最新数据
-    // await userStore.getCurrentUserAction()
-    // userInfo.value.avatar = getUserAvatar(userInfo.value)
-    
-    // 临时测试数据
-    if (!userInfo.value.name) {
-      userInfo.value = {
-        id: 7,
-        name: '张先生',
-        phone: '13579246810',
-        avatar: getUserAvatar(),  // 使用缓存头像或默认头像
-        points: 2580
+    // 2. 如果没有缓存，从 store 重新获取最新数据
+    if (!userInfo.value.id) {
+      await userStore.getCurrentUserAction()
+      const freshUser = getUserInfo()
+      if (freshUser) {
+        userInfo.value = {
+          ...freshUser,
+          avatar: getUserAvatar(freshUser)
+        }
       }
     }
   } catch (error) {

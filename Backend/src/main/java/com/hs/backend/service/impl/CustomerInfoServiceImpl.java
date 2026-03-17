@@ -31,4 +31,11 @@ public class CustomerInfoServiceImpl extends ServiceImpl<CustomerInfoMapper, Cus
         save(customerInfo);
         return customerInfo;
     }
+
+    @Override
+    public CustomerInfo getByUserId(Long userId) {
+        return lambdaQuery()
+                .eq(CustomerInfo::getUserId, userId)
+                .one();
+    }
 }
