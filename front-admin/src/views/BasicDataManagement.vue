@@ -73,7 +73,6 @@
         <div class="breadcrumb">{{ breadcrumbText }}</div>
         <div class="top-right">
           <div class="date-info">当前日期 {{ currentDate }}</div>
-          <!-- 修复图标属性传递 -->
           <el-icon class="bell-icon">
             <Bell size="20" />
           </el-icon>
@@ -89,72 +88,71 @@
             <div class="section-header">
               <h3>菜系管理</h3>
               <div class="actions">
-                <!-- 修复搜索框前缀图标 & 样式类封装 -->
                 <el-input
                   v-model="cuisineSearch"
                   placeholder="搜索菜系名称"
                   class="search-input"
+                  @keyup.enter="loadCuisineList"
                 >
                   <template #prefix>
                     <el-icon size="16"><Search /></el-icon>
                   </template>
                 </el-input>
                 <el-button type="primary" @click="addCuisine">新增菜系</el-button>
-                <el-button type="success" @click="saveSortOrder">保存排序</el-button>
               </div>
             </div>
-            
-            <!-- 修复表格列宽度 + 空数据占位 -->
-            <el-table 
-              border 
-              :data="filteredCuisines" 
+
+            <el-table
+              border
+              :data="cuisineList"
               style="width: 100%;"
+              v-loading="cuisineLoading"
               empty-text="暂无菜系数据，请点击「新增菜系」添加"
             >
-              <el-table-column prop="id" label="菜系ID" min-width="100" align="center" />
-              <el-table-column prop="name" label="名称" min-width="150" align="center" />
-              <el-table-column prop="sortOrder" label="排序值" min-width="100" align="center">
+              <el-table-column prop="id" label="菜系 ID" min-width="80" align="center" />
+              <el-table-column prop="cuisineName" label="名称" min-width="120" align="center" />
+              <el-table-column prop="description" label="描述" align="center" min-width="200" />
+              <el-table-column prop="sort" label="排序" min-width="80" align="center">
                 <template #default="scope">
-                  <el-input-number 
-                    v-model="scope.row.sortOrder" 
-                    :min="1" 
-                    :max="999" 
+                  <el-input-number
+                    v-model="scope.row.sort"
+                    :min="0"
+                    :max="999"
                     size="small"
-                    @change="updateSortOrder(scope.row)"
+                    controls-position="right"
                   />
                 </template>
               </el-table-column>
-              <el-table-column prop="status" label="状态" min-width="100" align="center">
+              <el-table-column prop="status" label="状态" min-width="80" align="center">
                 <template #default="scope">
-                  <el-tag 
-                    :type="scope.row.status === 'enabled' ? 'success' : 'danger'"
+                  <el-tag
+                    :type="scope.row.status === 1 ? 'success' : 'danger'"
                     disable-transitions
                   >
-                    {{ scope.row.status === 'enabled' ? '启用' : '禁用' }}
+                    {{ scope.row.status === 1 ? '启用' : '禁用' }}
                   </el-tag>
                 </template>
               </el-table-column>
-              <!-- 修复操作列宽度 + 防止按钮换行 -->
-              <el-table-column label="操作" min-width="220" align="center">
+              <el-table-column label="操作" min-width="200" align="center">
                 <template #default="scope">
                   <div class="operation-cell">
-                    <el-button 
-                      size="mini" 
-                      type="primary" 
+                    <el-button
+                      size="mini"
+                      type="primary"
                       @click="editCuisine(scope.row)"
                     >
                       编辑
                     </el-button>
-                    <el-button 
-                      size="mini" 
-                      :type="scope.row.status === 'enabled' ? 'warning' : 'success'" 
+                    <el-button
+                      size="mini"
+                      :type="scope.row.status === 1 ? 'warning' : 'success'"
                       @click="toggleCuisineStatus(scope.row)"
                     >
-                      {{ scope.row.status === 'enabled' ? '禁用' : '启用' }}
+                      {{ scope.row.status === 1 ? '禁用' : '启用' }}
                     </el-button>
-                    <el-button 
-                      size="mini" 
-                      type="danger" 
+                    <el-button
+                      size="mini"
+                      type="danger"
                       @click="deleteCuisine(scope.row)"
                     >
                       删除
@@ -163,52 +161,105 @@
                 </template>
               </el-table-column>
             </el-table>
+
+            <!-- 分页组件 -->
+            <div class="pagination-wrapper">
+              <el-pagination
+                v-model:current-page="cuisinePage"
+                v-model:page-size="cuisinePageSize"
+                :page-sizes="[10, 20, 50, 100]"
+                layout="total, sizes, prev, pager, next, jumper"
+                :total="cuisineTotal"
+                @size-change="handleCuisineSizeChange"
+                @current-change="handleCuisineCurrentChange"
+              />
+            </div>
           </el-tab-pane>
 
-          <!-- 角色字典管理 -->
-          <el-tab-pane label="角色字典管理" name="role">
+          <!-- 菜品管理 -->
+          <el-tab-pane label="菜品管理" name="dish">
             <div class="section-header">
-              <h3>角色字典管理</h3>
+              <h3>菜品管理</h3>
               <div class="actions">
-                <!-- 修复搜索框前缀图标 & 样式类封装 -->
+                <el-select
+                  v-model="dishCuisineFilter"
+                  placeholder="菜系筛选"
+                  clearable
+                  style="width: 120px; margin-right: 10px;"
+                  @change="loadDishList"
+                >
+                  <el-option label="全部" value=""></el-option>
+                  <el-option
+                    v-for="item in cuisineList"
+                    :key="item.id"
+                    :label="item.cuisineName"
+                    :value="item.id"
+                  />
+                </el-select>
                 <el-input
-                  v-model="roleSearch"
-                  placeholder="搜索角色名称"
+                  v-model="dishSearch"
+                  placeholder="搜索菜品名称"
                   class="search-input"
+                  @keyup.enter="loadDishList"
                 >
                   <template #prefix>
                     <el-icon size="16"><Search /></el-icon>
                   </template>
                 </el-input>
-                <el-button type="primary" @click="addRole">新增角色</el-button>
+                <el-button type="primary" @click="addDish">新增菜品</el-button>
               </div>
             </div>
-            
-            <!-- 修复表格列宽度 + 空数据占位 -->
-            <el-table 
-              border 
-              :data="filteredRoles" 
+
+            <el-table
+              border
+              :data="dishList"
               style="width: 100%;"
-              empty-text="暂无角色数据，请点击「新增角色」添加"
+              v-loading="dishLoading"
+              empty-text="暂无菜品数据，请点击「新增菜品」添加"
             >
-              <el-table-column prop="id" label="角色ID" min-width="100" align="center" />
-              <el-table-column prop="name" label="名称" min-width="150" align="center" />
-              <el-table-column prop="description" label="描述" align="center" />
-              <!-- 修复操作列宽度 -->
+              <el-table-column prop="id" label="菜品 ID" min-width="80" align="center" />
+              <el-table-column prop="dishName" label="菜品名称" min-width="150" align="center" />
+              <el-table-column prop="cuisineId" label="菜系" min-width="100" align="center">
+                <template #default="scope">
+                  {{ getCuisineName(scope.row.cuisineId) }}
+                </template>
+              </el-table-column>
+              <el-table-column prop="dishType" label="类型" min-width="100" align="center">
+                <template #default="scope">
+                  {{ scope.row.dishType || '-' }}
+                </template>
+              </el-table-column>
+              <el-table-column prop="price" label="价格" min-width="100" align="center">
+                <template #default="scope">
+                  ¥{{ (scope.row.price || 0).toFixed(2) }}
+                </template>
+              </el-table-column>
+              <el-table-column prop="isFeatured" label="特色菜" min-width="80" align="center">
+                <template #default="scope">
+                  <el-tag
+                    :type="scope.row.isFeatured === 1 ? 'success' : 'info'"
+                    disable-transitions
+                    size="small"
+                  >
+                    {{ scope.row.isFeatured === 1 ? '是' : '否' }}
+                  </el-tag>
+                </template>
+              </el-table-column>
+              <el-table-column prop="description" label="描述" align="center" min-width="200" show-overflow-tooltip />
               <el-table-column label="操作" min-width="180" align="center">
                 <template #default="scope">
                   <div class="operation-cell">
-                    <el-button 
-                      size="mini" 
-                      type="primary" 
-                      @click="editRole(scope.row)"
+                    <el-button
+                      size="mini"
+                      type="primary"
+                      @click="editDish(scope.row)"
                     >
                       编辑
                     </el-button>
-                    <el-button 
-                      size="mini" 
-                      type="danger" 
-                      @click="deleteRole(scope.row)"
+                    <el-button
+                      size="mini"
+                      type="danger"
+                      @click="deleteDish(scope.row)"
                     >
                       删除
                     </el-button>
@@ -216,6 +267,19 @@
                 </template>
               </el-table-column>
             </el-table>
+
+            <!-- 分页组件 -->
+            <div class="pagination-wrapper">
+              <el-pagination
+                v-model:current-page="dishPage"
+                v-model:page-size="dishPageSize"
+                :page-sizes="[10, 20, 50, 100]"
+                layout="total, sizes, prev, pager, next, jumper"
+                :total="dishTotal"
+                @size-change="handleDishSizeChange"
+                @current-change="handleDishCurrentChange"
+              />
+            </div>
           </el-tab-pane>
         </el-tabs>
       </div>
@@ -224,15 +288,29 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-// 引入Element Plus图标
-import { 
-  User, UserFilled, Grid, ShoppingCart, TrendCharts, 
-  Bell, InfoFilled, Shop, Search 
+// 引入 Element Plus 图标
+import {
+  User, UserFilled, Grid, ShoppingCart, TrendCharts,
+  Bell, Search
 } from '@element-plus/icons-vue'
-// 引入Element Plus提示框
-import { ElMessageBox, ElMessage, ElInput } from 'element-plus'
+// 引入 Element Plus 提示框
+import { ElMessageBox, ElMessage } from 'element-plus'
+// 引入菜系管理接口
+import {
+  getCuisineList as getCuisineListApi,
+  addCuisine as addCuisineApi,
+  updateCuisine as updateCuisineApi,
+  deleteCuisine as deleteCuisineApi
+} from '@/api/cuisine'
+// 引入菜品管理接口
+import {
+  getDishList as getDishListApi,
+  addDish as addDishApi,
+  updateDish as updateDishApi,
+  deleteDish as deleteDishApi
+} from '@/api/dish'
 
 // 创建路由器实例
 const router = useRouter()
@@ -240,101 +318,74 @@ const router = useRouter()
 // 当前激活菜单
 const activeMenu = ref('data')
 
-// 当前日期
-const currentDate = ref('2026年03月06日')
+// 当前日期（动态获取）
+const currentDate = ref('')
 
-// 当前激活的tab
+// 格式化日期为 YYYY 年 MM 月 DD 日
+const formatDate = (date) => {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}年${month}月${day}日`
+}
+
+// 初始化当前日期
+currentDate.value = formatDate(new Date())
+
+// 当前激活的 tab
 const activeTab = ref('cuisine')
 
 // 动态面包屑文本
 const breadcrumbText = computed(() => {
   const base = '系统设置 > 基础数据管理'
-  return activeTab.value === 'cuisine' ? `${base} > 菜系管理` : `${base} > 角色字典管理`
+  return activeTab.value === 'cuisine' ? `${base} > 菜系管理` : `${base} > 菜品管理`
 })
 
-// 搜索关键字
+// 菜系相关
+const cuisineLoading = ref(false)
+const cuisineList = ref([])
+const cuisinePage = ref(1)
+const cuisinePageSize = ref(10)
+const cuisineTotal = ref(0)
 const cuisineSearch = ref('')
-const roleSearch = ref('')
 
-// 模拟菜系数据
-const cuisines = ref([
-  { id: 30001, name: '川菜', sortOrder: 1, status: 'enabled', description: '四川风味菜系' },
-  { id: 30002, name: '粤菜', sortOrder: 2, status: 'enabled', description: '广东风味菜系' },
-  { id: 30003, name: '湘菜', sortOrder: 3, status: 'disabled', description: '湖南风味菜系' },
-  { id: 30004, name: '鲁菜', sortOrder: 4, status: 'enabled', description: '山东风味菜系' },
-  { id: 30005, name: '苏菜', sortOrder: 5, status: 'enabled', description: '江苏风味菜系' },
-])
-
-// 模拟角色数据
-const roles = ref([
-  { id: 1, name: '超级管理员', description: '拥有系统最高权限' },
-  { id: 2, name: '管理员', description: '拥有大部分管理权限' },
-  { id: 3, name: '普通用户', description: '一般用户权限' },
-  { id: 4, name: '审核员', description: '负责审核工作' },
-])
-
-// 计算属性：过滤后的菜系列表
-const filteredCuisines = computed(() => {
-  if (!cuisineSearch.value) {
-    // 按排序值从小到大排序
-    return [...cuisines.value].sort((a, b) => a.sortOrder - b.sortOrder);
-  }
-  return cuisines.value
-    .filter(cuisine => 
-      cuisine.name.includes(cuisineSearch.value)
-    )
-    .sort((a, b) => a.sortOrder - b.sortOrder);
-})
-
-// 计算属性：过滤后的角色列表
-const filteredRoles = computed(() => {
-  if (!roleSearch.value) return roles.value
-  return roles.value.filter(role => 
-    role.name.includes(roleSearch.value)
-  )
-})
-
-// 保存排序
-const saveSortOrder = () => {
-  // 按当前排序整理数据
-  const sortedCuisines = [...cuisines.value].sort((a, b) => a.sortOrder - b.sortOrder);
-  
-  // 输出排序结果到控制台
-  console.log('Save sort order:', sortedCuisines.map(cuisine => ({
-    id: cuisine.id,
-    name: cuisine.name,
-    sortOrder: cuisine.sortOrder
-  })));
-  
-  ElMessage.success('菜系排序已保存');
-  
-  // 记录操作日志
-  console.log('Save cuisine sort order:', {
-    operator: '超级管理员',
-    timestamp: new Date().toLocaleString(),
-    action: 'save_sort_order',
-    sortedCuisines: sortedCuisines.map(cuisine => ({
-      id: cuisine.id,
-      name: cuisine.name,
-      sortOrder: cuisine.sortOrder
-    }))
-  });
+// 加载菜系列表
+const loadCuisineList = () => {
+  cuisineLoading.value = true
+  getCuisineListApi({
+    page: cuisinePage.value,
+    size: cuisinePageSize.value,
+    keyword: cuisineSearch.value
+  }).then(res => {
+    if (res.data) {
+      cuisineList.value = res.data.records || []
+      cuisineTotal.value = res.data.total || 0
+    }
+  }).catch(() => {
+    cuisineList.value = []
+    cuisineTotal.value = 0
+  }).finally(() => {
+    cuisineLoading.value = false
+  })
 }
 
-// 更新菜系排序
-const updateSortOrder = (cuisine) => {
-  console.log('Update sort order:', cuisine)
-  ElMessage.success(`菜系「${cuisine.name}」排序已更新为 ${cuisine.sortOrder}`)
-  
-  // 记录操作日志
-  console.log('Update cuisine sort order:', {
-    cuisineId: cuisine.id,
-    cuisineName: cuisine.name,
-    newSortOrder: cuisine.sortOrder,
-    operator: '超级管理员',
-    timestamp: new Date().toLocaleString(),
-    action: 'update_sort_order'
-  })
+// 处理菜系每页条数变化
+const handleCuisineSizeChange = (val) => {
+  cuisinePageSize.value = val
+  cuisinePage.value = 1
+  loadCuisineList()
+}
+
+// 处理菜系页码变化
+const handleCuisineCurrentChange = (val) => {
+  cuisinePage.value = val
+  loadCuisineList()
+}
+
+// 根据菜系 ID 获取名称
+const getCuisineName = (cuisineId) => {
+  const cuisine = cuisineList.value.find(c => c.id === cuisineId)
+  return cuisine ? cuisine.cuisineName : '-'
 }
 
 // 新增菜系
@@ -351,27 +402,32 @@ const addCuisine = async () => {
         type: 'success'
       }
     )
-    
-    const newCuisine = {
-      id: cuisines.value.length + 30000,
-      name: result.value,
-      sortOrder: Math.max(...cuisines.value.map(c => c.sortOrder)) + 1,
-      status: 'enabled',
-      description: '新添加的菜系'
-    }
-    
-    cuisines.value.push(newCuisine)
-    
-    ElMessage.success(`菜系「${result.value}」已添加`)
-    
-    // 记录操作日志
-    console.log('Add cuisine:', {
-      cuisineId: newCuisine.id,
-      cuisineName: newCuisine.name,
-      operator: '超级管理员',
-      timestamp: new Date().toLocaleString(),
-      action: 'add_cuisine'
+
+    const { value: description } = await ElMessageBox.prompt(
+      '请输入菜系描述',
+      '新增菜系',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        inputPlaceholder: '请输入描述（可选）',
+        type: 'success'
+      }
+    ).catch(() => ({ value: '' }))
+
+    // 计算最大排序值
+    const maxSort = cuisineList.value.length > 0
+      ? Math.max(...cuisineList.value.map(c => c.sort || 0))
+      : 0
+
+    await addCuisineApi({
+      cuisineName: result.value,
+      description: description || '',
+      sort: maxSort + 1,
+      status: 1
     })
+
+    ElMessage.success(`菜系「${result.value}」已添加`)
+    loadCuisineList()
   } catch (error) {
     if (error !== 'cancel') {
       console.error('Add cuisine error:', error)
@@ -382,33 +438,40 @@ const addCuisine = async () => {
 // 编辑菜系
 const editCuisine = async (cuisine) => {
   try {
-    const result = await ElMessageBox.prompt(
+    const { value: cuisineName } = await ElMessageBox.prompt(
       '请输入菜系的新名称',
       '编辑菜系',
       {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
-        inputValue: cuisine.name,
+        inputValue: cuisine.cuisineName,
         inputPattern: /\S+/,
         inputErrorMessage: '菜系名称不能为空',
         type: 'primary'
       }
     )
-    
-    const oldName = cuisine.name
-    cuisine.name = result.value
-    
-    ElMessage.success(`菜系「${oldName}」已更新为「${result.value}」`)
-    
-    // 记录操作日志
-    console.log('Edit cuisine:', {
-      cuisineId: cuisine.id,
-      oldName: oldName,
-      newName: result.value,
-      operator: '超级管理员',
-      timestamp: new Date().toLocaleString(),
-      action: 'edit_cuisine'
+
+    const { value: description } = await ElMessageBox.prompt(
+      '请输入菜系描述',
+      '编辑菜系',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        inputValue: cuisine.description || '',
+        type: 'primary'
+      }
+    )
+
+    await updateCuisineApi({
+      id: cuisine.id,
+      cuisineName,
+      description,
+      sort: cuisine.sort,
+      status: cuisine.status
     })
+
+    ElMessage.success(`菜系「${cuisine.cuisineName}」已更新`)
+    loadCuisineList()
   } catch (error) {
     if (error !== 'cancel') {
       console.error('Edit cuisine error:', error)
@@ -419,11 +482,12 @@ const editCuisine = async (cuisine) => {
 // 切换菜系状态
 const toggleCuisineStatus = async (cuisine) => {
   try {
-    const action = cuisine.status === 'enabled' ? '禁用' : '启用'
-    const actionType = cuisine.status === 'enabled' ? 'warning' : 'success'
-    
+    const action = cuisine.status === 1 ? '禁用' : '启用'
+    const actionType = cuisine.status === 1 ? 'warning' : 'success'
+    const newStatus = cuisine.status === 1 ? 0 : 1
+
     await ElMessageBox.confirm(
-      `确定要${action}「${cuisine.name}」吗？`,
+      `确定要${action}「${cuisine.cuisineName}」吗？`,
       `${action}菜系`,
       {
         confirmButtonText: '确定',
@@ -431,23 +495,21 @@ const toggleCuisineStatus = async (cuisine) => {
         type: actionType
       }
     )
-    
-    cuisine.status = cuisine.status === 'enabled' ? 'disabled' : 'enabled'
-    
+
+    await updateCuisineApi({
+      id: cuisine.id,
+      cuisineName: cuisine.cuisineName,
+      description: cuisine.description,
+      sort: cuisine.sort,
+      status: newStatus
+    })
+
     ElMessage({
       type: actionType,
-      message: `菜系「${cuisine.name}」已${action}`
+      message: `菜系「${cuisine.cuisineName}」已${action}`
     })
-    
-    // 记录操作日志
-    console.log('Toggle cuisine status:', {
-      cuisineId: cuisine.id,
-      cuisineName: cuisine.name,
-      newStatus: cuisine.status,
-      operator: '超级管理员',
-      timestamp: new Date().toLocaleString(),
-      action: `toggle_cuisine_${cuisine.status}`
-    })
+
+    loadCuisineList()
   } catch (error) {
     if (error !== 'cancel') {
       console.error('Toggle cuisine status error:', error)
@@ -459,7 +521,7 @@ const toggleCuisineStatus = async (cuisine) => {
 const deleteCuisine = async (cuisine) => {
   try {
     await ElMessageBox.confirm(
-      `确定要删除「${cuisine.name}」吗？此操作不可恢复！`,
+      `确定要删除「${cuisine.cuisineName}」吗？此操作不可恢复！`,
       '删除菜系',
       {
         confirmButtonText: '确定',
@@ -467,25 +529,15 @@ const deleteCuisine = async (cuisine) => {
         type: 'danger'
       }
     )
-    
-    const index = cuisines.value.findIndex(item => item.id === cuisine.id)
-    if (index !== -1) {
-      cuisines.value.splice(index, 1)
-    }
-    
+
+    await deleteCuisineApi(cuisine.id)
+
     ElMessage({
       type: 'success',
-      message: `菜系「${cuisine.name}」已删除`
+      message: `菜系「${cuisine.cuisineName}」已删除`
     })
-    
-    // 记录操作日志
-    console.log('Delete cuisine:', {
-      cuisineId: cuisine.id,
-      cuisineName: cuisine.name,
-      operator: '超级管理员',
-      timestamp: new Date().toLocaleString(),
-      action: 'delete_cuisine'
-    })
+
+    loadCuisineList()
   } catch (error) {
     if (error !== 'cancel') {
       console.error('Delete cuisine error:', error)
@@ -493,143 +545,205 @@ const deleteCuisine = async (cuisine) => {
   }
 }
 
-// 新增角色
-const addRole = async () => {
-  try {
-    const { value: name } = await ElMessageBox.prompt(
-      '请输入角色名称',
-      '新增角色',
-      {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        inputPattern: /\S+/,
-        inputErrorMessage: '角色名称不能为空',
-        type: 'success'
-      }
-    )
-    
-    const { value: description } = await ElMessageBox.prompt(
-      '请输入角色描述',
-      '新增角色',
-      {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        inputPattern: /\S+/,
-        inputErrorMessage: '角色描述不能为空',
-        type: 'success'
-      }
-    )
-    
-    const newRole = {
-      id: roles.value.length + 1,
-      name: name,
-      description: description
+// 菜品相关
+const dishLoading = ref(false)
+const dishList = ref([])
+const dishPage = ref(1)
+const dishPageSize = ref(10)
+const dishTotal = ref(0)
+const dishSearch = ref('')
+const dishCuisineFilter = ref('')
+
+// 加载菜品列表
+const loadDishList = () => {
+  dishLoading.value = true
+  getDishListApi({
+    page: dishPage.value,
+    size: dishPageSize.value,
+    keyword: dishSearch.value,
+    cuisineId: dishCuisineFilter.value === '' ? null : dishCuisineFilter.value
+  }).then(res => {
+    if (res.data) {
+      dishList.value = res.data.records || []
+      dishTotal.value = res.data.total || 0
     }
-    
-    roles.value.push(newRole)
-    
-    ElMessage.success(`角色「${name}」已添加`)
-    
-    // 记录操作日志
-    console.log('Add role:', {
-      roleId: newRole.id,
-      roleName: newRole.name,
-      operator: '超级管理员',
-      timestamp: new Date().toLocaleString(),
-      action: 'add_role'
+  }).catch(() => {
+    dishList.value = []
+    dishTotal.value = 0
+  }).finally(() => {
+    dishLoading.value = false
+  })
+}
+
+// 处理菜品每页条数变化
+const handleDishSizeChange = (val) => {
+  dishPageSize.value = val
+  dishPage.value = 1
+  loadDishList()
+}
+
+// 处理菜品页码变化
+const handleDishCurrentChange = (val) => {
+  dishPage.value = val
+  loadDishList()
+}
+
+// 新增菜品
+const addDish = async () => {
+  try {
+    if (cuisineList.value.length === 0) {
+      ElMessage.warning('请先添加菜系')
+      return
+    }
+
+    const { value: dishName } = await ElMessageBox.prompt(
+      '请输入菜品名称',
+      '新增菜品',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        inputPattern: /\S+/,
+        inputErrorMessage: '菜品名称不能为空',
+        type: 'success'
+      }
+    )
+
+    const { value: cuisineId } = await ElMessageBox.alert(
+      '请选择菜系',
+      '新增菜品',
+      {
+        confirmButtonText: '确定',
+        showCancelButton: true,
+        cancelButtonText: '取消',
+        type: 'success'
+      }
+    ).catch(() => ({ value: null }))
+
+    if (!cuisineId) return
+
+    const { value: price } = await ElMessageBox.prompt(
+      '请输入菜品价格',
+      '新增菜品',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        inputPattern: /^\d+(\.\d{1,2})?$/,
+        inputErrorMessage: '请输入正确的价格格式',
+        inputValue: '0',
+        type: 'success'
+      }
+    )
+
+    const { value: description } = await ElMessageBox.prompt(
+      '请输入菜品描述',
+      '新增菜品',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        inputPlaceholder: '请输入描述（可选）',
+        type: 'success'
+      }
+    ).catch(() => ({ value: '' }))
+
+    await addDishApi({
+      dishName,
+      cuisineId: parseInt(cuisineId),
+      price: parseFloat(price),
+      description: description || '',
+      isFeatured: 0
     })
+
+    ElMessage.success(`菜品「${dishName}」已添加`)
+    loadDishList()
   } catch (error) {
     if (error !== 'cancel') {
-      console.error('Add role error:', error)
+      console.error('Add dish error:', error)
     }
   }
 }
 
-// 编辑角色
-const editRole = async (role) => {
+// 编辑菜品
+const editDish = async (dish) => {
   try {
-    const { value: name } = await ElMessageBox.prompt(
-      '请输入角色的新名称',
-      '编辑角色',
+    const { value: dishName } = await ElMessageBox.prompt(
+      '请输入菜品的新名称',
+      '编辑菜品',
       {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
-        inputValue: role.name,
+        inputValue: dish.dishName,
         inputPattern: /\S+/,
-        inputErrorMessage: '角色名称不能为空',
+        inputErrorMessage: '菜品名称不能为空',
         type: 'primary'
       }
     )
-    
+
+    const { value: price } = await ElMessageBox.prompt(
+      '请输入菜品价格',
+      '编辑菜品',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        inputValue: String(dish.price || 0),
+        inputPattern: /^\d+(\.\d{1,2})?$/,
+        inputErrorMessage: '请输入正确的价格格式',
+        type: 'primary'
+      }
+    )
+
     const { value: description } = await ElMessageBox.prompt(
-      '请输入角色的新描述',
-      '编辑角色',
+      '请输入菜品描述',
+      '编辑菜品',
       {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
-        inputValue: role.description,
-        inputPattern: /\S+/,
-        inputErrorMessage: '角色描述不能为空',
+        inputValue: dish.description || '',
         type: 'primary'
       }
     )
-    
-    const oldName = role.name
-    role.name = name
-    role.description = description
-    
-    ElMessage.success(`角色「${oldName}」已更新`)
-    
-    // 记录操作日志
-    console.log('Edit role:', {
-      roleId: role.id,
-      oldName: oldName,
-      newName: name,
-      operator: '超级管理员',
-      timestamp: new Date().toLocaleString(),
-      action: 'edit_role'
+
+    await updateDishApi({
+      id: dish.id,
+      dishName,
+      cuisineId: dish.cuisineId,
+      price: parseFloat(price),
+      description,
+      isFeatured: dish.isFeatured
     })
+
+    ElMessage.success(`菜品「${dish.dishName}」已更新`)
+    loadDishList()
   } catch (error) {
     if (error !== 'cancel') {
-      console.error('Edit role error:', error)
+      console.error('Edit dish error:', error)
     }
   }
 }
 
-// 删除角色
-const deleteRole = async (role) => {
+// 删除菜品
+const deleteDish = async (dish) => {
   try {
     await ElMessageBox.confirm(
-      `确定要删除「${role.name}」吗？此操作不可恢复！`,
-      '删除角色',
+      `确定要删除「${dish.dishName}」吗？此操作不可恢复！`,
+      '删除菜品',
       {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
         type: 'danger'
       }
     )
-    
-    const index = roles.value.findIndex(item => item.id === role.id)
-    if (index !== -1) {
-      roles.value.splice(index, 1)
-    }
-    
+
+    await deleteDishApi(dish.id)
+
     ElMessage({
       type: 'success',
-      message: `角色「${role.name}」已删除`
+      message: `菜品「${dish.dishName}」已删除`
     })
-    
-    // 记录操作日志
-    console.log('Delete role:', {
-      roleId: role.id,
-      roleName: role.name,
-      operator: '超级管理员',
-      timestamp: new Date().toLocaleString(),
-      action: 'delete_role'
-    })
+
+    loadDishList()
   } catch (error) {
     if (error !== 'cancel') {
-      console.error('Delete role error:', error)
+      console.error('Delete dish error:', error)
     }
   }
 }
@@ -651,16 +765,14 @@ const handleLogout = async () => {
         type: 'info'
       }
     )
-    
-    // 清空本地存储中的登录相关数据
+
     localStorage.removeItem('token')
     localStorage.removeItem('userInfo')
     sessionStorage.removeItem('token')
     sessionStorage.removeItem('userInfo')
-    
-    // 跳转到登录页面并防止通过浏览器返回按钮返回
+
     router.replace('/login')
-    
+
     ElMessage({
       type: 'success',
       message: '退出登录成功！'
@@ -676,6 +788,11 @@ const handleLogout = async () => {
     }
   }
 }
+
+// 页面加载时加载数据
+onMounted(() => {
+  loadCuisineList()
+})
 </script>
 
 <style scoped>
@@ -828,7 +945,6 @@ const handleLogout = async () => {
   gap: 10px;
 }
 
-/* 搜索框样式封装 + 响应式 */
 .search-input {
   width: 200px;
   margin-right: 10px;
@@ -844,8 +960,7 @@ const handleLogout = async () => {
   margin-top: 10px;
 }
 
-/* 样式穿透修复 - 表格内容居中 */
-:deep(.el-table th.el-table__cell), 
+:deep(.el-table th.el-table__cell),
 :deep(.el-table td.el-table__cell) {
   text-align: center !important;
   padding: 12px 0 !important;
@@ -858,7 +973,6 @@ const handleLogout = async () => {
   padding: 0 10px;
 }
 
-/* 操作列按钮组居中 + 防止换行 */
 .operation-cell {
   display: flex !important;
   justify-content: center !important;
@@ -868,21 +982,24 @@ const handleLogout = async () => {
   white-space: nowrap;
 }
 
-/* 输入框居中 */
 :deep(.el-table .el-input-number) {
   display: inline-flex !important;
   justify-content: center !important;
 }
 
-/* 标签居中 */
 :deep(.el-table .el-tag) {
   display: inline-flex !important;
   justify-content: center !important;
   align-items: center !important;
 }
 
-/* 按钮居中 */
 :deep(.el-table .el-button) {
   margin: 2px;
+}
+
+.pagination-wrapper {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
 }
 </style>

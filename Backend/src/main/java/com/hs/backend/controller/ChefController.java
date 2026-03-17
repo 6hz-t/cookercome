@@ -1,10 +1,13 @@
 package com.hs.backend.controller;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.hs.backend.common.Result;
 import com.hs.backend.entity.ChefInfo;
 import com.hs.backend.service.ChefInfoService;
+import com.hs.backend.vo.ChefAuditVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -17,30 +20,38 @@ import java.util.List;
 @RequestMapping("/api/chef")
 public class ChefController {
 
-    private final ChefInfoService chefInfoService;
+    @Autowired
+    private ChefInfoService chefInfoService;
 
-    public ChefController(ChefInfoService chefInfoService) {
-        this.chefInfoService = chefInfoService;
+    /**
+     * 分页查询厨师审核列表
+     */
+    @GetMapping("/audit/list")
+    @Operation(summary = "获取厨师审核列表", description = "分页查询厨师审核列表，支持按状态筛选和关键词搜索")
+    public Result<Page<ChefAuditVO>> getChefAuditList(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Integer auditStatus
+    ) {
+        Page<ChefAuditVO> voPage = chefInfoService.getChefAuditPage(page, size, keyword, auditStatus);
+        return Result.success(voPage);
     }
 
     /**
-     * 分页查询厨师列表
+     * 审核厨师（仅管理员）
      */
-//    @GetMapping("/list")
-//    public Result<Page<ChefInfo>> getChefList(
-//            @RequestParam(defaultValue = "1") Integer page,
-//            @RequestParam(defaultValue = "10") Integer size,
-//            @RequestParam(required = false) String specialty,
-//            @RequestParam(required = false) Integer level
-//    ) {
-//        Page<ChefInfo> chefPage = chefInfoService.getChefPage(page, size, specialty, level);
-//        return Result.success(chefPage);
-//    }
-    @GetMapping("/list")
-    @Operation(summary = "获取厨师列表", description = "获取厨师列表信息（测试接口）")
-    public Result<String> getChefList() {
-        return Result.success("成功调用");
+    @PostMapping("/audit/{id}")
+    @Operation(summary = "审核厨师", description = "管理员审核厨师资质，可设置通过或拒绝")
+    public Result<String> auditChef(
+            @PathVariable Long id,
+            @RequestParam Integer status,
+            @RequestParam(required = false) String reason
+    ) {
+        chefInfoService.auditChef(id, status, reason);
+        return Result.success("审核成功");
     }
+
     /**
      * 获取厨师详情
      */
@@ -83,19 +94,5 @@ public class ChefController {
     public Result<String> updateChef(@RequestBody ChefInfo chefInfo) {
         chefInfoService.updateChef(chefInfo);
         return Result.success("更新成功");
-    }
-
-    /**
-     * 审核厨师（仅管理员）
-     */
-    @PostMapping("/audit/{id}")
-    @Operation(summary = "审核厨师", description = "管理员审核厨师资质，可设置通过或拒绝")
-    public Result<String> auditChef(
-            @PathVariable Long id,
-            @RequestParam Integer status,
-            @RequestParam(required = false) String reason
-    ) {
-        chefInfoService.auditChef(id, status, reason);
-        return Result.success("审核成功");
     }
 }

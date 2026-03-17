@@ -2,30 +2,30 @@
   <div class="login-container">
     <el-card class="login-card">
       <h2 class="login-title">管理员登录</h2>
-      <el-form 
-        :model="loginForm" 
-        :rules="loginRules" 
-        ref="loginFormRef" 
+      <el-form
+        :model="loginForm"
+        :rules="loginRules"
+        ref="loginFormRef"
         label-width="80px"
         class="login-form"
       >
         <el-form-item label="手机号" prop="phone">
-          <el-input 
-            v-model="loginForm.phone" 
+          <el-input
+            v-model="loginForm.phone"
             placeholder="请输入管理员手机号"
             maxlength="11"
           ></el-input>
         </el-form-item>
         <el-form-item label="密码" prop="password">
-          <el-input 
-            v-model="loginForm.password" 
-            type="password" 
+          <el-input
+            v-model="loginForm.password"
+            type="password"
             placeholder="请输入密码"
             show-password
           ></el-input>
         </el-form-item>
         <el-form-item class="login-btn-group">
-          <el-button type="primary" @click="handleLogin" class="login-btn">登录</el-button>
+          <el-button type="primary" @click="handleLogin" class="login-btn" :loading="loading">登录</el-button>
         </el-form-item>
       </el-form>
     </el-card>
@@ -36,14 +36,18 @@
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import request from '@/utils/request'
 
 // 路由实例
 const router = useRouter()
 
+// 加载状态
+const loading = ref(false)
+
 // 登录表单数据
 const loginForm = reactive({
-  phone: '', // 手机号
-  password: '' // 密码
+  phone: '',
+  password: ''
 })
 
 // 表单验证规则
@@ -54,31 +58,53 @@ const loginRules = reactive({
   ],
   password: [
     { required: true, message: '请输入密码', trigger: 'blur' },
-    { min: 6, max: 16, message: '密码长度为6-16位', trigger: 'blur' }
+    { min: 6, max: 16, message: '密码长度为 6-16 位', trigger: 'blur' }
   ]
 })
 
-// 表单引用（用于验证）
+// 表单引用
 const loginFormRef = ref(null)
 
-// 登录按钮点击事件（纯前端版本，无接口请求）
+// 登录方法
 const handleLogin = () => {
-  // 先验证表单
   loginFormRef.value.validate((valid) => {
     if (!valid) return
 
-    // 仅前端模拟登录成功（无后端请求）
-    ElMessage.success('登录验证通过（前端测试）')
-    // 模拟保存token（可选）
-    localStorage.setItem('admin-token', 'test-token-123456')
-    // 跳转到仪表盘页面
-    router.push('/dashboard')
+    loading.value = true
+
+    // 调用后端登录接口（使用 request 工具）
+    request.post('/api/auth/login', {
+      phone: loginForm.phone,
+      password: loginForm.password
+    }).then(res => {
+      // res 已经是后端返回的 data 字段（AuthResponse）
+      if (res && res.accessToken) {
+        // 保存 accessToken 到 localStorage
+        localStorage.setItem('admin-token', res.accessToken)
+        if (res.userInfo) {
+          localStorage.setItem('admin-userInfo', JSON.stringify(res.userInfo))
+        }
+        ElMessage.success('登录成功')
+        router.push('/dashboard')
+      } else {
+        ElMessage.error('登录失败')
+      }
+    }).catch(err => {
+      console.error('登录错误:', err)
+      // err 可能是被 reject 的响应对象
+      if (err && err.msg) {
+        ElMessage.error(err.msg)
+      } else {
+        ElMessage.error('登录失败，请检查账号密码或后端服务')
+      }
+    }).finally(() => {
+      loading.value = false
+    })
   })
 }
 </script>
 
 <style scoped>
-/* 登录页面样式 */
 .login-container {
   width: 100vw;
   height: 100vh;

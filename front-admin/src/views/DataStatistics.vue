@@ -1,5 +1,4 @@
 <template>
-  <div>数据统计页面测试</div>
   <div class="data-statistics">
     <!-- 左侧导航栏 -->
     <div class="sidebar">
@@ -86,8 +85,10 @@
             <div class="card-content">
               <div class="card-info">
                 <div class="card-title">用户总数</div>
-                <div class="card-value">{{ userCount }}</div>
-                <div class="card-tip" style="color: #07c160;">↗ 较昨日 +{{ userGrowth }}%</div>
+                <div class="card-value">{{ statistics.userCount }}</div>
+                <div class="card-tip" :class="growthClass(statistics.userGrowthRate)">
+                  <span>较昨日 {{ statistics.userGrowthRate >= 0 ? '+' : '' }}{{ statistics.userGrowthRate }}%</span>
+                </div>
               </div>
               <div class="card-icon" style="background-color: #e8f3ff;">
                 <el-icon size="24" color="#1989fa"><User /></el-icon>
@@ -98,8 +99,10 @@
             <div class="card-content">
               <div class="card-info">
                 <div class="card-title">厨师总数</div>
-                <div class="card-value">{{ chefCount }}</div>
-                <div class="card-tip" style="color: #ff6b35;">↗ 较昨日 +{{ chefGrowth }}%</div>
+                <div class="card-value">{{ statistics.chefCount }}</div>
+                <div class="card-tip" :class="growthClass(statistics.chefGrowthRate)">
+                  <span>较昨日 {{ statistics.chefGrowthRate >= 0 ? '+' : '' }}{{ statistics.chefGrowthRate }}%</span>
+                </div>
               </div>
               <div class="card-icon" style="background-color: #fff2e8;">
                 <el-icon size="24" color="#ff6b35;"><Shop /></el-icon>
@@ -110,8 +113,10 @@
             <div class="card-content">
               <div class="card-info">
                 <div class="card-title">订单总数</div>
-                <div class="card-value">{{ orderCount }}</div>
-                <div class="card-tip" style="color: #07c160;">↗ 较昨日 +{{ orderGrowth }}%</div>
+                <div class="card-value">{{ statistics.orderCount }}</div>
+                <div class="card-tip" :class="growthClass(statistics.orderGrowthRate)">
+                  <span>较昨日 {{ statistics.orderGrowthRate >= 0 ? '+' : '' }}{{ statistics.orderGrowthRate }}%</span>
+                </div>
               </div>
               <div class="card-icon" style="background-color: #e6fffa;">
                 <el-icon size="24" color="#00b42a;"><ShoppingCart /></el-icon>
@@ -122,24 +127,24 @@
 
         <!-- 趋势分析图表 -->
         <el-card class="chart-container">
-          <div slot="header" class="clearfix">
+          <div class="chart-header">
             <span>趋势分析</span>
             <div class="time-range-selector">
               <el-radio-group v-model="timeRange" size="small" @change="onTimeRangeChange">
-                <el-radio-button label="7天"></el-radio-button>
-                <el-radio-button label="30天"></el-radio-button>
-                <el-radio-button label="90天"></el-radio-button>
+                <el-radio-button :label="7">7 天</el-radio-button>
+                <el-radio-button :label="30">30 天</el-radio-button>
+                <el-radio-button :label="90">90 天</el-radio-button>
               </el-radio-group>
             </div>
           </div>
-          
+
           <div ref="chartRef" class="chart" style="height: 400px;"></div>
         </el-card>
 
         <!-- 操作按钮 -->
         <div class="action-buttons">
-          <el-button type="primary" @click="refreshData">刷新数据</el-button>
-          <el-button type="success" @click="exportExcel">导出Excel</el-button>
+          <el-button type="primary" @click="refreshData" :loading="loading">刷新数据</el-button>
+          <el-button type="success" @click="exportExcel">导出 Excel</el-button>
         </div>
       </div>
     </div>
@@ -149,21 +154,17 @@
 <script setup>
 import { ref, onMounted, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
-// 引入Element Plus图标
-import { 
-  User, UserFilled, Grid, ShoppingCart, TrendCharts, 
-  Bell, InfoFilled, Shop, Search 
+// 引入 Element Plus 图标
+import {
+  User, UserFilled, Grid, ShoppingCart, TrendCharts,
+  Bell, Shop
 } from '@element-plus/icons-vue'
-// 引入Element Plus提示框
-import { ElMessageBox, ElMessage, ElInput } from 'element-plus'
-
-// 模拟 ECharts（在真实项目中需要安装 echarts）
-let echarts = null
-try {
-  echarts = require('echarts')
-} catch(e) {
-  console.warn('ECharts is not installed, using mock chart')
-}
+// 引入 Element Plus 提示框
+import { ElMessageBox, ElMessage } from 'element-plus'
+// 引入 ECharts
+import * as echarts from 'echarts'
+// 引入统计接口
+import { getStatistics as getStatisticsApi } from '@/api/statistics'
 
 // 创建路由器实例
 const router = useRouter()
@@ -171,71 +172,82 @@ const router = useRouter()
 // 当前激活菜单
 const activeMenu = ref('stats')
 
-// 当前日期
-const currentDate = ref('2026年03月07日')
+// 当前日期（动态获取）
+const currentDate = ref('')
 
-// 核心数据
-const userCount = ref(12842)
-const chefCount = ref(2845)
-const orderCount = ref(856)
-const userGrowth = ref(12)
-const chefGrowth = ref(8)
-const orderGrowth = ref(5)
+// 格式化日期为 YYYY 年 MM 月 DD 日
+const formatDate = (date) => {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}年${month}月${day}日`
+}
+
+// 初始化当前日期
+currentDate.value = formatDate(new Date())
+
+// 统计数据
+const statistics = ref({
+  userCount: 0,
+  userGrowthRate: 0,
+  chefCount: 0,
+  chefGrowthRate: 0,
+  orderCount: 0,
+  orderGrowthRate: 0,
+  dates: [],
+  newUserCounts: [],
+  newChefCounts: [],
+  newOrderCounts: []
+})
 
 // 时间范围
-const timeRange = ref('30天')
+const timeRange = ref(30)
+
+// 加载状态
+const loading = ref(false)
 
 // 图表引用
 const chartRef = ref(null)
 let chartInstance = null
 
-// 模拟从缓存获取数据
-const getDataFromCache = () => {
-  console.log('尝试从缓存获取数据...')
-  // 模拟缓存命中
-  console.log('缓存命中，返回缓存数据')
-  
-  // 根据时间范围返回不同的数据
-  const days = timeRange.value === '7天' ? 7 : timeRange.value === '30天' ? 30 : 90
-  const dates = []
-  const newUserCounts = []
-  const newChefCounts = []
-  const newOrderCounts = []
+// 根据增长率返回样式类
+const growthClass = (rate) => {
+  if (rate > 0) return 'growth-positive'
+  if (rate < 0) return 'growth-negative'
+  return 'growth-neutral'
+}
 
-  for (let i = days - 1; i >= 0; i--) {
-    const date = new Date()
-    date.setDate(date.getDate() - i)
-    dates.push(`${date.getMonth() + 1}-${date.getDate()}`)
-
-    newUserCounts.push(Math.floor(Math.random() * 100) + 50)
-    newChefCounts.push(Math.floor(Math.random() * 30) + 10)
-    newOrderCounts.push(Math.floor(Math.random() * 200) + 100)
-  }
-
-  return {
-    dates,
-    newUserCounts,
-    newChefCounts,
-    newOrderCounts
-  }
+// 加载统计数据
+const loadStatistics = () => {
+  loading.value = true
+  getStatisticsApi(timeRange.value).then(res => {
+    if (res.data) {
+      statistics.value = {
+        userCount: res.data.userCount || 0,
+        userGrowthRate: res.data.userGrowthRate || 0,
+        chefCount: res.data.chefCount || 0,
+        chefGrowthRate: res.data.chefGrowthRate || 0,
+        orderCount: res.data.orderCount || 0,
+        orderGrowthRate: res.data.orderGrowthRate || 0,
+        dates: res.data.dates || [],
+        newUserCounts: res.data.newUserCounts || [],
+        newChefCounts: res.data.newChefCounts || [],
+        newOrderCounts: res.data.newOrderCounts || []
+      }
+      renderChart()
+    }
+  }).catch(() => {
+    ElMessage.error('加载统计数据失败')
+  }).finally(() => {
+    loading.value = false
+  })
 }
 
 // 初始化图表
 const initChart = () => {
   nextTick(() => {
     if (chartRef.value) {
-      if (echarts) {
-        chartInstance = echarts.init(chartRef.value)
-      } else {
-        // 模拟图表初始化
-        console.log('初始化模拟图表')
-        chartInstance = {
-          setOption: (option) => console.log('设置图表选项:', option),
-          resize: () => console.log('调整图表大小'),
-          dispose: () => console.log('销毁图表实例')
-        }
-      }
-      
+      chartInstance = echarts.init(chartRef.value)
       renderChart()
     }
   })
@@ -243,25 +255,26 @@ const initChart = () => {
 
 // 渲染图表
 const renderChart = () => {
-  const data = getDataFromCache()
-  
+  if (!chartInstance) return
+
   const option = {
     tooltip: {
       trigger: 'axis'
     },
     legend: {
-      data: ['新增用户', '新增厨师', '新增订单']
+      data: ['新增用户', '新增厨师', '新增订单'],
+      bottom: 10
     },
     grid: {
       left: '3%',
       right: '4%',
-      bottom: '3%',
+      bottom: '15%',
       containLabel: true
     },
     xAxis: {
       type: 'category',
       boundaryGap: false,
-      data: data.dates
+      data: statistics.value.dates
     },
     yAxis: {
       type: 'value'
@@ -270,85 +283,65 @@ const renderChart = () => {
       {
         name: '新增用户',
         type: 'line',
-        stack: '总量',
-        data: data.newUserCounts
+        smooth: true,
+        itemStyle: { color: '#1989fa' },
+        data: statistics.value.newUserCounts
       },
       {
         name: '新增厨师',
         type: 'line',
-        stack: '总量',
-        data: data.newChefCounts
+        smooth: true,
+        itemStyle: { color: '#ff6b35' },
+        data: statistics.value.newChefCounts
       },
       {
         name: '新增订单',
         type: 'line',
-        stack: '总量',
-        data: data.newOrderCounts
+        smooth: true,
+        itemStyle: { color: '#00b42a' },
+        data: statistics.value.newOrderCounts
       }
     ]
   }
-  
-  if (chartInstance) {
-    chartInstance.setOption(option)
-  }
+
+  chartInstance.setOption(option)
 }
 
 // 时间范围变化
 const onTimeRangeChange = () => {
-  refreshData()
+  loadStatistics()
 }
 
 // 刷新数据
 const refreshData = () => {
-  // 模拟从缓存刷新数据
-  const data = getDataFromCache()
-  
-  // 更新核心数据
-  userCount.value = Math.floor(Math.random() * 1000) + 12500
-  chefCount.value = Math.floor(Math.random() * 500) + 2500
-  orderCount.value = Math.floor(Math.random() * 200) + 800
-  
-  // 更新增长率
-  userGrowth.value = Math.floor(Math.random() * 5) + 10
-  chefGrowth.value = Math.floor(Math.random() * 3) + 5
-  orderGrowth.value = Math.floor(Math.random() * 4) + 3
-  
-  // 重新渲染图表
-  renderChart()
-  
+  loadStatistics()
   ElMessage.success('数据已刷新')
-  
-  // 记录操作日志
-  console.log('Refresh data statistics:', {
-    operator: '超级管理员',
-    timestamp: new Date().toLocaleString(),
-    action: 'refresh_data',
-    timeRange: timeRange.value
-  })
 }
 
-// 导出Excel
+// 导出 Excel
 const exportExcel = () => {
   ElMessageBox.confirm(
-    '确定要导出当前统计数据为Excel文件吗？',
-    '导出Excel',
+    '确定要导出当前统计数据为 Excel 文件吗？',
+    '导出 Excel',
     {
       confirmButtonText: '确定',
       cancelButtonText: '取消',
       type: 'success'
     }
   ).then(() => {
-    // 模拟下载Excel文件
-    const data = getDataFromCache()
-    
-    // 创建CSV内容（简单模拟Excel）
-    let csvContent = '日期,新增用户,新增厨师,新增订单\n'
-    for (let i = 0; i < data.dates.length; i++) {
-      csvContent += `${data.dates[i]},${data.newUserCounts[i]},${data.newChefCounts[i]},${data.newOrderCounts[i]}\n`
+    // 创建 CSV 内容
+    let csvContent = '日期，新增用户，新增厨师，新增订单\n'
+    const dates = statistics.value.dates
+    const newUserCounts = statistics.value.newUserCounts
+    const newChefCounts = statistics.value.newChefCounts
+    const newOrderCounts = statistics.value.newOrderCounts
+
+    for (let i = 0; i < dates.length; i++) {
+      csvContent += `${dates[i]},${newUserCounts[i] || 0},${newChefCounts[i] || 0},${newOrderCounts[i] || 0}\n`
     }
-    
-    // 创建Blob对象并下载
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+
+    // 创建 Blob 对象并下载
+    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' })
     const link = document.createElement('a')
     const url = URL.createObjectURL(blob)
     link.setAttribute('href', url)
@@ -357,16 +350,9 @@ const exportExcel = () => {
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
-    
-    ElMessage.success('Excel文件已导出')
-    
-    // 记录操作日志
-    console.log('Export data statistics:', {
-      operator: '超级管理员',
-      timestamp: new Date().toLocaleString(),
-      action: 'export_excel',
-      timeRange: timeRange.value
-    })
+    URL.revokeObjectURL(url)
+
+    ElMessage.success('Excel 文件已导出')
   }).catch(() => {
     // 用户取消操作
   })
@@ -389,16 +375,14 @@ const handleLogout = async () => {
         type: 'info'
       }
     )
-    
-    // 清空本地存储中的登录相关数据
+
     localStorage.removeItem('token')
     localStorage.removeItem('userInfo')
     sessionStorage.removeItem('token')
     sessionStorage.removeItem('userInfo')
-    
-    // 跳转到登录页面并防止通过浏览器返回按钮返回
+
     router.replace('/login')
-    
+
     ElMessage({
       type: 'success',
       message: '退出登录成功！'
@@ -415,9 +399,27 @@ const handleLogout = async () => {
   }
 }
 
+// 窗口大小变化时调整图表大小
+const handleResize = () => {
+  if (chartInstance) {
+    chartInstance.resize()
+  }
+}
+
 // 组件挂载时初始化
 onMounted(() => {
   initChart()
+  loadStatistics()
+  window.addEventListener('resize', handleResize)
+})
+
+// 组件卸载时清理
+import { onUnmounted } from 'vue'
+onUnmounted(() => {
+  if (chartInstance) {
+    chartInstance.dispose()
+  }
+  window.removeEventListener('resize', handleResize)
 })
 </script>
 
@@ -582,6 +584,7 @@ onMounted(() => {
 .card-value {
   font-size: 24px;
   font-weight: bold;
+  color: #323233;
   margin-bottom: 8px;
 }
 
@@ -589,13 +592,26 @@ onMounted(() => {
   font-size: 12px;
 }
 
+.growth-positive {
+  color: #07c160;
+}
+
+.growth-negative {
+  color: #ee0a24;
+}
+
+.growth-neutral {
+  color: #969799;
+}
+
 .card-icon {
-  width: 40px;
-  height: 40px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
 
 /* 图表容器 */
@@ -603,10 +619,16 @@ onMounted(() => {
   margin-bottom: 20px;
 }
 
-.chart-container .clearfix {
+.chart-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 16px;
+}
+
+.chart-header span {
+  font-size: 16px;
+  font-weight: bold;
 }
 
 .time-range-selector {

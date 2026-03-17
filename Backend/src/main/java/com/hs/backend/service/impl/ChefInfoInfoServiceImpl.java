@@ -5,11 +5,16 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hs.backend.common.exception.BusinessException;
 import com.hs.backend.entity.ChefInfo;
+import com.hs.backend.entity.User;
 import com.hs.backend.mapper.ChefInfoMapper;
+import com.hs.backend.mapper.UserMapper;
 import com.hs.backend.service.ChefInfoService;
+import com.hs.backend.vo.ChefAuditVO;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -18,6 +23,9 @@ import java.util.stream.Collectors;
  */
 @Service
 public class ChefInfoInfoServiceImpl extends ServiceImpl<ChefInfoMapper, ChefInfo> implements ChefInfoService {
+
+    @Autowired
+    private UserMapper userMapper;
 
     @Override
     public Page<ChefInfo> getChefPage(Integer page, Integer size, String specialty, Integer level) {
@@ -118,6 +126,73 @@ public class ChefInfoInfoServiceImpl extends ServiceImpl<ChefInfoMapper, ChefInf
                 .eq(ChefInfo::getUserId, userId));
     }
 
+    /**
+     * 分页查询厨师审核列表（支持关键词搜索）
+     */
+    @Override
+    public Page<ChefAuditVO> getChefAuditPage(Integer page, Integer size, String keyword, Integer auditStatus) {
+        Page<ChefInfo> chefPage = new Page<>(page, size);
+
+        LambdaQueryWrapper<ChefInfo> wrapper = new LambdaQueryWrapper<>();
+
+        // 审核状态筛选
+        if (auditStatus != null) {
+            wrapper.eq(ChefInfo::getAuditStatus, auditStatus);
+        }
+
+        // 关键词搜索（按姓名或手机号）
+        if (StringUtils.hasText(keyword)) {
+            // 先搜索用户表获取匹配的 userId
+            LambdaQueryWrapper<User> userWrapper = new LambdaQueryWrapper<>();
+            userWrapper.like(User::getPhone, keyword);
+            List<User> users = userMapper.selectList(userWrapper);
+            List<Long> userIds = users.stream().map(User::getId).collect(Collectors.toList());
+
+            // 如果关键词是数字，也尝试按 ID 搜索
+            try {
+                Long chefId = Long.parseLong(keyword);
+                userIds.add(chefId);
+            } catch (NumberFormatException e) {
+                // 不是数字，忽略
+            }
+
+            if (!userIds.isEmpty()) {
+                wrapper.in(ChefInfo::getUserId, userIds);
+            }
+        }
+
+        // 按申请时间倒序
+        wrapper.orderByDesc(ChefInfo::getCreateTime);
+
+        // 执行分页查询
+        Page<ChefInfo> chefInfoPage = page(chefPage, wrapper);
+
+        // 转换为 ChefAuditVO
+        Page<ChefAuditVO> voPage = new Page<>(page, size);
+        List<ChefAuditVO> voList = chefInfoPage.getRecords().stream().map(chefInfo -> {
+            ChefAuditVO vo = new ChefAuditVO();
+            vo.setId(chefInfo.getId());
+            vo.setUserId(chefInfo.getUserId());
+            vo.setRealName(chefInfo.getRealName());
+            vo.setApplyTime(chefInfo.getCreateTime());
+            vo.setAuditStatus(chefInfo.getAuditStatus());
+
+            // 从 User 表获取手机号
+            User user = userMapper.selectById(chefInfo.getUserId());
+            if (user != null) {
+                vo.setPhone(user.getPhone());
+            }
+
+            return vo;
+        }).collect(Collectors.toList());
+
+        voPage.setRecords(voList);
+        voPage.setTotal(chefInfoPage.getTotal());
+        voPage.setSize(chefInfoPage.getSize());
+        voPage.setCurrent(chefInfoPage.getCurrent());
+
+        return voPage;
+    }
 
     /**
      * 计算两点之间的距离（简化版）

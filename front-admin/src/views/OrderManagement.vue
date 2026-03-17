@@ -84,15 +84,20 @@
           <div class="filters">
             <el-input
               v-model="searchKeyword"
-              placeholder="搜索订单ID/用户ID/菜品名称"
-              prefix-icon="Search"
-              style="width: 250px; margin-right: 10px;"
-            ></el-input>
+              placeholder="搜索订单号/客户 ID"
+              class="search-input"
+              @keyup.enter="loadOrderList"
+            >
+              <template #prefix>
+                <el-icon size="16"><Search /></el-icon>
+              </template>
+            </el-input>
             <el-select
               v-model="filterStatus"
               placeholder="订单状态"
               clearable
-              style="width: 120px; margin-right: 10px;"
+              class="status-select"
+              @change="loadOrderList"
             >
               <el-option
                 v-for="status in statusOptions"
@@ -103,25 +108,32 @@
             </el-select>
             <el-date-picker
               v-model="dateRange"
-              type="datetimerange"
+              type="daterange"
               range-separator="至"
-              start-placeholder="开始时间"
-              end-placeholder="结束时间"
-              style="width: 300px; margin-right: 10px;"
+              start-placeholder="开始日期"
+              end-placeholder="结束日期"
+              value-format="YYYY-MM-DD"
+              class="date-range"
+              @change="loadOrderList"
             />
-            <el-button type="primary" @click="applyFilters">筛选</el-button>
+            <el-button type="primary" @click="loadOrderList">查询</el-button>
           </div>
         </div>
 
-        <!-- 核心修改：所有列都设置表头和数据左对齐 -->
-        <el-table border :data="displayedOrders" style="width: 100%;" class="order-table" >
-          <el-table-column prop="id" label="订单ID" width="120" align="left" header-align="left" />
-          <el-table-column prop="userId" label="用户ID" width="120" align="left" header-align="left" />
-          <el-table-column prop="dishName" label="菜品名称" width="150" align="left" header-align="left" />
-          <el-table-column prop="orderTime" label="下单时间" width="180" align="left" header-align="left" />
-          <el-table-column prop="status" label="订单状态" width="120" align="left" header-align="left">
+        <el-table border :data="orderList" style="width: 100%;" class="order-table" v-loading="loading">
+          <el-table-column prop="id" label="订单 ID" width="100" align="center" header-align="center" />
+          <el-table-column prop="orderNo" label="订单号" width="180" align="center" header-align="center" />
+          <el-table-column prop="customerName" label="客户姓名" width="100" align="center" header-align="center" />
+          <el-table-column prop="customerPhone" label="手机号" width="130" align="center" header-align="center" />
+          <el-table-column prop="chefName" label="厨师姓名" width="100" align="center" header-align="center" />
+          <el-table-column prop="appointmentTime" label="预约时间" width="170" align="center" header-align="center">
             <template #default="scope">
-              <el-tag 
+              {{ scope.row.appointmentTime || '-' }}
+            </template>
+          </el-table-column>
+          <el-table-column prop="status" label="订单状态" width="100" align="center" header-align="center">
+            <template #default="scope">
+              <el-tag
                 :type="getStatusType(scope.row.status)"
                 disable-transitions
               >
@@ -129,60 +141,75 @@
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column prop="amount" label="实付金额" width="100" align="left" header-align="left">
+          <el-table-column prop="totalFee" label="订单金额" width="100" align="center" header-align="center">
             <template #default="scope">
-              ¥{{ scope.row.amount.toFixed(2) }}
+              ¥{{ (scope.row.totalFee || 0).toFixed(2) }}
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="150" align="left" header-align="left">
+          <el-table-column prop="createTime" label="下单时间" width="170" align="center" header-align="center">
             <template #default="scope">
-              <el-button 
-                v-if="scope.row.status === 'abnormal'"
-                size="mini" 
-                type="danger" 
+              {{ formatDateTime(scope.row.createTime) }}
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" width="150" align="center" header-align="center" fixed="right">
+            <template #default="scope">
+              <el-button
+                v-if="scope.row.status === 5 || scope.row.status === 6"
+                size="mini"
+                type="info"
+                disabled
+              >
+                已取消/退款
+              </el-button>
+              <el-button
+                v-else-if="scope.row.status === 0"
+                size="mini"
+                type="danger"
                 @click="forceCancelOrder(scope.row)"
-                style="margin-right: 5px;"
               >
                 强制取消
               </el-button>
-              <el-button 
+              <el-button
                 v-else
-                size="mini" 
-                type="info" 
-                disabled
+                size="mini"
+                type="primary"
+                @click="viewOrderDetail(scope.row)"
               >
-                查看
+                查看详情
               </el-button>
             </template>
           </el-table-column>
         </el-table>
-        
+
         <!-- 分页 -->
-        <el-pagination
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
-          :current-page="currentPage"
-          :page-sizes="[10, 20, 50, 100]"
-          :page-size="pageSize"
-          layout="total, sizes, prev, pager, next, jumper"
-          :total="filteredOrders.length"
-          style="margin-top: 20px; text-align: right;"
-        />
+        <div class="pagination-wrapper">
+          <el-pagination
+            v-model:current-page="currentPage"
+            v-model:page-size="pageSize"
+            :page-sizes="[10, 20, 50, 100]"
+            layout="total, sizes, prev, pager, next, jumper"
+            :total="total"
+            @size-change="handleSizeChange"
+            @current-change="handleCurrentChange"
+          />
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-// 引入Element Plus图标
-import { 
-  User, UserFilled, Grid, ShoppingCart, TrendCharts, 
-  Bell, InfoFilled, Shop, Search 
+// 引入 Element Plus 图标
+import {
+  User, UserFilled, Grid, ShoppingCart, TrendCharts,
+  Bell, Search
 } from '@element-plus/icons-vue'
-// 引入Element Plus提示框
-import { ElMessageBox, ElMessage, ElInput } from 'element-plus'
+// 引入 Element Plus 提示框
+import { ElMessageBox, ElMessage } from 'element-plus'
+// 引入订单管理接口
+import { getOrderList, forceCancelOrder as forceCancelOrderApi } from '@/api/order'
 
 // 创建路由器实例
 const router = useRouter()
@@ -190,8 +217,19 @@ const router = useRouter()
 // 当前激活菜单
 const activeMenu = ref('order')
 
-// 当前日期
-const currentDate = ref('2026年03月07日')
+// 当前日期（动态获取）
+const currentDate = ref('')
+
+// 格式化日期为 YYYY 年 MM 月 DD 日
+const formatDate = (date) => {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}年${month}月${day}日`
+}
+
+// 初始化当前日期
+currentDate.value = formatDate(new Date())
 
 // 搜索和筛选参数
 const searchKeyword = ref('')
@@ -201,38 +239,71 @@ const dateRange = ref([])
 // 分页参数
 const currentPage = ref(1)
 const pageSize = ref(10)
+const total = ref(0)
+
+// 加载状态
+const loading = ref(false)
+
+// 订单列表
+const orderList = ref([])
 
 // 订单状态选项
 const statusOptions = [
-  { value: 'pending', label: '待支付' },
-  { value: 'completed', label: '已完成' },
-  { value: 'cancelled', label: '已取消' },
-  { value: 'abnormal', label: '异常订单' }
+  { value: 0, label: '待支付' },
+  { value: 1, label: '待接单' },
+  { value: 2, label: '已接单' },
+  { value: 3, label: '服务中' },
+  { value: 4, label: '已完成' },
+  { value: 5, label: '已取消' },
+  { value: 6, label: '已退款' }
 ]
 
-// 模拟订单数据
-const orders = ref([
-  { id: 50001, userId: 1001, dishName: '宫保鸡丁', orderTime: '2026-03-01 12:30:15', status: 'completed', amount: 28.50 },
-  { id: 50002, userId: 1002, dishName: '麻婆豆腐', orderTime: '2026-03-01 13:45:20', status: 'pending', amount: 18.00 },
-  { id: 50003, userId: 1003, dishName: '红烧肉', orderTime: '2026-03-02 11:20:10', status: 'abnormal', amount: 35.00 },
-  { id: 50004, userId: 1004, dishName: '鱼香肉丝', orderTime: '2026-03-02 18:15:30', status: 'completed', amount: 22.80 },
-  { id: 50005, userId: 1005, dishName: '糖醋里脊', orderTime: '2026-03-03 19:40:25', status: 'cancelled', amount: 32.00 },
-  { id: 50006, userId: 1006, dishName: '回锅肉', orderTime: '2026-03-03 20:10:45', status: 'completed', amount: 30.50 },
-  { id: 50007, userId: 1007, dishName: '酸辣土豆丝', orderTime: '2026-03-04 12:15:10', status: 'abnormal', amount: 15.00 },
-  { id: 50008, userId: 1008, dishName: '蒜蓉菠菜', orderTime: '2026-03-04 13:30:20', status: 'completed', amount: 12.80 },
-  { id: 50009, userId: 1009, dishName: '水煮牛肉', orderTime: '2026-03-05 18:45:35', status: 'pending', amount: 42.00 },
-  { id: 50010, userId: 1010, dishName: '干煸豆角', orderTime: '2026-03-05 19:20:15', status: 'completed', amount: 25.60 },
-  { id: 50011, userId: 1011, dishName: '白切鸡', orderTime: '2026-03-06 11:30:40', status: 'abnormal', amount: 38.00 },
-  { id: 50012, userId: 1012, dishName: '清蒸鲈鱼', orderTime: '2026-03-06 17:55:20', status: 'completed', amount: 58.00 },
-])
+// 加载订单列表
+const loadOrderList = () => {
+  loading.value = true
+  getOrderList({
+    page: currentPage.value,
+    size: pageSize.value,
+    keyword: searchKeyword.value,
+    status: filterStatus.value === '' ? null : filterStatus.value,
+    startDate: dateRange.value ? dateRange.value[0] : null,
+    endDate: dateRange.value ? dateRange.value[1] : null
+  }).then(res => {
+    if (res.data) {
+      orderList.value = res.data.records || []
+      total.value = res.data.total || 0
+    }
+  }).catch(() => {
+    orderList.value = []
+    total.value = 0
+  }).finally(() => {
+    loading.value = false
+  })
+}
+
+// 格式化日期时间
+const formatDateTime = (dateTime) => {
+  if (!dateTime) return ''
+  const date = new Date(dateTime)
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  const hour = String(date.getHours()).padStart(2, '0')
+  const minute = String(date.getMinutes()).padStart(2, '0')
+  const second = String(date.getSeconds()).padStart(2, '0')
+  return `${year}-${month}-${day} ${hour}:${minute}:${second}`
+}
 
 // 获取状态类型
 const getStatusType = (status) => {
   switch(status) {
-    case 'pending': return 'warning'
-    case 'completed': return 'success'
-    case 'cancelled': return 'info'
-    case 'abnormal': return 'danger'
+    case 0: return 'warning'
+    case 1: return 'info'
+    case 2: return 'primary'
+    case 3: return ''
+    case 4: return 'success'
+    case 5: return 'info'
+    case 6: return 'info'
     default: return 'info'
   }
 }
@@ -240,114 +311,85 @@ const getStatusType = (status) => {
 // 获取状态标签
 const getStatusLabel = (status) => {
   switch(status) {
-    case 'pending': return '待支付'
-    case 'completed': return '已完成'
-    case 'cancelled': return '已取消'
-    case 'abnormal': return '异常'
+    case 0: return '待支付'
+    case 1: return '待接单'
+    case 2: return '已接单'
+    case 3: return '服务中'
+    case 4: return '已完成'
+    case 5: return '已取消'
+    case 6: return '已退款'
     default: return '未知'
   }
-}
-
-// 计算属性：根据筛选条件过滤订单
-const filteredOrders = computed(() => {
-  let result = orders.value
-  
-  // 按关键词搜索（订单ID、用户ID、菜品名称）
-  if (searchKeyword.value) {
-    const keyword = searchKeyword.value.toLowerCase()
-    result = result.filter(order => 
-      String(order.id).includes(keyword) ||
-      String(order.userId).includes(keyword) ||
-      order.dishName.toLowerCase().includes(keyword)
-    )
-  }
-  
-  // 按状态筛选
-  if (filterStatus.value) {
-    result = result.filter(order => order.status === filterStatus.value)
-  }
-  
-  // 按时间范围筛选
-  if (dateRange.value && dateRange.value.length === 2) {
-    const [startDate, endDate] = dateRange.value
-    result = result.filter(order => {
-      const orderDate = new Date(order.orderTime)
-      return orderDate >= startDate && orderDate <= endDate
-    })
-  }
-  
-  return result
-})
-
-// 计算属性：当前页显示的订单
-const displayedOrders = computed(() => {
-  const start = (currentPage.value - 1) * pageSize.value
-  const end = start + pageSize.value
-  return filteredOrders.value.slice(start, end)
-})
-
-// 应用筛选条件
-const applyFilters = () => {
-  currentPage.value = 1 // 重置到第一页
 }
 
 // 分页大小改变
 const handleSizeChange = (size) => {
   pageSize.value = size
   currentPage.value = 1
+  loadOrderList()
 }
 
 // 当前页改变
 const handleCurrentChange = (page) => {
   currentPage.value = page
+  loadOrderList()
 }
 
 // 强制取消订单
 const forceCancelOrder = async (order) => {
   try {
-    // 模拟权限校验：仅 role=2 的管理员可操作
-    const currentUserRole = 2 // 假设当前用户是管理员
-    if (currentUserRole !== 2) {
-      ElMessage.error('权限不足，仅管理员可执行此操作')
-      return
-    }
-    
-    await ElMessageBox.confirm(
-      `确定要强制取消订单「${order.id}」吗？此操作将处理退款¥${order.amount.toFixed(2)}，且不可恢复！`,
+    const { value: reason } = await ElMessageBox.prompt(
+      '请输入取消原因',
       '强制取消订单',
       {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
+        inputPlaceholder: '请输入取消原因',
+        inputValidator: (value) => {
+          if (!value) return '取消原因不能为空'
+          return true
+        },
         type: 'warning'
       }
     )
-    
-    // 更新订单状态
-    const targetOrder = orders.value.find(item => item.id === order.id)
-    if (targetOrder) {
-      targetOrder.status = 'cancelled'
-    }
-    
+
+    await forceCancelOrderApi(order.id, reason)
+
     ElMessage({
       type: 'success',
-      message: `订单「${order.id}」已取消，退款¥${order.amount.toFixed(2)}`
+      message: `订单「${order.orderNo}」已取消，退款¥${(order.totalFee || 0).toFixed(2)}`
     })
-    
-    // 记录操作日志
-    console.log('Force cancel order:', {
-      orderId: order.id,
-      userId: order.userId,
-      refundAmount: order.amount,
-      operator: '超级管理员',
-      operatorId: 10001,
-      timestamp: new Date().toLocaleString(),
-      action: 'force_cancel_order'
-    })
+
+    loadOrderList()
   } catch (error) {
     if (error !== 'cancel') {
       console.error('Force cancel order error:', error)
     }
   }
+}
+
+// 查看订单详情
+const viewOrderDetail = (order) => {
+  ElMessageBox.alert(
+    `
+      <div style="text-align: left; line-height: 2;">
+        <strong>订单号：</strong>${order.orderNo}<br/>
+        <strong>订单 ID：</strong>${order.id}<br/>
+        <strong>客户姓名：</strong>${order.customerName || '-'}<br/>
+        <strong>客户手机：</strong>${order.customerPhone || '-'}<br/>
+        <strong>厨师姓名：</strong>${order.chefName || '-'}<br/>
+        <strong>预约时间：</strong>${order.appointmentTime || '-'}<br/>
+        <strong>订单状态：</strong>${getStatusLabel(order.status)}<br/>
+        <strong>订单金额：</strong>¥${(order.totalFee || 0).toFixed(2)}<br/>
+        <strong>下单时间：</strong>${formatDateTime(order.createTime)}<br/>
+      </div>
+    `,
+    '订单详情',
+    {
+      dangerouslyUseHTMLString: true,
+      confirmButtonText: '关闭'
+    }
+  )
 }
 
 // 导航到指定路径
@@ -367,16 +409,14 @@ const handleLogout = async () => {
         type: 'info'
       }
     )
-    
-    // 清空本地存储中的登录相关数据
+
     localStorage.removeItem('token')
     localStorage.removeItem('userInfo')
     sessionStorage.removeItem('token')
     sessionStorage.removeItem('userInfo')
-    
-    // 跳转到登录页面并防止通过浏览器返回按钮返回
+
     router.replace('/login')
-    
+
     ElMessage({
       type: 'success',
       message: '退出登录成功！'
@@ -392,6 +432,11 @@ const handleLogout = async () => {
     }
   }
 }
+
+// 页面加载时加载订单列表
+onMounted(() => {
+  loadOrderList()
+})
 </script>
 
 <style scoped>
@@ -542,6 +587,19 @@ const handleLogout = async () => {
 .filters {
   display: flex;
   gap: 10px;
+  align-items: center;
+}
+
+.search-input {
+  width: 220px;
+}
+
+.status-select {
+  width: 120px;
+}
+
+.date-range {
+  width: 240px;
 }
 
 .el-table {
@@ -555,18 +613,22 @@ const handleLogout = async () => {
 
 .order-table th,
 .order-table td {
-  text-align: left ;
+  text-align: center;
 }
 
 .order-table th.el-table__cell,
 .order-table td.el-table__cell {
-  padding: 12px 8px; /* 调整内边距，让内容更贴近左侧 */
+  padding: 12px 8px;
   border-bottom: 1px solid #ebeef5;
-  text-align: left  /* 兜底确保左对齐，防止样式覆盖 */
 }
 
-/* 优化操作按钮间距，避免挤压 */
 .order-table .el-button {
   margin: 0 2px;
+}
+
+.pagination-wrapper {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
 }
 </style>

@@ -1,18 +1,19 @@
 import axios from 'axios'
 import { ElMessage } from 'element-plus'
 
-// 创建axios实例，指向你的后端地址
+// 创建 axios 实例，指向你的后端地址
 const request = axios.create({
-  baseURL: 'http://localhost:8080', // 后端Spring Boot的地址+端口
+  baseURL: 'http://localhost:8080', // 后端 Spring Boot 的地址 + 端口
   timeout: 5000
 })
 
-// 请求拦截器：加Token（登录后鉴权）
+// 请求拦截器：加 Token（登录后鉴权）
 request.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('admin-token')
     if (token) {
-      config.headers['token'] = token
+      // 使用 Authorization 头，格式：Bearer <token>
+      config.headers['Authorization'] = 'Bearer ' + token
     }
     return config
   },
@@ -25,12 +26,13 @@ request.interceptors.request.use(
 request.interceptors.response.use(
   (response) => {
     const res = response.data
-    // 后端返回的code=200代表成功
+    // 后端返回的 code=200 代表成功
     if (res.code !== 200) {
       ElMessage.error(res.msg || '请求失败')
       return Promise.reject(res)
     }
-    return res
+    // 返回 data 字段，这样调用方可以直接获取业务数据
+    return res.data
   },
   (error) => {
     ElMessage.error(error.message || '服务器错误')

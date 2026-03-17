@@ -6,7 +6,6 @@ import com.hs.backend.entity.UserAddress;
 import com.hs.backend.service.CustomerPersonalCenterService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
@@ -16,7 +15,6 @@ import java.util.List;
      * 客户控制器
      * 负责用户/客户相关的业务接口
  */
-@Slf4j
 @Tag(name = "客户管理", description = "客户个人信息、收货地址等客户相关接口")
 @RestController
 @RequestMapping("/api/customer")
@@ -29,53 +27,15 @@ public class CustomerController {
     }
 
     /**
-     * 从 Principal 中获取当前登录用户 ID
-     */
-    private Long getCurrentUserId(Principal principal) {
-        log.info("========== [开始] getCurrentUserId() ==========");
-        log.info("[1] Principal 对象：{}", principal);
-        
-        if (principal == null) {
-            log.error("[错误] Principal 为 null");
-            throw new RuntimeException("未找到当前登录用户 (Principal 为 null)");
-        }
-        
-        String principalName = principal.getName();
-        log.info("[2] Principal.getName(): {}", principalName);
-        log.info("[3] Principal 类型：{}", principal.getClass().getName());
-        
-        if (principalName == null) {
-            log.error("[错误] Principal.getName() 为 null");
-            throw new RuntimeException("未找到当前登录用户 (Principal.getName 为 null)");
-        }
-        
-        try {
-            Long userId = Long.parseLong(principalName);
-            log.info("[4] 解析后的 userId: {}", userId);
-            log.info("========== [结束] getCurrentUserId() ===========");
-            return userId;
-        } catch (NumberFormatException e) {
-            log.error("[错误] 用户 ID 格式错误：{}", principalName, e);
-            throw new RuntimeException("用户 ID 格式错误：" + principalName, e);
-        }
-    }
-
-    /**
      * 获取当前客户个人信息
      */
     @GetMapping("/profile")
     @Operation(summary = "获取客户个人信息", description = "获取当前登录客户的个人信息")
    public Result<CustomerInfo> getProfile(Principal principal) {
-        log.info("========== [Controller] /api/customer/profile GET 请求 ========== ");
-        log.info("[1] 收到 Principal 参数：{}", principal);
-        
-        // 从 Principal 中获取当前登录用户 ID
-        Long userId = getCurrentUserId(principal);
-        log.info("[2] Controller 获取到的 userId: {}", userId);
-        
+        // TODO: 从 Principal 中获取当前登录用户 ID
+        // 临时使用固定 ID 测试
+        Long userId = 7L;
         CustomerInfo customerInfo = personalCenterService.getCustomerProfile(userId);
-        log.info("[3] 返回用户信息：userId={}, username={}", userId, customerInfo.getUsername());
-        log.info("========== [Controller] 结束 ========== ");
         return Result.success(customerInfo);
     }
 
@@ -85,8 +45,8 @@ public class CustomerController {
     @PutMapping("/profile")
     @Operation(summary = "更新客户个人信息", description = "更新当前登录客户的个人信息")
    public Result<String> updateProfile(@RequestBody CustomerInfo customerInfo, Principal principal) {
-        // 从 Principal 中获取当前登录用户 ID
-        Long userId = getCurrentUserId(principal);
+        // TODO: 从 Principal 中获取当前登录用户 ID
+        Long userId = 7L;
         personalCenterService.updateCustomerProfile(userId, customerInfo);
         return Result.success("更新成功");
     }
@@ -97,8 +57,8 @@ public class CustomerController {
     @GetMapping("/addresses")
     @Operation(summary = "获取收货地址列表", description = "获取当前登录客户的所有收货地址")
    public Result<List<UserAddress>> getAddresses(Principal principal) {
-        // 从 Principal 中获取当前登录用户 ID
-        Long userId = getCurrentUserId(principal);
+        // TODO: 从 Principal 中获取当前登录用户 ID
+        Long userId = 7L;
         List<UserAddress> addresses = personalCenterService.getUserAddresses(userId);
         return Result.success(addresses);
     }
@@ -109,8 +69,8 @@ public class CustomerController {
     @PostMapping("/addresses")
     @Operation(summary = "添加收货地址", description = "为当前登录客户添加新的收货地址")
    public Result<String> addAddress(@RequestBody UserAddress address, Principal principal) {
-        // 从 Principal 中获取当前登录用户 ID
-        Long userId = getCurrentUserId(principal);
+        // TODO: 从 Principal 中获取当前登录用户 ID
+        Long userId = 7L;
         personalCenterService.addUserAddress(userId, address);
         return Result.success("添加成功");
     }
@@ -121,8 +81,8 @@ public class CustomerController {
     @PutMapping("/addresses/{id}")
     @Operation(summary = "更新收货地址", description = "更新指定 ID 的收货地址信息")
    public Result<String> updateAddress(@PathVariable Long id, @RequestBody UserAddress address, Principal principal) {
-        // 从 Principal 中获取当前登录用户 ID
-        Long userId = getCurrentUserId(principal);
+        // TODO: 从 Principal 中获取当前登录用户 ID
+        Long userId = 7L;
         personalCenterService.updateUserAddress(userId, address);
         return Result.success("更新成功");
     }
@@ -133,8 +93,8 @@ public class CustomerController {
     @DeleteMapping("/addresses/{id}")
     @Operation(summary = "删除收货地址", description = "删除指定 ID 的收货地址")
    public Result<String> deleteAddress(@PathVariable Long id, Principal principal) {
-        // 从 Principal 中获取当前登录用户 ID
-        Long userId = getCurrentUserId(principal);
+        // TODO: 从 Principal 中获取当前登录用户 ID
+        Long userId = 7L;
         personalCenterService.deleteUserAddress(userId, id);
         return Result.success("删除成功");
     }
@@ -145,8 +105,8 @@ public class CustomerController {
     @GetMapping("/stats")
     @Operation(summary = "获取个人中心统计信息", description = "获取当前登录用户的订单、收藏、优惠券等统计信息")
    public Result<java.util.Map<String, Object>> getStats(Principal principal) {
-        // 从 Principal 中获取当前登录用户 ID
-        Long userId = getCurrentUserId(principal);
+        // TODO: 从 Principal 中获取当前登录用户 ID
+        Long userId = 7L;
         java.util.Map<String, Object> stats = personalCenterService.getPersonalCenterStats(userId);
         return Result.success(stats);
     }

@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
  */
 @Data
 @EqualsAndHashCode(callSuper = false)
-@TableName("t_chef")
+@TableName("t_chef_info")
 public class ChefInfo implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -121,12 +121,6 @@ public class ChefInfo implements Serializable {
      */
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updateTime;
-
-    /**
-     * 逻辑删除标志
-     */
-    @TableLogic
-    private Integer deleted;
 
     /*
     * 状态：0-禁用，1-启用

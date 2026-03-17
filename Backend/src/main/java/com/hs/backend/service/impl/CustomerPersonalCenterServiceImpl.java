@@ -69,7 +69,6 @@ public class CustomerPersonalCenterServiceImpl implements CustomerPersonalCenter
     @Override
     public CustomerInfo getCustomerProfile(Long userId) {
         log.debug("========== [开始] 获取用户信息 userId={} ==========", userId);
-        log.info("[Service] getCustomerProfile 被调用，传入的 userId: {}", userId);
         
         // 先从缓存获取
         String cacheKey = USER_INFO_CACHE_KEY + userId;
@@ -77,12 +76,10 @@ public class CustomerPersonalCenterServiceImpl implements CustomerPersonalCenter
         
         if (customerInfo != null) {
             log.debug("[缓存命中] 用户信息 userId={}", userId);
-            log.info("[Service] 从缓存命中 userId={}", userId);
             return customerInfo;
         }
         
         log.debug("[缓存未命中] 查询数据库 userId={}", userId);
-        log.info("[Service] 缓存未命中，准备查询数据库 userId={}", userId);
         
         // 查询客户信息（使用 user_id 查询，不是主键 id）
         customerInfo = customerInfoMapper.selectOne(
