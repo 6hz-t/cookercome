@@ -428,7 +428,7 @@
           <el-row :gutter="20">
             <el-col :span="12">
               <el-form-item 
-                label="收件人" 
+                label="用户名"
                 prop="receiver"
                 :rules="[{ required: true, message: '请输入收件人姓名', trigger: 'blur' }]"
               >

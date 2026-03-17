@@ -36,7 +36,7 @@
 
           <div class="points-display">
             <div class="points-circle">
-              <svg viewBox="0 0 100 100" class="progress-svg">
+              <svg viewBox="0 0 120 120" class="progress-svg">
                 <defs>
                   <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
                     <stop offset="0%" style="stop-color:#00f3ff;stop-opacity:1" />
@@ -44,11 +44,11 @@
                   </linearGradient>
                 </defs>
                 <!-- 背景圆环 -->
-                <circle cx="50" cy="50" r="45" class="progress-bg" />
+                <circle cx="60" cy="60" r="45" class="progress-bg" />
                 <!-- 进度圆环 -->
                 <circle 
-                  cx="50" 
-                  cy="50" 
+                  cx="60" 
+                  cy="60" 
                   r="45" 
                   class="progress-bar"
                   :stroke-dasharray="circumference"
@@ -118,11 +118,11 @@
             <polygon points="50,5 95,27.5 95,72.5 50,95 5,72.5 5,27.5" class="hex-border" />
           </svg>
           <div class="stat-icon">
-            <el-icon><Star /></el-icon>
+            <el-icon><Money /></el-icon>
           </div>
         </div>
-        <div class="stat-value">{{ stats.averageRating }}</div>
-        <div class="stat-label">平均评分</div>
+        <div class="stat-value">¥{{ stats.totalSpent }}</div>
+        <div class="stat-label">累计消费</div>
       </div>
     </div>
 
@@ -473,7 +473,7 @@ const stats = ref({
   totalOrders: 0,
   completedOrders: 0,
   ongoingOrders: 0,
-  averageRating: 0
+  totalSpent: 0
 })
 
 const favoritesCount = ref(0)
@@ -671,7 +671,7 @@ const loadUserInfo = async () => {
         totalOrders: profileRes.data.totalOrders || 0,
         completedOrders: profileRes.data.completedOrders || 0,
         ongoingOrders: (profileRes.data.totalOrders || 0) - (profileRes.data.completedOrders || 0),
-        averageRating: profileRes.data.averageRating || 0
+        totalSpent: profileRes.data.totalSpent || 0
       }
     }
     
@@ -1247,6 +1247,7 @@ onMounted(() => {
   width: 100px;
   height: 100px;
   transform: rotate(-90deg);
+  overflow: visible;
 }
 
 .progress-bg {
@@ -1261,7 +1262,7 @@ onMounted(() => {
   stroke-width: 8;
   stroke-linecap: round;
   transition: stroke-dashoffset 1s ease;
-  filter: drop-shadow(0 0 6px rgba(0, 243, 255, 0.8));
+  filter: drop-shadow(0 0 8px rgba(0, 243, 255, 0.6));
 }
 
 .points-value {

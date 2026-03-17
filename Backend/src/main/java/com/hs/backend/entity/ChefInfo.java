@@ -1,130 +1,122 @@
 package com.hs.backend.entity;
 
-import com.baomidou.mybatisplus.annotation.*;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.extern.slf4j.Slf4j;
-
-import java.io.Serializable;
+import com.baomidou.mybatisplus.annotation.IdType;
+import com.baomidou.mybatisplus.annotation.TableField;
+import com.baomidou.mybatisplus.annotation.TableId;
+import com.baomidou.mybatisplus.annotation.TableName;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.util.Date;
+import lombok.Data;
 
 /**
- * 厨师实体类
+ * 厨师专属信息表
+ * @TableName t_chef_info
  */
+@TableName(value ="t_chef_info")
 @Data
-@EqualsAndHashCode(callSuper = false)
-@TableName("t_chef_info")
-public class ChefInfo implements Serializable {
-
-    private static final long serialVersionUID = 1L;
-
+public class ChefInfo {
     /**
-     * 主键 ID
+     * 厨师信息 ID
      */
-    @TableId(value = "id", type = IdType.AUTO)
+    @TableId(type = IdType.AUTO)
     private Long id;
 
     /**
-     * 用户 ID
+     * 关联用户 ID（逻辑外键： t_user.id ）
      */
     private Long userId;
 
     /**
-     * 厨师编号
+     * 厨师真实姓名
      */
-    private String chefNo;
 
-    /**
-     * 工作年限
-     */
-    private Integer workYears;
 
-    /*
-    * 厨师真实姓名
-    * */
     private String realName;
 
     /**
-     * 擅长菜系（逗号分隔）
+     * 性别：0-未知，1-男，2-女
      */
-    private String specialty;
+    private Integer gender;
 
     /**
-     * 厨师等级：1-初级，2-中级，3-高级，4-名厨
+     * 身份证号码（18位）
      */
-    private Integer level;
+    private String idCardNo;
 
     /**
-     * 服务次数
+     * 手机号（支持国际号码，预留长度）
      */
-    private Integer serviceCount;
+    private String phone;
 
     /**
-     * 评分
+     * 身份证正面照 URL（加长长度适配OSS地址）
      */
-    private BigDecimal rating;
+    private String idCardFront;
 
     /**
-     * 起步价
+     * 身份证背面照 URL
      */
-    private BigDecimal basePrice;
+    private String idCardBack;
 
     /**
-     * 服务半径（公里）
+     * 详细地址（街道、门牌号等）
      */
-    private Integer serviceRadius;
+    private String detailAddress;
 
     /**
-     * 经度
+     * 厨师头像 URL
      */
-    private Double longitude;
+    private String avatarUrl;
 
     /**
-     * 纬度
+     * 厨师资质证书 URL（如厨师证）
      */
-    private Double latitude;
+    private String qualificationUrl;
 
     /**
-     * 详细地址
+     * 烹饪年限（无负数，用unsigned）
      */
-    private String address;
+    private Integer experienceYears;
 
     /**
-     * 简介
+     * 厨师简介
      */
     private String introduction;
 
     /**
-     * 资质证书图片（逗号分隔）
-     */
-    private String certificates;
-
-    /**
-     * 审核状态：0-待审核，1-通过，2-拒绝
+     * 审核状态：0-待审核，1-审核通过，2-审核拒绝
      */
     private Integer auditStatus;
 
     /**
-     * 上架状态：0-下架，1-上架
+     * 审核备注（加长长度满足备注需求）
      */
-    private Integer onlineStatus;
+    private String auditRemark;
+
+    /**
+     * 常驻位置纬度（-90~90，精度约1米）
+     */
+    private BigDecimal latitude;
+
+    /**
+     * 常驻位置经度（-180~180，精度约1米）
+     */
+    private BigDecimal longitude;
 
     /**
      * 创建时间
      */
-    @TableField(fill = FieldFill.INSERT)
-    private LocalDateTime createTime;
+    private Date createTime;
 
     /**
      * 更新时间
      */
-    @TableField(fill = FieldFill.INSERT_UPDATE)
-    private LocalDateTime updateTime;
+    private Date updateTime;
 
-    /*
-    * 状态：0-禁用，1-启用
-    * */
+    /**
+     * 状态：0-禁用，1-启用
+     */
     private Integer status;
+
 
 }

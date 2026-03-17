@@ -86,9 +86,9 @@ public class CustomerInfo implements Serializable {
     private Integer completedOrders;
 
     /**
-     * 平均评分（冗余字段，便于查询）
+     * 累计消费金额（冗余字段，便于查询）
      */
-    private java.math.BigDecimal averageRating;
+    private java.math.BigDecimal totalSpent;
 
     /**
      * 创建时间

@@ -15,7 +15,6 @@ D:\cookerhome\cookercome\Backend\src\main\java\com\hs\backend\entity\UserAddress
 D:\cookerhome\cookercome\Backend\src\main\java\com\hs\backend\common\exception\BusinessException.java
 D:\cookerhome\cookercome\Backend\src\main\java\com\hs\backend\mapper\UserManageMapper.java
 D:\cookerhome\cookercome\Backend\src\main\java\com\hs\backend\common\config\OssConfig.java
-D:\cookerhome\cookercome\Backend\src\main\java\com\hs\backend\entity\Orders.java
 D:\cookerhome\cookercome\Backend\src\main\java\com\hs\backend\vo\UserQueryVo.java
 D:\cookerhome\cookercome\Backend\src\main\java\com\hs\backend\entity\Review.java
 D:\cookerhome\cookercome\Backend\src\main\java\com\hs\backend\common\utils\RedisUtils.java
@@ -24,8 +23,10 @@ D:\cookerhome\cookercome\Backend\src\main\java\com\hs\backend\common\enums\UserT
 D:\cookerhome\cookercome\Backend\src\main\java\com\hs\backend\service\impl\CustomerInfoServiceImpl.java
 D:\cookerhome\cookercome\Backend\src\main\java\com\hs\backend\mapper\ChefInfoMapper.java
 D:\cookerhome\cookercome\Backend\src\main\java\com\hs\backend\mapper\CustomerInfoMapper.java
+D:\cookerhome\cookercome\Backend\src\main\java\com\hs\backend\entity\Order.java
 D:\cookerhome\cookercome\Backend\src\main\java\com\hs\backend\service\impl\AdminInfoServiceImpl.java
 D:\cookerhome\cookercome\Backend\src\main\java\com\hs\backend\config\MybatisPlusConfig.java
+D:\cookerhome\cookercome\Backend\src\main\java\com\hs\backend\service\impl\CustomerBookingChefServiceImpl.java
 D:\cookerhome\cookercome\Backend\src\main\java\com\hs\backend\security\CustomUserDetailsService.java
 D:\cookerhome\cookercome\Backend\src\main\java\com\hs\backend\entity\ChefInfo.java
 D:\cookerhome\cookercome\Backend\src\main\java\com\hs\backend\common\enums\OrderStatusEnum.java
@@ -42,6 +43,8 @@ D:\cookerhome\cookercome\Backend\src\main\java\com\hs\backend\service\impl\UserS
 D:\cookerhome\cookercome\Backend\src\main\java\com\hs\backend\entity\User.java
 D:\cookerhome\cookercome\Backend\src\main\java\com\hs\backend\service\UserManageService.java
 D:\cookerhome\cookercome\Backend\src\main\java\com\hs\backend\controller\OssSignatureController.java
+D:\cookerhome\cookercome\Backend\src\main\java\com\hs\backend\dto\response\CustomerBookingChefResponse.java
+D:\cookerhome\cookercome\Backend\src\main\java\com\hs\backend\controller\CustomerBookingChefController.java
 D:\cookerhome\cookercome\Backend\src\main\java\com\hs\backend\mapper\DishMapper.java
 D:\cookerhome\cookercome\Backend\src\main\java\com\hs\backend\service\UserService.java
 D:\cookerhome\cookercome\Backend\src\main\java\com\hs\backend\mapper\UserAddressMapper.java
@@ -51,6 +54,7 @@ D:\cookerhome\cookercome\Backend\src\main\java\com\hs\backend\vo\UserDetailVO.ja
 D:\cookerhome\cookercome\Backend\src\main\java\com\hs\backend\exception\GlobalExceptionHandler.java
 D:\cookerhome\cookercome\Backend\src\main\java\com\hs\backend\service\impl\UserManageServiceImpl.java
 D:\cookerhome\cookercome\Backend\src\main\java\com\hs\backend\service\impl\CustomerSettingsServiceImpl.java
+D:\cookerhome\cookercome\Backend\src\main\java\com\hs\backend\service\CustomerBookingChefService.java
 D:\cookerhome\cookercome\Backend\src\main\java\com\hs\backend\BackendApplication.java
 D:\cookerhome\cookercome\Backend\src\main\java\com\hs\backend\controller\CustomerController.java
 D:\cookerhome\cookercome\Backend\src\main\java\com\hs\backend\dto\response\AuthResponse.java
