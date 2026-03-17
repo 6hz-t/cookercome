@@ -13,8 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * 统计服务实现类
@@ -50,7 +49,6 @@ public class StatisticsServiceImpl implements StatisticsService {
         // 计算增长率（与前一天相比）
         LocalDate today = LocalDate.now();
         LocalDate yesterday = today.minusDays(1);
-        LocalDate dayBeforeYesterday = yesterday.minusDays(1);
 
         Long todayUsers = userMapper.countByDate(today);
         Long yesterdayUsers = userMapper.countByDate(yesterday);
@@ -64,7 +62,9 @@ public class StatisticsServiceImpl implements StatisticsService {
         Long yesterdayOrders = orderMapper.countByDate(yesterday);
         vo.setOrderGrowthRate(calculateGrowthRate(todayOrders, yesterdayOrders));
 
-        // 获取趋势数据
+        // 获取趋势数据（使用批量查询优化）
+        LocalDate startDate = today.minusDays(days - 1);
+        
         List<String> dates = new ArrayList<>();
         List<Long> newUserCounts = new ArrayList<>();
         List<Long> newChefCounts = new ArrayList<>();
@@ -72,17 +72,26 @@ public class StatisticsServiceImpl implements StatisticsService {
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-dd");
 
+        // 批量查询用户、厨师、订单的日期范围数据
+        List<Map<String, Object>> userStats = userMapper.countByDateRange(startDate, today);
+        List<Map<String, Object>> chefStats = chefInfoMapper.countByDateRange(startDate, today);
+        List<Map<String, Object>> orderStats = orderMapper.countByDateRange(startDate, today);
+
+        // 将查询结果转换为 Map 便于查找
+        Map<String, Long> userCountMap = convertToMap(userStats);
+        Map<String, Long> chefCountMap = convertToMap(chefStats);
+        Map<String, Long> orderCountMap = convertToMap(orderStats);
+
+        // 生成日期列表并填充数据
         for (int i = days - 1; i >= 0; i--) {
             LocalDate date = today.minusDays(i);
-            dates.add(date.format(formatter));
+            String dateStr = date.format(formatter);
+            String dateKey = date.toString(); // YYYY-MM-DD 格式用于查找
 
-            Long newUsers = userMapper.countByDate(date);
-            Long newChefs = chefInfoMapper.countByDate(date);
-            Long newOrders = orderMapper.countByDate(date);
-
-            newUserCounts.add(newUsers != null ? newUsers : 0L);
-            newChefCounts.add(newChefs != null ? newChefs : 0L);
-            newOrderCounts.add(newOrders != null ? newOrders : 0L);
+            dates.add(dateStr);
+            newUserCounts.add(userCountMap.getOrDefault(dateKey, 0L));
+            newChefCounts.add(chefCountMap.getOrDefault(dateKey, 0L));
+            newOrderCounts.add(orderCountMap.getOrDefault(dateKey, 0L));
         }
 
         vo.setDates(dates);
@@ -91,6 +100,24 @@ public class StatisticsServiceImpl implements StatisticsService {
         vo.setNewOrderCounts(newOrderCounts);
 
         return vo;
+    }
+
+    /**
+     * 将查询结果转换为 Map<日期，数量>
+     */
+    private Map<String, Long> convertToMap(List<Map<String, Object>> stats) {
+        Map<String, Long> result = new HashMap<>();
+        for (Map<String, Object> stat : stats) {
+            Object dateObj = stat.get("date");
+            Object countObj = stat.get("count");
+            if (dateObj != null && countObj != null) {
+                // date 可能是 LocalDate 或 String 类型
+                String dateStr = dateObj.toString();
+                Long count = ((Number) countObj).longValue();
+                result.put(dateStr, count);
+            }
+        }
+        return result;
     }
 
     /**

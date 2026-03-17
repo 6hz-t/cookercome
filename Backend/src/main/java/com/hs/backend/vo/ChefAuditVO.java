@@ -2,6 +2,7 @@ package com.hs.backend.vo;
 
 import lombok.Data;
 import java.time.LocalDateTime;
+import java.util.Date;
 
 /**
  * 厨师审核列表 VO
@@ -32,7 +33,7 @@ public class ChefAuditVO {
     /**
      * 申请时间（创建时间）
      */
-    private LocalDateTime applyTime;
+    private Date applyTime;
 
     /**
      * 审核状态：0-待审核，1-通过，2-拒绝

@@ -29,8 +29,6 @@ public class ChefInfo {
     /**
      * 厨师真实姓名
      */
-
-
     private String realName;
 
     /**

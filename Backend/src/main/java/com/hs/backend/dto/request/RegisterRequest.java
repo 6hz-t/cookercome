@@ -27,4 +27,9 @@ public class RegisterRequest {
      * 角色：0-客户，1-厨师，2-管理员
      */
     private Integer role = 0;  // 默认为客户
+
+    /**
+     * 姓名（管理员和厨师需要）
+     */
+    private String realName;
 }

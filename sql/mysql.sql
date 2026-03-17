@@ -74,7 +74,7 @@ create index idx_user_id
 -- --------------------------------------------
 -- 表名：t_chef_info
 -- 描述：厨师专属信息表
--- 用途：存储厨师职业信息、审核状态、服务半径、位置等
+-- 用途：存储厨师个人信息、审核状态、位置等
 -- 核心字段：user_id（关联 t_user）、audit_status（审核状态）、latitude/longitude（位置）
 -- 索引：idx_chef_location（地理位置索引，用于附近厨师匹配）
 -- ⚠️ 注意：查询时使用 WHERE user_id = ? 而不是 WHERE id = ?
@@ -86,23 +86,32 @@ create table t_chef_info
     id               bigint auto_increment comment '厨师信息 ID'
         primary key,
     user_id          bigint                                   not null comment '关联用户 ID（逻辑外键：t_user.id）',
+    real_name        varchar(50)    default ''                null comment '厨师真实姓名',
+    gender           tinyint        default 0                 null comment '性别：0-未知，1-男，2-女',
+    id_card_no       varchar(18)    default ''                null comment '身份证号码（18 位）',
+    phone            varchar(20)    default ''                null comment '手机号（支持国际号码）',
     id_card_front    varchar(255)   default ''                null comment '身份证正面照 URL',
     id_card_back     varchar(255)   default ''                null comment '身份证背面照 URL',
+    detail_address   varchar(255)   default ''                null comment '详细地址（街道、门牌号等）',
+    avatar_url       varchar(255)   default ''                null comment '厨师头像 URL',
+    qualification_url varchar(500)   default ''                null comment '厨师资质证书 URL',
     experience_years tinyint        default 0                 null comment '烹饪年限',
     introduction     text                                     null comment '厨师简介',
     audit_status     tinyint        default 0                 not null comment '审核状态：0-待审核，1-审核通过，2-审核拒绝',
     audit_remark     varchar(255)   default ''                null comment '审核备注',
-    latitude         decimal(10, 8)                           null comment '常驻位置纬度',
-    longitude        decimal(11, 8)                           null comment '常驻位置经度',
-    service_radius   int            default 5000              not null comment '服务半径（米）',
-    price_per_meal   decimal(10, 2) default 0.00              null comment '每餐基础定价',
-    service_status   tinyint        default 0                 not null comment '服务状态：0-休息，1-可接单',
+    latitude         decimal(10, 8)                           null comment '常驻位置纬度（-90~90）',
+    longitude        decimal(11, 8)                           null comment '常驻位置经度（-180~180）',
+    status           tinyint        default 1                 null comment '状态：0-禁用，1-启用',
     create_time      datetime       default CURRENT_TIMESTAMP not null comment '创建时间',
     update_time      datetime       default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
     constraint uk_user_id
         unique (user_id) comment '一个用户仅一条厨师信息'
 )
     comment '厨师专属信息表' collate = utf8mb4_unicode_ci;
+
+create index idx_user_id
+    on t_chef_info (user_id)
+    comment '查询厨师信息';
 
 create index idx_audit_status
     on t_chef_info (audit_status)
