@@ -8,7 +8,7 @@ import java.util.List;
 /**
  * 个人中心服务接口
  */
-public interface PersonalCenterService {
+public interface CustomerPersonalCenterService {
 
     /**
      * 获取当前客户个人信息
@@ -44,4 +44,9 @@ public interface PersonalCenterService {
      * 设置默认地址
      */
     void setDefaultAddress(Long userId, Long addressId);
+
+    /**
+     * 获取个人中心统计信息（订单、收藏、优惠券等）
+     */
+    java.util.Map<String, Object> getPersonalCenterStats(Long userId);
 }

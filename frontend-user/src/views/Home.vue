@@ -2,9 +2,7 @@
   <div class="home">
     <!-- 固定右上角头像 -->
     <div class="profile-avatar-fixed" @click="$router.push('/service')">
-      <el-badge :value="5" :hidden="notificationCount === 0" class="avatar-badge">
-        <el-avatar :size="48" src="https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png" />
-      </el-badge>
+      <el-avatar :size="60" :src="userAvatar" />
       <div class="avatar-tooltip">服务中心</div>
     </div>
 
@@ -219,9 +217,45 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue'
-import {Medal, Star, Trophy, User, ArrowRight, Bell} from "@element-plus/icons-vue"
+import {Medal, Star, Trophy, User, ArrowRight} from "@element-plus/icons-vue"
+import { getUserInfo } from '@/utils/token'
+import { getUserAvatar, updateUserAvatar } from '@/utils/avatar'
+import axios from 'axios'
+import { getAccessToken } from '@/utils/token'
 
-const notificationCount = ref(5) // 模拟未读消息数;
+// 用户头像（从缓存获取，与服务中心保持一致）
+const userAvatar = ref('')
+
+// 从后端获取最新用户头像（优先从 Redis 读取）
+const loadUserAvatar = async () => {
+  try {
+    const token = getAccessToken()
+    if (!token) return
+    // 调用后端 API 获取最新用户信息（后端会先从 Redis 读取）
+    const response = await axios.get('/api/customer/settings/profile', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
+    if (response.data && response.data.code === 200 && response.data.data) {
+      const userData = response.data.data
+      // 更新本地缓存
+      if (userData.avatar) {
+        updateUserAvatar(userData.avatar)
+      }
+      // 更新显示
+      userAvatar.value = getUserAvatar(userData)
+    } else {
+      // 如果没有头像，使用默认值
+      userAvatar.value = getUserAvatar()
+    }
+  } catch (error) {
+    console.error('加载用户头像失败:', error)
+    // 如果请求失败，使用本地缓存
+    const userInfo = getUserInfo()
+    userAvatar.value = getUserAvatar(userInfo)
+  }
+}
 
 const recommendedChefs = [
   {
@@ -406,6 +440,9 @@ watch(activeIndex, (newIndex) => {
 
 // 滚动渐入动画 - IntersectionObserver
 onMounted(() => {
+  // 加载用户头像（从 Redis 读取）
+  loadUserAvatar()
+  
   const observerOptions = {
     root: null,
     rootMargin: '-10% 0px -10% 0px', // 在元素进入视口 10% 时触发
@@ -456,10 +493,6 @@ onMounted(() => {
   opacity: 1;
   visibility: visible;
   transform: translateY(-5px);
-}
-
-.avatar-badge {
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
 }
 
 .avatar-tooltip {

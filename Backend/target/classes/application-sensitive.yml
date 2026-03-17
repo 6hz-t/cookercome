@@ -1,0 +1,9 @@
+# 阿里云 OSS 配置（敏感信息）
+aliyun:
+  oss:
+    endpoint: oss-cn-hangzhou.aliyuncs.com
+    access-key-id: LTAI5tCvmabLdf2xQcN363tz
+    access-key-secret: o2Q5xjQ7hcizJv5w2OMLlrohP4LdWZ
+    bucket-name: lihuahua-cookhome
+    # 自定义域名（可选，用于 CDN 加速）
+    custom-domain: ""

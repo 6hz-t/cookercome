@@ -22,15 +22,29 @@ export function updateProfile(data: any) {
 }
 
 /**
- * 获取 OSS 上传签名（用于头像前端直传）
+ * 绑定新手机号
  */
-export function getOssSignature(fileName: string) {
+export function bindPhone(data: {
+  newPhone: string
+  currentPassword: string
+}) {
   return request({
-    url: '/customer/settings/oss/signature',
-    method: 'get',
-    params: { fileName }
+    url: '/customer/settings/phone/bind',
+    method: 'post',
+    data
   })
 }
 
-// 注意：后端代理上传接口已删除，现在使用前端直传 OSS 模式
-// 请使用 avatar.ts 中的 getUploadSignature 和 uploadToOSS 方法
+/**
+ * 修改密码
+ */
+export function changePassword(data: {
+  oldPassword: string
+  newPassword: string
+}) {
+  return request({
+    url: '/customer/settings/password/change',
+    method: 'post',
+    data
+  })
+}

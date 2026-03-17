@@ -31,6 +31,28 @@ public class OssService {
     private final OssConfig ossConfig;
     
     /**
+     * 上传头像到 OSS（专用方法）
+     * @param file 头像文件
+     * @param userId 用户 ID
+     * @return 包含相对路径和完整 URL 的 Map
+     */
+    public Map<String, String> uploadAvatar(MultipartFile file, Long userId) throws IOException {
+        // 验证文件类型
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new IllegalArgumentException("只能上传图片文件");
+        }
+        
+        // 验证文件大小（5MB）
+        if (file.getSize() > 5 * 1024 * 1024) {
+            throw new IllegalArgumentException("图片大小不能超过 5MB");
+        }
+        
+        // 使用通用的 uploadFile 方法上传
+        return uploadFile(file, userId, ossConfig.getAvatarDir());
+    }
+    
+    /**
      * 上传文件到 OSS（后端代理模式，包含完整 URL）
      * @param file 文件
      * @param userId 用户 ID
@@ -57,14 +79,12 @@ public class OssService {
             
             ossClient.putObject(putObjectRequest);
             
-            // 生成完整 URL
             String fullUrl = ossConfig.getFullUrl(relativePath);
             
             Map<String, String> result = new HashMap<>();
             result.put("relativePath", relativePath);
             result.put("fullUrl", fullUrl);
             
-            log.info("文件上传成功：{}, 完整 URL: {}", relativePath, fullUrl);
             return result;
             
         } catch (IOException e) {
@@ -105,66 +125,11 @@ public class OssService {
             
             ossClient.putObject(putObjectRequest);
             
-            log.info("文件上传成功：{}", objectKey);
             return objectKey;
             
         } catch (IOException e) {
             log.error("文件上传失败：{}", objectKey, e);
             throw e;
-        }
-    }
-
-    /**
-     * 获取上传签名 URL（用于前端直传）
-     * @param filename 文件名（包含目录）
-     * @param expirationMinutes 过期时间（分钟）
-     * @return 签名后的 PUT URL
-     */
-   public URL generateUploadSignature(String filename, int expirationMinutes) {
-        // 生成签名 URL（允许前端在指定时间内上传）
-        Date expiration= new Date(System.currentTimeMillis() + expirationMinutes * 60 * 1000L);
-        
-        GeneratePresignedUrlRequest request = new GeneratePresignedUrlRequest(
-            ossConfig.getBucketName(), 
-            filename
-        );
-       request.setExpiration(expiration);
-        
-        URL signatureUrl = ossClient.generatePresignedUrl(request);
-       log.info("生成上传签名：{}", signatureUrl.toString());
-        
-       return signatureUrl;
-    }
-
-    /**
-     * 获取上传签名信息（包含签名 URL、完整 URL、相对路径）
-     * @param fileName 原始文件名
-     * @param userId 用户 ID
-     * @param expirationMinutes 过期时间（分钟）
-     * @return 签名信息 Map
-     */
-    public Map<String, String> getUploadSignatureInfo(String fileName, Long userId, int expirationMinutes) {
-        try {
-            // 生成唯一的文件路径（相对路径）
-            String relativePath = generateRelativePath(fileName, userId);
-            
-            // 生成完整 URL（用于前端显示）
-            String fullUrl = ossConfig.getFullUrl(relativePath);
-            
-            // 生成带签名的上传 URL（有效期默认 5 分钟）
-            URL signatureUrl = generateUploadSignature(relativePath, expirationMinutes);
-            
-            Map<String, String> result = new HashMap<>();
-            result.put("signatureUrl", signatureUrl.toString());
-            result.put("fullUrl", fullUrl);
-            result.put("relativePath", relativePath);
-            
-            log.info("OSS 上传签名生成成功 - 相对路径：{}, 完整 URL: {}", relativePath, fullUrl);
-            return result;
-            
-        } catch (Exception e) {
-            log.error("生成 OSS 上传签名失败", e);
-            throw new RuntimeException("生成上传签名失败：" + e.getMessage());
         }
     }
 
@@ -186,9 +151,8 @@ public class OssService {
    public void deleteFile(String objectKey) {
         try {
             ossClient.deleteObject(ossConfig.getBucketName(), objectKey);
-           log.info("文件删除成功：{}", objectKey);
         } catch (Exception e) {
-           log.error("文件删除失败：{}", objectKey, e);
+            log.error("文件删除失败：{}", objectKey, e);
         }
     }
 }

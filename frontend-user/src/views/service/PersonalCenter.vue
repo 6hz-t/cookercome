@@ -10,16 +10,24 @@
 
       <div class="user-card-content">
         <div class="avatar-wrapper">
-          <el-avatar :size="100" :src="userInfo.avatar || defaultAvatar" class="user-avatar" />
-          <div class="level-badge">
-            <span>VIP</span>
+          <el-avatar :size="120" :src="userInfo.avatar || defaultAvatar" class="user-avatar" />
+          <div class="level-badge" :class="`level-${userInfo.memberLevel}`">
+            <span>{{ getMemberLevelText(userInfo.memberLevel) }}</span>
           </div>
         </div>
 
         <div class="user-details">
           <h2 class="username">
-            <span class="name-text">{{ userInfo.name || '张先生' }}</span>
-            <el-tag type="warning" size="small" effect="dark" class="member-tag">黄金会员</el-tag>
+            <span class="name-text">{{ userInfo.name || '未知用户' }}</span>
+            <el-tag 
+              v-if="userInfo.memberLevel > 0"
+              type="danger"
+              size="small" 
+              effect="dark" 
+              class="vip-tag"
+            >
+              VIP
+            </el-tag>
           </h2>
           <p class="user-phone">
             <el-icon><Phone /></el-icon>
@@ -29,15 +37,30 @@
           <div class="points-display">
             <div class="points-circle">
               <svg viewBox="0 0 100 100" class="progress-svg">
+                <defs>
+                  <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#00f3ff;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#bc13fe;stop-opacity:1" />
+                  </linearGradient>
+                </defs>
+                <!-- 背景圆环 -->
                 <circle cx="50" cy="50" r="45" class="progress-bg" />
-                <circle cx="50" cy="50" r="45" class="progress-bar"
-                  :style="{ strokeDasharray: `${2 * Math.PI * 45}`, strokeDashoffset: `${2 * Math.PI * 45 * (1 - 0.75)}` }" />
+                <!-- 进度圆环 -->
+                <circle 
+                  cx="50" 
+                  cy="50" 
+                  r="45" 
+                  class="progress-bar"
+                  :stroke-dasharray="circumference"
+                  :stroke-dashoffset="dashOffset"
+                />
               </svg>
-              <span class="points-value">{{ userInfo.points || 2580 }}</span>
+              <span class="points-value">{{ userInfo.points || 0 }}</span>
             </div>
             <div class="points-info">
               <span class="points-label">当前积分</span>
-              <span class="level-tip">再得 420 分升级铂金会员</span>
+              <span v-if="nextLevelPoints > 0" class="level-tip">再得 {{ nextLevelPoints }} 分升级{{ getNextLevelText(userInfo.memberLevel) }}</span>
+              <span v-else class="level-tip max-level">已达最高等级</span>
             </div>
           </div>
         </div>
@@ -58,10 +81,6 @@
         </div>
         <div class="stat-value">{{ stats.totalOrders }}</div>
         <div class="stat-label">总订单</div>
-        <div class="stat-trend trend-up">
-          <el-icon><Top /></el-icon>
-          <span>+12%</span>
-        </div>
       </div>
 
       <div class="stat-item stat-completed">
@@ -76,10 +95,6 @@
         </div>
         <div class="stat-value">{{ stats.completedOrders }}</div>
         <div class="stat-label">已完成</div>
-        <div class="stat-trend trend-up">
-          <el-icon><Top /></el-icon>
-          <span>+8%</span>
-        </div>
       </div>
 
       <div class="stat-item stat-ongoing">
@@ -94,10 +109,6 @@
         </div>
         <div class="stat-value">{{ stats.ongoingOrders }}</div>
         <div class="stat-label">进行中</div>
-        <div class="stat-trend trend-current">
-          <el-icon><Right /></el-icon>
-          <span>当前</span>
-        </div>
       </div>
 
       <div class="stat-item stat-rating">
@@ -112,10 +123,6 @@
         </div>
         <div class="stat-value">{{ stats.averageRating }}</div>
         <div class="stat-label">平均评分</div>
-        <div class="stat-trend trend-up">
-          <el-icon><Top /></el-icon>
-          <span>+0.2</span>
-        </div>
       </div>
     </div>
 
@@ -355,16 +362,15 @@
   </div>
 </template>
 
-<script setup>
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+<script setup lang="ts">
+import { ref, computed, onMounted } from 'vue'
 import { 
-  Camera, Phone, ShoppingCart, CircleCheck, Clock, Star, Top, Right, Finished,
+  Phone, ShoppingCart, CircleCheck, Clock, Star,Finished,
   Menu, Document, Location, Collection, ChatDotRound, Ticket, Service, Calendar, User, Money
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
+import { getPersonalCenterStats, getCustomerProfile } from '@/api/personalCenter'
 
-const router = useRouter()
 const emit = defineEmits(['show-address', 'cancel-order', 'contact-chef', 'review-order', 'book-again'])
 
 // 用户信息
@@ -373,22 +379,105 @@ const userInfo = ref({
   name: '',
   phone: '',
   avatar: '',
-  points: 0
+  points: 0,
+  memberLevel: 0
 })
 
-const defaultAvatar = 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png'
+const defaultAvatar = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CiAgPGNpcmNsZSBjeD0iMTAwIiBjeT0iMTAwIiByPSIxMDAiIGZpbGw9IiNFMEUwRTAiLz4KICA8Y2lyY2xlIGN4PSIxMDAiIGN5PSI3NSIgcj0iMzAiIGZpbGw9IiM5RTlFOUUiLz4KICA8ZWxsaXBzZSBjeD0iMTAwIiBjeT0iMTQ1IiByeD0iNTAiIHJ5PSI0MCIgZmlsbD0iIzlFOUU5RSIvPgo8L3N2Zz4='
 
-// 统计数据
+// 会员等级配置（积分升会员策略）
+interface MemberLevelConfig {
+  name: string
+  nextPoints: number
+  tagType: string
+}
+
+// 圆环周长
+const radius = 45
+const circumference = 2 * Math.PI * radius
+
+const MEMBER_LEVEL_CONFIG: Record<number, MemberLevelConfig> = {
+  0: { name: '普通会员', nextPoints: 1000, tagType: 'info' },           // 0-999 分：普通会员
+  1: { name: '白银会员', nextPoints: 3000, tagType: 'success' },        // 1000-2999 分：白银会员（升级扣除 1000 分）
+  2: { name: '黄金会员', nextPoints: 5000, tagType: 'warning' },        // 3000-4999 分：黄金会员（升级扣除 3000 分）
+  3: { name: '铂金会员', nextPoints: 10000, tagType: '' },              // 5000-9999 分：铂金会员（升级扣除 5000 分）
+  4: { name: '钻石会员', nextPoints: 0, tagType: 'danger' }             // 10000+ 分：钻石会员（升级扣除 10000 分，最高级）
+}
+
+// 计算当前积分进度
+const pointsProgress = computed(() => {
+  const currentPoints = userInfo.value.points || 0
+  const currentLevel = userInfo.value.memberLevel || 0
+  const config = MEMBER_LEVEL_CONFIG[currentLevel]
+  
+  console.log('积分进度计算:', {
+    currentPoints,
+    currentLevel,
+    levelName: config?.name,
+    nextPoints: config?.nextPoints
+  })
+  
+  if (!config || config.nextPoints === 0) {
+    console.log('最高等级，返回 1')
+    return 1
+  }
+  
+  // 获取当前等级的起始积分（升级到当前等级所需的积分）
+  const levelStartPoints = currentLevel === 0 ? 0 : MEMBER_LEVEL_CONFIG[currentLevel - 1].nextPoints
+  
+  // 计算在当前等级的进度：使用当前积分直接除以当前等级所需积分
+  // 例如：白银会员有 200 积分，下一级需要 3000 积分，进度 = 200/3000 = 6.67%
+  const progress = currentPoints / config.nextPoints
+  const result = Math.min(Math.max(progress, 0), 1)
+  
+  console.log('进度计算详情:', {
+    levelStartPoints,
+    nextLevelPoints: config.nextPoints,
+    rawProgress: progress,
+    finalProgress: result
+  })
+  
+  return result
+})
+
+// 计算 stroke-dashoffset
+const dashOffset = computed(() => {
+  const progress = pointsProgress.value
+  return circumference * (1 - progress)
+})
+
+// 计算距离下一级还需多少积分
+const nextLevelPoints = computed(() => {
+  const currentPoints = userInfo.value.points || 0
+  const currentLevel = userInfo.value.memberLevel || 0
+  const config = MEMBER_LEVEL_CONFIG[currentLevel]
+  
+  if (!config || config.nextPoints === 0) return 0
+  
+  return Math.max(config.nextPoints - currentPoints, 0)
+})
+
+// 获取会员等级文字
+const getMemberLevelText = (level: number) => {
+  return MEMBER_LEVEL_CONFIG[level]?.name || '普通会员'
+}
+
+// 获取下一等级文字
+const getNextLevelText = (level: number) => {
+  const nextLevel = level + 1
+  return MEMBER_LEVEL_CONFIG[nextLevel]?.name || '最高等级'
+}
+
+// 统计数据（初始值设为 0，从后端加载）
 const stats = ref({
-  totalOrders: 12,
-  completedOrders: 8,
-  ongoingOrders: 2,
-  averageRating: 4.9
+  totalOrders: 0,
+  completedOrders: 0,
+  ongoingOrders: 0,
+  averageRating: 0
 })
 
-const hoverStat = ref(null)
-const favoritesCount = ref(5)
-const couponsCount = ref(3)
+const favoritesCount = ref(0)
+const couponsCount = ref(0)
 
 // 预约订单
 const activeTab = ref('ongoing')
@@ -445,14 +534,14 @@ const historyOrders = ref([
 ])
 
 // 格式化手机号
-const formatPhone = (phone) => {
+const formatPhone = (phone: string) => {
   if (!phone) return ''
   return phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2')
 }
 
 // 状态类型映射
-const getStatusType = (status) => {
-  const typeMap = {
+const getStatusType = (status: string) => {
+  const typeMap: Record<string, string> = {
     'pending': 'warning',
     'confirmed': 'success',
     'cooking': 'primary',
@@ -462,8 +551,8 @@ const getStatusType = (status) => {
   return typeMap[status] || 'info'
 }
 
-const getStatusText = (status) => {
-  const textMap = {
+const getStatusText = (status: string) => {
+  const textMap: Record<string, string> = {
     'pending': '待确认',
     'confirmed': '已确认',
     'cooking': '烹饪中',
@@ -500,17 +589,17 @@ const newAddress = ref({
 })
 
 // 地址操作
-const selectAddress = (addr) => {
+const selectAddress = (addr: any) => {
   // TODO: 选择地址后通知父组件或更新用户默认地址
   console.log('选择地址:', addr)
 }
 
-const editAddress = (addr) => {
+const editAddress = (addr: any) => {
   newAddress.value = { ...addr }
   showAddAddressForm.value = true
 }
 
-const deleteAddress = (index) => {
+const deleteAddress = (index: number) => {
   addresses.value.splice(index, 1)
   ElMessage.success('地址已删除')
 }
@@ -539,35 +628,67 @@ const saveAddress = () => {
 }
 
 // 订单操作
-const cancelOrder = (orderId) => {
+const cancelOrder = (orderId :any) => {
   // TODO: 调用后端 API 取消订单
+  console.log('取消订单:', orderId)
   ElMessage.success('订单已取消')
 }
 
-const contactChef = (order) => {
+const contactChef = (order:any) => {
   // TODO: 实现联系厨师功能（拨打电话或在线聊天）
   ElMessage.info(`正在联系${order.chefName}...`)
 }
 
-const reviewOrder = (order) => {
+const reviewOrder = (order:any) => {
   // TODO: 打开评价对话框并提交到后端
+  console.log('评价订单:', order)
   ElMessage.success('评价功能开发中')
 }
 
-const bookAgain = (order) => {
+const bookAgain = (order:any) => {
   // TODO: 跳转到预约页面并填充订单信息
+  console.log('再次预约:', order)
   ElMessage.info('再次预约功能开发中')
 }
 
-onMounted(() => {
-  // 加载用户信息逻辑
-  userInfo.value = {
-    id: 7,
-    name: '张先生',
-    phone: '13579246810',
-    avatar: '',
-    points: 2580
+// 加载用户信息和统计数据
+const loadUserInfo = async () => {
+  try {
+    // 加载个人信息（包含订单统计）
+    const profileRes = await getCustomerProfile()
+    if (profileRes.data) {
+      userInfo.value = {
+        id: profileRes.data.userId || 7,
+        name: profileRes.data.username ? profileRes.data.username : '未知用户',
+        phone: profileRes.data.phone || '',
+        avatar: profileRes.data.avatar || '',
+        points: profileRes.data.points || 0,
+        memberLevel: profileRes.data.memberLevel || 0
+      }
+      
+      // 更新统计数据
+      stats.value = {
+        totalOrders: profileRes.data.totalOrders || 0,
+        completedOrders: profileRes.data.completedOrders || 0,
+        ongoingOrders: (profileRes.data.totalOrders || 0) - (profileRes.data.completedOrders || 0),
+        averageRating: profileRes.data.averageRating || 0
+      }
+    }
+    
+    // 加载收藏和优惠券数量
+    const statsRes = await getPersonalCenterStats()
+    if (statsRes) {
+      favoritesCount.value = statsRes.favoritesCount || 0
+      couponsCount.value = statsRes.couponsCount || 0
+    }
+  } catch (error) {
+    console.error('加载个人信息失败:', error)
+    ElMessage.error('加载信息失败，请刷新重试')
   }
+}
+
+onMounted(() => {
+  loadUserInfo()
 })
 </script>
 
@@ -748,14 +869,94 @@ onMounted(() => {
   position: absolute;
   bottom: -10px;
   right: -10px;
-  background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
   padding: 5px 12px;
   border-radius: 15px;
   font-size: 12px;
   font-weight: bold;
   color: white;
-  box-shadow: 0 4px 15px rgba(0, 243, 255, 0.4);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
   z-index: 3;
+  animation: badgePulse 3s ease-in-out infinite;
+}
+
+@keyframes badgePulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+/* 普通会员徽章 (level-0) - 灰色风格 */
+.level-badge.level-0 {
+  background: linear-gradient(135deg, #6b7280, #9ca3af);
+  box-shadow: 0 4px 15px rgba(107, 114, 128, 0.5);
+  border: 2px solid #4b5563;
+  color: #f3f4f6 !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5), 0 0 10px rgba(255, 255, 255, 0.3);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+/* 白银会员徽章 (level-1) */
+.level-badge.level-1 {
+  background: linear-gradient(135deg, #c0c0c0, #e8e8e8);
+  box-shadow: 0 4px 15px rgba(192, 192, 192, 0.5);
+  border: 2px solid #ffffff;
+  color: #2d3748 !important;
+  text-shadow: 0 2px 4px rgba(255, 255, 255, 0.8), 0 0 15px rgba(192, 192, 192, 0.5);
+  font-weight: 700;
+  letter-spacing: 0.8px;
+}
+
+/* 黄金会员徽章 (level-2) */
+.level-badge.level-2 {
+  background: linear-gradient(135deg, #ffd700, #ffec8b);
+  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.6);
+  border: 2px solid #ffffff;
+  color: #744210 !important;
+  text-shadow: 0 2px 6px rgba(255, 255, 255, 0.9), 0 0 20px rgba(255, 215, 0, 0.6);
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+/* 铂金会员徽章 (level-3) */
+.level-badge.level-3 {
+  background: linear-gradient(135deg, #e5e4e2, #ffffff);
+  box-shadow: 0 4px 15px rgba(229, 228, 226, 0.6);
+  border: 2px solid #e5e4e2;
+  animation: platinumShine 2s ease-in-out infinite;
+  color: #4a5568 !important;
+  text-shadow: 0 2px 8px rgba(255, 255, 255, 1), 0 0 25px rgba(229, 228, 226, 0.8);
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+@keyframes platinumShine {
+  0%, 100% { 
+    box-shadow: 0 4px 15px rgba(229, 228, 226, 0.6), 0 0 20px rgba(255, 255, 255, 0.3);
+  }
+  50% { 
+    box-shadow: 0 4px 25px rgba(229, 228, 226, 0.8), 0 0 30px rgba(255, 255, 255, 0.6);
+  }
+}
+
+/* 钻石会员徽章 (level-4) */
+.level-badge.level-4 {
+  background: linear-gradient(135deg, #b9f2ff, #00ffff);
+  box-shadow: 0 4px 15px rgba(0, 255, 255, 0.6);
+  border: 2px solid #ffffff;
+  animation: diamondSparkle 2s ease-in-out infinite;
+  color: #034078 !important;
+  text-shadow: 0 2px 6px rgba(255, 255, 255, 0.9), 0 0 30px rgba(0, 255, 255, 0.8);
+  font-weight: 700;
+  letter-spacing: 1.2px;
+}
+
+@keyframes diamondSparkle {
+  0%, 100% { 
+    box-shadow: 0 4px 15px rgba(0, 255, 255, 0.6), 0 0 20px rgba(185, 242, 255, 0.4);
+  }
+  50% { 
+    box-shadow: 0 4px 25px rgba(0, 255, 255, 0.9), 0 0 35px rgba(185, 242, 255, 0.8);
+  }
 }
 
 .user-details {
@@ -781,11 +982,234 @@ onMounted(() => {
 
 .member-tag {
   animation: tagPulse 2s ease-in-out infinite;
+  border-radius: 12px;
+  font-weight: bold;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+}
+
+.member-tag:hover {
+  transform: scale(1.1) rotate(-3deg);
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.5);
 }
 
 @keyframes tagPulse {
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.05); }
+}
+
+/* 普通会员 (level-0) - 灰色风格 */
+.member-tag.member-level-0 {
+  background: linear-gradient(135deg, #6b7280, #9ca3af, #4b5563);
+  color: #f3f4f6 !important;
+  border-color: #4b5563;
+  box-shadow: 0 4px 15px rgba(107, 114, 128, 0.5), inset 0 0 10px rgba(255, 255, 255, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.member-tag.member-level-0::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.1) 50%,
+    transparent 70%
+  );
+  animation: bronzeShine 3s ease-in-out infinite;
+}
+
+@keyframes bronzeShine {
+  0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+  100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+}
+
+.member-tag.member-level-0 .el-tag__content {
+  position: relative;
+  z-index: 1;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5), 0 0 10px rgba(255, 255, 255, 0.3);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+/* 白银会员 (level-1) - 银色风格 */
+.member-tag.member-level-1 {
+  background: linear-gradient(135deg, #c0c0c0, #e8e8e8, #a8a8a8);
+  color: #2d3748 !important;
+  border-color: #c0c0c0;
+  box-shadow: 0 4px 15px rgba(192, 192, 192, 0.6), inset 0 0 10px rgba(255, 255, 255, 0.3);
+  animation: silverGlow 2s ease-in-out infinite;
+  position: relative;
+}
+
+.member-tag.member-level-1 .el-tag__content {
+  position: relative;
+  z-index: 1;
+  background: linear-gradient(180deg, #1a202c, #4a5568);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 2px 4px rgba(255, 255, 255, 0.8), 0 0 15px rgba(192, 192, 192, 0.5);
+  font-weight: 700;
+  letter-spacing: 0.8px;
+}
+
+@keyframes silverGlow {
+  0%, 100% { 
+    box-shadow: 0 4px 15px rgba(192, 192, 192, 0.6), inset 0 0 10px rgba(255, 255, 255, 0.3);
+  }
+  50% { 
+    box-shadow: 0 6px 20px rgba(192, 192, 192, 0.8), inset 0 0 15px rgba(255, 255, 255, 0.5);
+  }
+}
+
+/* 黄金会员 (level-2) - 金色风格 */
+.member-tag.member-level-2 {
+  background: linear-gradient(135deg, #ffd700, #ffec8b, #daa520);
+  color: #744210 !important;
+  border-color: #ffd700;
+  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.6), inset 0 0 10px rgba(255, 255, 255, 0.4);
+  animation: goldSparkle 1.5s ease-in-out infinite;
+  position: relative;
+}
+
+.member-tag.member-level-2 .el-tag__content {
+  position: relative;
+  z-index: 1;
+  background: linear-gradient(180deg, #744210, #b7791f);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 2px 6px rgba(255, 255, 255, 0.9), 0 0 20px rgba(255, 215, 0, 0.6);
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+@keyframes goldSparkle {
+  0%, 100% { 
+    box-shadow: 0 4px 15px rgba(255, 215, 0, 0.6), inset 0 0 10px rgba(255, 255, 255, 0.4);
+    filter: brightness(1);
+  }
+  50% { 
+    box-shadow: 0 6px 25px rgba(255, 215, 0, 0.9), inset 0 0 20px rgba(255, 255, 255, 0.6);
+    filter: brightness(1.2);
+  }
+}
+
+/* 铂金会员 (level-3) - 铂金色风格 */
+.member-tag.member-level-3 {
+  background: linear-gradient(135deg, #e5e4e2, #ffffff, #cccccc);
+  color: #4a5568 !important;
+  border-color: #e5e4e2;
+  box-shadow: 0 4px 15px rgba(229, 228, 226, 0.7), 0 0 20px rgba(255, 255, 255, 0.4);
+  animation: platinumShine 2s ease-in-out infinite;
+  position: relative;
+}
+
+.member-tag.member-level-3 .el-tag__content {
+  position: relative;
+  z-index: 1;
+  background: linear-gradient(180deg, #2d3748, #718096);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 2px 8px rgba(255, 255, 255, 1), 0 0 25px rgba(229, 228, 226, 0.8);
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+@keyframes platinumShine {
+  0%, 100% { 
+    box-shadow: 0 4px 15px rgba(229, 228, 226, 0.7), 0 0 20px rgba(255, 255, 255, 0.4);
+  }
+  50% { 
+    box-shadow: 0 6px 25px rgba(229, 228, 226, 0.9), 0 0 35px rgba(255, 255, 255, 0.7);
+  }
+}
+
+/* 钻石会员 (level-4) - 钻石蓝风格 */
+.member-tag.member-level-4 {
+  background: linear-gradient(135deg, #b9f2ff, #00ffff, #00ced1);
+  color: #034078 !important;
+  border-color: #00ffff;
+  box-shadow: 0 4px 15px rgba(0, 255, 255, 0.7), 0 0 25px rgba(0, 255, 255, 0.5);
+  animation: diamondSparkle 1.5s ease-in-out infinite;
+  position: relative;
+  overflow: hidden;
+}
+
+.member-tag.member-level-4 .el-tag__content {
+  position: relative;
+  z-index: 1;
+  background: linear-gradient(180deg, #034078, #1282a2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 2px 6px rgba(255, 255, 255, 0.9), 0 0 30px rgba(0, 255, 255, 0.8);
+  font-weight: 700;
+  letter-spacing: 1.2px;
+}
+
+.member-tag.member-level-4::after {
+  content: '♦';
+  position: absolute;
+  right: -8px;
+  top: 50%;
+  transform: translateY(-50%) rotate(15deg);
+  font-size: 20px;
+  color: rgba(255, 255, 255, 0.8);
+  text-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
+  animation: diamondRotate 3s ease-in-out infinite;
+}
+
+@keyframes diamondRotate {
+  0%, 100% { transform: translateY(-50%) rotate(15deg) scale(1); opacity: 0.8; }
+  50% { transform: translateY(-50%) rotate(-15deg) scale(1.2); opacity: 1; }
+}
+
+@keyframes diamondSparkle {
+  0%, 100% { 
+    box-shadow: 0 4px 15px rgba(0, 255, 255, 0.7), 0 0 25px rgba(0, 255, 255, 0.5);
+  }
+  50% { 
+    box-shadow: 0 6px 25px rgba(0, 255, 255, 0.9), 0 0 40px rgba(0, 255, 255, 0.8);
+  }
+}
+
+/* VIP 标识样式 */
+.vip-tag {
+  background: linear-gradient(135deg, #2d3748, #4a5568) !important;
+  border-color: #4a5568 !important;
+  box-shadow: 0 4px 15px rgba(74, 85, 114, 0.6), 0 0 20px rgba(74, 85, 114, 0.4);
+  animation: vipPulse 2s ease-in-out infinite;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.vip-tag .el-tag__content {
+  background: linear-gradient(180deg, #e2e8f0, #cbd5e0);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5), 0 0 15px rgba(255, 255, 255, 0.6);
+  font-weight: 800;
+  letter-spacing: 1.5px;
+}
+
+@keyframes vipPulse {
+  0%, 100% { 
+    box-shadow: 0 4px 15px rgba(74, 85, 114, 0.6), 0 0 20px rgba(74, 85, 114, 0.4);
+    transform: scale(1);
+  }
+  50% { 
+    box-shadow: 0 6px 25px rgba(74, 85, 114, 0.9), 0 0 30px rgba(74, 85, 114, 0.7);
+    transform: scale(1.05);
+  }
 }
 
 .user-phone {
@@ -827,7 +1251,7 @@ onMounted(() => {
 
 .progress-bg {
   fill: none;
-  stroke: rgba(0, 243, 255, 0.1);
+  stroke: rgba(0, 243, 255, 0.15);
   stroke-width: 8;
 }
 
@@ -837,6 +1261,7 @@ onMounted(() => {
   stroke-width: 8;
   stroke-linecap: round;
   transition: stroke-dashoffset 1s ease;
+  filter: drop-shadow(0 0 6px rgba(0, 243, 255, 0.8));
 }
 
 .points-value {
@@ -863,6 +1288,21 @@ onMounted(() => {
 .level-tip {
   font-size: 12px;
   color: rgba(255, 255, 255, 0.4);
+}
+
+.level-tip.max-level {
+  color: rgba(255, 215, 0, 0.8);
+  font-weight: bold;
+  animation: maxLevelGlow 2s ease-in-out infinite;
+}
+
+@keyframes maxLevelGlow {
+  0%, 100% { 
+    text-shadow: 0 0 5px rgba(255, 215, 0, 0.3);
+  }
+  50% { 
+    text-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+  }
 }
 
 /* 仪表盘风格统计 */

@@ -3,7 +3,7 @@ package com.hs.backend.controller;
 import com.hs.backend.common.Result;
 import com.hs.backend.entity.CustomerInfo;
 import com.hs.backend.entity.UserAddress;
-import com.hs.backend.service.PersonalCenterService;
+import com.hs.backend.service.CustomerPersonalCenterService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.web.bind.annotation.*;
@@ -20,9 +20,9 @@ import java.util.List;
 @RequestMapping("/api/customer")
 public class CustomerController {
 
-    private final PersonalCenterService personalCenterService;
+    private final CustomerPersonalCenterService personalCenterService;
 
-   public CustomerController(PersonalCenterService personalCenterService) {
+   public CustomerController(CustomerPersonalCenterService personalCenterService) {
         this.personalCenterService = personalCenterService;
     }
 
@@ -97,5 +97,17 @@ public class CustomerController {
         Long userId = 7L;
         personalCenterService.deleteUserAddress(userId, id);
         return Result.success("删除成功");
+    }
+
+    /**
+     * 获取个人中心统计信息
+     */
+    @GetMapping("/stats")
+    @Operation(summary = "获取个人中心统计信息", description = "获取当前登录用户的订单、收藏、优惠券等统计信息")
+   public Result<java.util.Map<String, Object>> getStats(Principal principal) {
+        // TODO: 从 Principal 中获取当前登录用户 ID
+        Long userId = 7L;
+        java.util.Map<String, Object> stats = personalCenterService.getPersonalCenterStats(userId);
+        return Result.success(stats);
     }
 }

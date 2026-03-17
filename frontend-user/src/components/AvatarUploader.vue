@@ -4,7 +4,7 @@
     <div class="avatar-wrapper" @click="triggerUpload">
       <el-avatar 
         :size="size" 
-        :src="currentAvatar" 
+        :src="displaySrc" 
         fit="cover" 
         class="user-avatar"
         @error="handleImageError"
@@ -35,11 +35,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed } from 'vue'
 import { ElMessage } from 'element-plus'
 import { Camera, Loading } from '@element-plus/icons-vue'
-import { uploadToOSS, getUploadSignature } from '@/api/avatar'
-import { getUserAvatar } from '@/utils/avatar'
+import { uploadAvatar } from '@/api/avatar'
+import defaultAvatar from '@/assets/images/default-avatar.svg'
 
 interface Props {
   modelValue?: string  // 头像 URL
@@ -61,21 +61,29 @@ const emit = defineEmits<{
   (e: 'error', error: Error): void
 }>()
 
-// 当前头像
-const currentAvatar = computed(() => {
-  const avatar = props.modelValue || getUserAvatar()
-  console.log('AvatarUploader - currentAvatar:', avatar)
-  return avatar
+// 显示头像（直接使用后端返回的 URL，不做任何处理）
+const displaySrc = computed(() => {
+  // 如果加载失败，显示默认头像
+  if (hasError.value) {
+    return defaultAvatar
+  }
+  // 如果有头像 URL，直接使用（后端已经处理好签名）
+  if (props.modelValue) {
+    return props.modelValue
+  }
+  // 否则使用默认头像
+  return defaultAvatar
 })
 
 // 文件输入引用
 const fileInput = ref<HTMLInputElement | null>(null)
 const uploading = ref(false)
+const hasError = ref(false)  // 图片加载是否失败
 
-// 处理图片加载错误
+// 处理图片加载错误（显示默认头像）
 const handleImageError = (e: Event) => {
-  console.error('头像图片加载失败:', currentAvatar)
-  console.error('错误事件:', e)
+  // 加载失败时使用默认头像
+  hasError.value = true
 }
 
 // 触发文件选择
@@ -106,32 +114,22 @@ const handleFileChange = async (event: Event) => {
   await uploadFile(file)
 }
 
-// 上传文件到 OSS（前端直传模式）
+// 上传文件到后端（后端再传 OSS）
 const uploadFile = async (file: File) => {
   try {
     uploading.value = true
     
-    console.log('开始上传头像:', file.name)
+    // 直接调用后端接口上传
+    const response = await uploadAvatar(file)
+    const { fullUrl, relativePath } = response.data
     
-    // 1. 向后端请求上传签名
-    const signatureRes = await getUploadSignature(file.name)
-    const { signatureUrl, relativePath, fullUrl } = signatureRes.data
-    
-    console.log('获取签名成功，相对路径:', relativePath)
-    
-    // 2. 直接使用签名 URL 上传到 OSS
-    await uploadToOSS(signatureUrl, file)
-    
-    console.log('OSS 上传成功')
-    
-    // 3. 通知父组件更新显示（使用完整 URL）
+    // 通知父组件更新显示（使用完整 URL）
     emit('update:modelValue', fullUrl)
     emit('success', fullUrl, relativePath)
     
     ElMessage.success('头像上传成功')
     
   } catch (error: any) {
-    console.error('头像上传失败:', error)
     ElMessage.error('上传失败：' + (error.message || '请重试'))
     emit('error', error)
   } finally {
@@ -142,14 +140,6 @@ const uploadFile = async (file: File) => {
     }
   }
 }
-
-// 监听外部值变化
-watch(() => props.modelValue, (newVal) => {
-  console.log('AvatarUploader - modelValue 变化:', newVal)
-  if (newVal) {
-    // 由父组件处理缓存更新
-  }
-})
 </script>
 
 <style scoped>

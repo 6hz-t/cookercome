@@ -33,7 +33,12 @@ public class CustomerInfo implements Serializable {
      * 用户名
      */
     private String username;
-
+    
+    /**
+     * 手机号（从 User 表关联查询，非数据库字段）
+     */
+    @TableField(exist = false)
+    private String phone;
 
     /**
      * 头像 URL
@@ -59,6 +64,31 @@ public class CustomerInfo implements Serializable {
      * 生日
      */
     private LocalDate birthday;
+
+    /**
+     * 会员等级：0-普通，1-白银，2-黄金，3-铂金，4-钻石
+     */
+    private Integer memberLevel;
+
+    /**
+     * 积分
+     */
+    private Integer points;
+
+    /**
+     * 总订单数（冗余字段，便于查询）
+     */
+    private Integer totalOrders;
+
+    /**
+     * 已完成订单数（冗余字段，便于查询）
+     */
+    private Integer completedOrders;
+
+    /**
+     * 平均评分（冗余字段，便于查询）
+     */
+    private java.math.BigDecimal averageRating;
 
     /**
      * 创建时间
