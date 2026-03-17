@@ -117,7 +117,7 @@ public class CustomerSettingsServiceImpl implements CustomerSettingsService {
             customerInfo.setPoints(0);
             customerInfo.setTotalOrders(0);
             customerInfo.setCompletedOrders(0);
-            customerInfo.setAverageRating(java.math.BigDecimal.ZERO);
+            customerInfo.setTotalSpent(java.math.BigDecimal.ZERO);
             customerInfoMapper.insert(customerInfo);
             
             // 计算订单统计数据
@@ -523,36 +523,17 @@ public class CustomerSettingsServiceImpl implements CustomerSettingsService {
                     .in("status", completedStatuses)
             );
             
-            // 查询平均评分（使用 selectMaps 实现 AVG 查询）
-            java.math.BigDecimal averageRating = java.math.BigDecimal.ZERO;
-            try {
-                java.util.List<java.util.Map<String, Object>> maps = reviewMapper.selectMaps(
-                    new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<com.hs.backend.entity.Review>()
-                        .select("AVG(rating) as avg_rating")
-                        .eq("customer_id", userId)
-                );
-                if (maps != null && !maps.isEmpty() && maps.get(0).get("avg_rating") != null) {
-                    averageRating = new java.math.BigDecimal(maps.get(0).get("avg_rating").toString());
-                    // 保留一位小数
-                    averageRating = averageRating.setScale(1, java.math.RoundingMode.HALF_UP);
-                }
-            } catch (Exception e) {
-                log.warn("查询平均评分失败：{}", e.getMessage());
-            }
-            
             // 设置到对象中
             customerInfo.setTotalOrders(totalOrders.intValue());
             customerInfo.setCompletedOrders(completedOrders.intValue());
-            customerInfo.setAverageRating(averageRating);
             
-            log.debug("订单统计计算完成 userId={}, totalOrders={}, completedOrders={}, avgRating={}", 
-                userId, totalOrders, completedOrders, averageRating);
+            log.debug("订单统计计算完成 userId={}, totalOrders={}, completedOrders={}", 
+                userId, totalOrders, completedOrders);
         } catch (Exception e) {
             log.warn("计算订单统计失败：{}", e.getMessage());
             // 设置默认值
             if (customerInfo.getTotalOrders() == null) customerInfo.setTotalOrders(0);
             if (customerInfo.getCompletedOrders() == null) customerInfo.setCompletedOrders(0);
-            if (customerInfo.getAverageRating() == null) customerInfo.setAverageRating(java.math.BigDecimal.ZERO);
         }
     }
     

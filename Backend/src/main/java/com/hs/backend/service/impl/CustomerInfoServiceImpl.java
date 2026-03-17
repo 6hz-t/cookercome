@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 public class CustomerInfoServiceImpl extends ServiceImpl<CustomerInfoMapper, CustomerInfo> implements CustomerInfoService {
 
     // 默认头像地址（OSS 相对路径）
-    private static final String DEFAULT_AVATAR = "/avatars/default-avatar.png";
+    private static final String DEFAULT_AVATAR = "avatar/default-avatar.png";
 
     @Override
     public CustomerInfo createDefaultCustomerInfo(Long userId, String username) {

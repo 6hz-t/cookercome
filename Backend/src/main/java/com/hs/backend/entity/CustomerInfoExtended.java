@@ -75,9 +75,9 @@ public class CustomerInfoExtended implements Serializable {
     private Integer completedOrders;
 
     /**
-     * 平均评分
+     * 累计消费金额
      */
-    private Double averageRating;
+    private java.math.BigDecimal totalSpent;
 
     /**
      * 创建时间

@@ -20,6 +20,7 @@ com\hs\backend\mapper\AdminInfoMapper.class
 com\hs\backend\entity\CustomerInfoExtended.class
 com\hs\backend\mapper\ChefInfoMapper.class
 com\hs\backend\dto\request\RegisterRequest.class
+com\hs\backend\dto\response\CustomerBookingChefResponse.class
 com\hs\backend\mapper\OrderMapper.class
 com\hs\backend\security\JwtTokenProvider.class
 com\hs\backend\service\impl\CustomerInfoServiceImpl.class
@@ -39,6 +40,7 @@ com\hs\backend\dto\request\CustomerPhoneBindRequest.class
 com\hs\backend\controller\AuthController.class
 com\hs\backend\service\CustomerInfoService.class
 com\hs\backend\service\CustomerSettingsService.class
+com\hs\backend\controller\CustomerBookingChefController.class
 com\hs\backend\dto\response\AuthResponse$CustomerInfoVO.class
 com\hs\backend\entity\AdminInfo.class
 com\hs\backend\common\service\OssService.class
@@ -51,7 +53,7 @@ com\hs\backend\service\UserService.class
 com\hs\backend\BackendApplication.class
 com\hs\backend\controller\UserManageController.class
 com\hs\backend\dto\response\AuthResponse$CustomerInfoVO$CustomerInfoVOBuilder.class
-com\hs\backend\entity\Orders.class
+com\hs\backend\service\impl\CustomerBookingChefServiceImpl.class
 com\hs\backend\common\config\RedisConfig.class
 com\hs\backend\entity\UserAddress.class
 com\hs\backend\common\enums\UserTypeEnum.class
@@ -62,7 +64,9 @@ com\hs\backend\config\SecurityConfig.class
 com\hs\backend\common\utils\RedisUtils.class
 com\hs\backend\mapper\ReviewMapper.class
 com\hs\backend\security\JwtAuthenticationFilter.class
+com\hs\backend\entity\Order.class
 com\hs\backend\common\enums\OrderStatusEnum.class
+com\hs\backend\service\CustomerBookingChefService.class
 com\hs\backend\entity\CustomerInfo.class
 com\hs\backend\entity\ChefInfo.class
 com\hs\backend\service\AdminInfoService.class

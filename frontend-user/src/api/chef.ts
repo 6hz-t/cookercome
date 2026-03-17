@@ -1,18 +1,40 @@
 import request from '@/utils/request'
 
 /**
- * 获取厨师列表
+ * 厨师列表参数接口
  */
-export function getChefList(page = 1, size = 10, specialty?: string, level?: string) {
+export interface ChefListParams {
+  page?: number
+  size?: number
+  sortBy?: string
+  name?: string
+}
+
+/**
+ * 厨师信息接口
+ */
+export interface ChefInfo {
+  id: number
+  userId: number
+  realName: string
+  level: number
+  serviceCount: number
+  basePrice: number
+  introduction: string
+  gender: number
+  phone: string
+  avatarUrl: string
+  workYears: number
+}
+
+/**
+ * 获取厨师列表（支持排序和搜索）
+ */
+export function getChefList(params: ChefListParams) {
   return request({
-    url: '/chef/list',
+    url: '/customer/booking/chef/list',
     method: 'get',
-    params: {
-      page,
-      size,
-      specialty,
-      level
-    }
+    params
   })
 }
 

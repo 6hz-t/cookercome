@@ -32,31 +32,13 @@ public class CustomerController {
      * 从 Principal 中获取当前登录用户 ID
      */
     private Long getCurrentUserId(Principal principal) {
-        log.info("========== [开始] getCurrentUserId() ==========");
-        log.info("[1] Principal 对象：{}", principal);
-        
-        if (principal == null) {
-            log.error("[错误] Principal 为 null");
-            throw new RuntimeException("未找到当前登录用户 (Principal 为 null)");
+        if (principal == null || principal.getName() == null) {
+            throw new RuntimeException("未找到当前登录用户");
         }
-        
-        String principalName = principal.getName();
-        log.info("[2] Principal.getName(): {}", principalName);
-        log.info("[3] Principal 类型：{}", principal.getClass().getName());
-        
-        if (principalName == null) {
-            log.error("[错误] Principal.getName() 为 null");
-            throw new RuntimeException("未找到当前登录用户 (Principal.getName 为 null)");
-        }
-        
         try {
-            Long userId = Long.parseLong(principalName);
-            log.info("[4] 解析后的 userId: {}", userId);
-            log.info("========== [结束] getCurrentUserId() ===========");
-            return userId;
+            return Long.parseLong(principal.getName());
         } catch (NumberFormatException e) {
-            log.error("[错误] 用户 ID 格式错误：{}", principalName, e);
-            throw new RuntimeException("用户 ID 格式错误：" + principalName, e);
+            throw new RuntimeException("用户 ID 格式错误", e);
         }
     }
 
@@ -66,16 +48,9 @@ public class CustomerController {
     @GetMapping("/profile")
     @Operation(summary = "获取客户个人信息", description = "获取当前登录客户的个人信息")
    public Result<CustomerInfo> getProfile(Principal principal) {
-        log.info("========== [Controller] /api/customer/profile GET 请求 ========== ");
-        log.info("[1] 收到 Principal 参数：{}", principal);
-        
         // 从 Principal 中获取当前登录用户 ID
         Long userId = getCurrentUserId(principal);
-        log.info("[2] Controller 获取到的 userId: {}", userId);
-        
         CustomerInfo customerInfo = personalCenterService.getCustomerProfile(userId);
-        log.info("[3] 返回用户信息：userId={}, username={}", userId, customerInfo.getUsername());
-        log.info("========== [Controller] 结束 ========== ");
         return Result.success(customerInfo);
     }
 

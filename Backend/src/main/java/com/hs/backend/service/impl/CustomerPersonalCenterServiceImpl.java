@@ -69,7 +69,6 @@ public class CustomerPersonalCenterServiceImpl implements CustomerPersonalCenter
     @Override
     public CustomerInfo getCustomerProfile(Long userId) {
         log.debug("========== [开始] 获取用户信息 userId={} ==========", userId);
-        log.info("[Service] getCustomerProfile 被调用，传入的 userId: {}", userId);
         
         // 先从缓存获取
         String cacheKey = USER_INFO_CACHE_KEY + userId;
@@ -77,12 +76,10 @@ public class CustomerPersonalCenterServiceImpl implements CustomerPersonalCenter
         
         if (customerInfo != null) {
             log.debug("[缓存命中] 用户信息 userId={}", userId);
-            log.info("[Service] 从缓存命中 userId={}", userId);
             return customerInfo;
         }
         
         log.debug("[缓存未命中] 查询数据库 userId={}", userId);
-        log.info("[Service] 缓存未命中，准备查询数据库 userId={}", userId);
         
         // 查询客户信息（使用 user_id 查询，不是主键 id）
         customerInfo = customerInfoMapper.selectOne(
@@ -106,7 +103,7 @@ public class CustomerPersonalCenterServiceImpl implements CustomerPersonalCenter
             customerInfo.setPoints(0);
             customerInfo.setTotalOrders(0);
             customerInfo.setCompletedOrders(0);
-            customerInfo.setAverageRating(java.math.BigDecimal.ZERO);
+            customerInfo.setTotalSpent(java.math.BigDecimal.ZERO);
             
             log.debug("[插入前] 准备执行 insert，userId={}", userId);
             try {
@@ -370,36 +367,17 @@ public class CustomerPersonalCenterServiceImpl implements CustomerPersonalCenter
                     .in("status", completedStatuses)
             );
             
-            // 查询平均评分（使用 selectMaps 实现 AVG 查询）
-            java.math.BigDecimal averageRating = java.math.BigDecimal.ZERO;
-            try {
-                java.util.List<java.util.Map<String, Object>> maps = reviewMapper.selectMaps(
-                    new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<Review>()
-                        .select("AVG(rating) as avg_rating")
-                        .eq("customer_id", userId)
-                );
-                if (maps != null && !maps.isEmpty() && maps.get(0).get("avg_rating") != null) {
-                    averageRating = new java.math.BigDecimal(maps.get(0).get("avg_rating").toString());
-                    // 保留一位小数
-                    averageRating = averageRating.setScale(1, java.math.RoundingMode.HALF_UP);
-                }
-            } catch (Exception e) {
-                log.warn("查询平均评分失败：{}", e.getMessage());
-            }
-            
             // 设置到对象中
             customerInfo.setTotalOrders(totalOrders.intValue());
             customerInfo.setCompletedOrders(completedOrders.intValue());
-            customerInfo.setAverageRating(averageRating);
             
-            log.debug("订单统计计算完成 userId={}, totalOrders={}, completedOrders={}, avgRating={}", 
-                userId, totalOrders, completedOrders, averageRating);
+            log.debug("订单统计计算完成 userId={}, totalOrders={}, completedOrders={}", 
+                userId, totalOrders, completedOrders);
         } catch (Exception e) {
             log.warn("计算订单统计失败：{}", e.getMessage());
             // 设置默认值
             if (customerInfo.getTotalOrders() == null) customerInfo.setTotalOrders(0);
             if (customerInfo.getCompletedOrders() == null) customerInfo.setCompletedOrders(0);
-            if (customerInfo.getAverageRating() == null) customerInfo.setAverageRating(java.math.BigDecimal.ZERO);
         }
     }
 
@@ -426,7 +404,7 @@ public class CustomerPersonalCenterServiceImpl implements CustomerPersonalCenter
         stats.put("completedOrders", customerInfo.getCompletedOrders() != null ? customerInfo.getCompletedOrders() : 0);
         stats.put("ongoingOrders", (customerInfo.getTotalOrders() != null ? customerInfo.getTotalOrders() : 0) - 
                                    (customerInfo.getCompletedOrders() != null ? customerInfo.getCompletedOrders() : 0));
-        stats.put("averageRating", customerInfo.getAverageRating() != null ? customerInfo.getAverageRating() : 0.0);
+        stats.put("totalSpent", customerInfo.getTotalSpent() != null ? customerInfo.getTotalSpent() : 0.0);
         // TODO: 收藏和优惠券功能待实现
         stats.put("favoritesCount", 0);
         stats.put("couponsCount", 0);
