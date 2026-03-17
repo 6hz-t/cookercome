@@ -4,7 +4,7 @@ const chefrequest = axios.create({
   baseURL: 'http://localhost:8080/api/chef', // 后端 API 基础路径
   timeout: 10000
 
-  //api/auth
+
 
   //api/chef
 })
@@ -17,7 +17,7 @@ const authrequest = axios.create({
 // 请求拦截器
 chefrequest.interceptors.request.use(
   config => {
-    const token = localStorage.getItem('token')
+    const token = localStorage.getItem('accesstoken')
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`
     }
@@ -35,7 +35,7 @@ chefrequest.interceptors.request.use(
   },
   error => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('token')
+      localStorage.removeItem('accesstoken')
       window.location.href = '/cooker/login'
     }
     return Promise.reject(error)

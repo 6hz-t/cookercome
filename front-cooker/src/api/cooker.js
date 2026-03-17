@@ -4,6 +4,9 @@ import authrequest from './request'
 // 厨师登录
 export const login = (data) => authrequest.post('/login', data)
 
+//获取新订单/api/chef/getNewOrders
+export const getNewOrders = () => chefrequest.get('/getNewOrders')
+
 // 获取厨师信息
 export const getChefInfo = () => chefrequest.get('/cooker/info')
 
