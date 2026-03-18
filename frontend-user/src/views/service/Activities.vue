@@ -8,81 +8,41 @@
       <p class="panel-desc">精彩活动不容错过</p>
     </div>
     
-    <div class="activity-list">
-      <div v-for="activity in activities" :key="activity.id" class="activity-card">
-        <div class="activity-banner" :style="{ backgroundImage: `url(${activity.image})` }">
-          <div class="activity-tag" :class="activity.tagType">{{ activity.tag }}</div>
-        </div>
-        <div class="activity-content">
-          <h3>{{ activity.title }}</h3>
-          <p class="activity-desc">{{ activity.description }}</p>
-          <div class="activity-meta">
-            <span><el-icon><Clock /></el-icon> {{ activity.endDate }}</span>
-            <span class="activity-progress">
-              <el-progress :percentage="activity.progress" :stroke-width="6" />
-            </span>
-          </div>
-          <el-button :type="activity.btnType" block @click="$emit('join-activity', activity)">{{ activity.btnText }}</el-button>
-        </div>
+    <!-- 空状态提示 -->
+    <div class="empty-state">
+      <div class="empty-icon">
+        <el-icon :size="80" color="#667eea"><Ticket /></el-icon>
+      </div>
+      <div class="empty-text">
+        <h3>暂无优惠活动</h3>
+        <p>当前没有正在进行的活动，敬请期待！</p>
+      </div>
+      <div class="empty-decoration">
+        <div class="decoration-orb decoration-orb-1"></div>
+        <div class="decoration-orb decoration-orb-2"></div>
+        <div class="decoration-orb decoration-orb-3"></div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { Ticket, Clock } from '@element-plus/icons-vue'
+import { Ticket } from '@element-plus/icons-vue'
 
-const emit = defineEmits(['join-activity'])
-
-const activities = ref([
-  {
-    id: 1,
-    title: '新用户专享优惠',
-    description: '首次下单立减 100 元，享受专业厨师上门服务',
-    image: 'https://via.placeholder.com/400x200/667eea/ffffff?text=New+User',
-    tag: '热门',
-    tagType: 'hot',
-    endDate: '2026-12-31',
-    progress: 75,
-    btnType: 'primary',
-    btnText: '立即参与'
-  },
-  {
-    id: 2,
-    title: '春季养生套餐',
-    description: '专业营养师搭配，为您定制健康养生菜单',
-    image: 'https://via.placeholder.com/400x200/43e97b/ffffff?text=Spring+Health',
-    tag: '新品',
-    tagType: 'new',
-    endDate: '2026-04-30',
-    progress: 45,
-    btnType: 'success',
-    btnText: '查看详情'
-  },
-  {
-    id: 3,
-    title: '家庭聚餐特惠',
-    description: '满 500 减 80，适合家庭聚会、生日宴等场合',
-    image: 'https://via.placeholder.com/400x200/fa709a/ffffff?text=Family+Meal',
-    tag: '限时',
-    tagType: 'limited',
-    endDate: '2026-03-31',
-    progress: 90,
-    btnType: 'warning',
-    btnText: '马上抢购'
-  }
-])
+// 当前不考虑做优惠活动功能，显示空状态提示
 </script>
 
 <style scoped>
 .activities {
   min-height: 600px;
+  display: flex;
+  flex-direction: column;
 }
 
 /* 面板头部 */
 .panel-header {
-  margin-bottom: 25px;
+  margin-bottom: 40px;
+  text-align: center;
 }
 
 .panel-title {
@@ -92,6 +52,7 @@ const activities = ref([
   margin: 0 0 10px 0;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 10px;
 }
 
@@ -101,76 +62,118 @@ const activities = ref([
   margin: 0;
 }
 
-.activity-list {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 25px;
-}
-
-.activity-card {
-  background: var(--card-bg);
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: var(--shadow);
-  transition: var(--transition);
-}
-
-.activity-card:hover {
-  transform: translateY(-8px);
-  box-shadow: var(--shadow-hover);
-}
-
-.activity-banner {
-  height: 200px;
-  background-size: cover;
-  background-position: center;
+/* 空状态样式 */
+.empty-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   position: relative;
+  padding: 60px 20px;
 }
 
-.activity-tag {
-  position: absolute;
-  top: 15px;
-  left: 15px;
-  padding: 6px 15px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: bold;
-  color: white;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+.empty-icon {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.15), rgba(118, 75, 162, 0.15));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 30px;
+  box-shadow: 0 8px 30px rgba(102, 126, 234, 0.2);
+  animation: iconFloat 3s ease-in-out infinite;
 }
 
-.activity-tag.hot { background: linear-gradient(135deg, #ff416c, #ff4b2b); }
-.activity-tag.new { background: linear-gradient(135deg, #56ab2f, #a8e063); }
-.activity-tag.limited { background: linear-gradient(135deg, #f093fb, #f5576c); }
-
-.activity-content {
-  padding: 20px;
+@keyframes iconFloat {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
-.activity-content h3 {
-  font-size: 20px;
-  font-weight: bold;
+.empty-text {
+  text-align: center;
+  z-index: 1;
+}
+
+.empty-text h3 {
+  font-size: 22px;
+  font-weight: 600;
   color: var(--text-primary);
-  margin: 0 0 10px 0;
+  margin: 0 0 12px 0;
+  letter-spacing: 1px;
 }
 
-.activity-desc {
+.empty-text p {
   font-size: 14px;
   color: var(--text-secondary);
-  margin: 0 0 15px 0;
+  margin: 0;
   line-height: 1.6;
 }
 
-.activity-meta {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
-  font-size: 13px;
-  color: var(--text-muted);
+/* 装饰元素 */
+.empty-decoration {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
 }
 
-.activity-progress {
+.decoration-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(40px);
+  opacity: 0.3;
+  animation: orbFloat 8s ease-in-out infinite;
+}
+
+.decoration-orb-1 {
+  width: 150px;
+  height: 150px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  top: 20%;
+  left: 15%;
+  animation-delay: 0s;
+}
+
+.decoration-orb-2 {
+  width: 200px;
+  height: 200px;
+  background: linear-gradient(135deg, #f093fb, #f5576c);
+  bottom: 20%;
+  right: 15%;
+  animation-delay: 2s;
+}
+
+.decoration-orb-3 {
   width: 120px;
+  height: 120px;
+  background: linear-gradient(135deg, #4facfe, #00f2fe);
+  top: 60%;
+  left: 70%;
+  animation-delay: 4s;
+}
+
+@keyframes orbFloat {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.3;
+  }
+  25% {
+    transform: translate(30px, -30px) scale(1.1);
+    opacity: 0.4;
+  }
+  50% {
+    transform: translate(-20px, 20px) scale(0.9);
+    opacity: 0.2;
+  }
+  75% {
+    transform: translate(20px, 30px) scale(1.05);
+    opacity: 0.35;
+  }
 }
 </style>

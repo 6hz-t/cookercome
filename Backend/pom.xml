@@ -116,6 +116,14 @@
 			<optional>true</optional>
 		</dependency>
 
+		<!-- Spring Boot DevTools - 开发时热部署 -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-devtools</artifactId>
+			<scope>runtime</scope>
+			<optional>true</optional>
+		</dependency>
+
 		<!-- Jackson Java 8 日期时间模块 -->
 		<dependency>
 			<groupId>com.fasterxml.jackson.datatype</groupId>
@@ -148,7 +156,13 @@
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
-	</dependencies>
+        <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
+            <version>24.1.0</version>
+            <scope>compile</scope>
+        </dependency>
+    </dependencies>
 
 	<build>
 		<plugins>

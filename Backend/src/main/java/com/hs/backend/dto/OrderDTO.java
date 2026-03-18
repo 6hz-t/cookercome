@@ -1,27 +1,22 @@
-package com.hs.backend.entity;
+package com.hs.backend.dto;
 
-import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 /**
- * 订单实体类
+ * 订单数据传输对象
  */
 @Data
-@EqualsAndHashCode(callSuper = false)
-@TableName("t_order")
-public class Order implements Serializable {
+public class OrderDTO implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
     /**
      * 主键 ID
      */
-    @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
     /**
@@ -30,14 +25,24 @@ public class Order implements Serializable {
     private String orderNo;
 
     /**
-     * 客户用户 ID
-     */
-    private Long customerId;
-
-    /**
      * 厨师用户 ID
      */
     private Long chefId;
+
+    /**
+     * 厨师姓名
+     */
+    private String chefName;
+
+    /**
+     * 厨师头像
+     */
+    private String chefAvatar;
+
+    /**
+     * 厨师等级
+     */
+    private Integer chefLevel;
 
     /**
      * 服务地址 ID
@@ -55,7 +60,7 @@ public class Order implements Serializable {
     private String reserveTime;
 
     /**
-     * 菜品定制要求（如：少辣、不放香菜）
+     * 菜品定制要求
      */
     private String dishRequirements;
 
@@ -68,6 +73,16 @@ public class Order implements Serializable {
      * 订单状态：0-订单提交 1-待支付，2-已支付，3-服务完成，4-订单取消，5-退款中，6-已退款
      */
     private Integer status;
+
+    /**
+     * 用户备注
+     */
+    private String remark;
+
+    /**
+     * 创建时间
+     */
+    private LocalDateTime createTime;
 
     /**
      * 支付时间
@@ -85,19 +100,7 @@ public class Order implements Serializable {
     private LocalDateTime serviceEndTime;
 
     /**
-     * 用户备注
+     * 是否已收藏（true-已收藏，false-未收藏）
      */
-    private String remark;
-
-    /**
-     * 创建时间
-     */
-    @TableField(fill = FieldFill.INSERT)
-    private LocalDateTime createTime;
-
-    /**
-     * 更新时间
-     */
-    @TableField(fill = FieldFill.INSERT_UPDATE)
-    private LocalDateTime updateTime;
+    private Boolean isFavorited;
 }

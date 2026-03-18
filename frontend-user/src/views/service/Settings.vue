@@ -710,14 +710,25 @@ const saveProfile = async () => {
 const handleAvatarSuccess = async (fullUrl, relativePath) => {
   // fullUrl 是完整 URL，用于前端显示
   // relativePath 是相对路径，用于保存到数据库
-  profileForm.value.avatar = fullUrl
-  console.log('头像上传成功，完整 URL:', fullUrl, '相对路径:', relativePath)
+  console.log('handleAvatarSuccess 被调用')
+  console.log('接收到的 fullUrl:', fullUrl)
+  console.log('当前 profileForm.avatar:', profileForm.value.avatar)
+  
+  // 注意：不需要手动赋值 profileForm.value.avatar = fullUrl
+  // 因为 AvatarUploader 的 v-model 已经自动更新了
+  console.log('v-model 更新后的 profileForm.avatar:', profileForm.value.avatar)
   
   // 立即保存到数据库（使用完整 URL，后端会自动提取相对路径）
   try {
     saving.value = true
     await updateProfile(profileForm.value)
-    ElMessage.success('头像已保存')
+    ElMessage.success('修改成功')
+    
+    // 通知父组件更新用户信息（包含最新头像）
+    emit('edit-profile', {
+      ...profileForm.value,
+      avatar: fullUrl
+    })
   } catch (error) {
     console.error('保存头像失败:', error)
     ElMessage.error('保存头像失败：' + (error.message || '请重试'))

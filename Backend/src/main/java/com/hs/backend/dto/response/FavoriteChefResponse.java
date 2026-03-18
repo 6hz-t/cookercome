@@ -2,22 +2,23 @@ package com.hs.backend.dto.response;
 
 import lombok.Data;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 /**
- * 客户预约厨师响应 DTO
+ * 收藏厨师响应 DTO
  */
 @Data
-public class CustomerBookingChefResponse {
+public class FavoriteChefResponse {
+    
+    /**
+     * 收藏 ID
+     */
+    private Long favoriteId;
     
     /**
      * 厨师 ID
      */
-    private Long id;
-    
-    /**
-     * 用户 ID
-     */
-    private String userId;
+    private Long chefId;
     
     /**
      * 厨师真实姓名
@@ -55,12 +56,17 @@ public class CustomerBookingChefResponse {
     private String introduction;
     
     /**
-     * 手机号
+     * 头像预签名 URL
+     */
+    private String avatarUrl;
+    
+    /**
+     * 手机号（从 User 表获取）
      */
     private String phone;
     
     /**
-     * 头像预签名 URL
+     * 收藏时间
      */
-    private String avatarUrl;
+    private LocalDateTime favoriteTime;
 }
