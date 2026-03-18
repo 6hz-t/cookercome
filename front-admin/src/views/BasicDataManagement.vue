@@ -56,10 +56,10 @@
       </div>
       <div class="sidebar-footer">
         <div class="user-info">
-          <el-avatar :size="32" src="https://img.yzcdn.cn/vant/cat.jpeg"></el-avatar>
+          <el-avatar :size="32" :src="adminInfo.avatar || 'https://img.yzcdn.cn/vant/cat.jpeg'"></el-avatar>
           <div class="user-text">
-            <div class="user-name">超级管理员</div>
-            <div class="user-id">ID: 10001</div>
+            <div class="user-name">{{ adminInfo.realName || '管理员' }}</div>
+            <div class="user-id">ID: {{ adminInfo.userId || '-' }}</div>
           </div>
         </div>
       </div>
@@ -311,9 +311,14 @@ import {
   updateDish as updateDishApi,
   deleteDish as deleteDishApi
 } from '@/api/dish'
+// 引入管理员信息 composable
+import { useAdminInfo } from '@/composables/useAdminInfo'
 
 // 创建路由器实例
 const router = useRouter()
+
+// 管理员信息
+const { adminInfo } = useAdminInfo()
 
 // 当前激活菜单
 const activeMenu = ref('data')
@@ -357,9 +362,9 @@ const loadCuisineList = () => {
     size: cuisinePageSize.value,
     keyword: cuisineSearch.value
   }).then(res => {
-    if (res.data) {
-      cuisineList.value = res.data.records || []
-      cuisineTotal.value = res.data.total || 0
+    if (res) {
+      cuisineList.value = res.records || []
+      cuisineTotal.value = res.total || 0
     }
   }).catch(() => {
     cuisineList.value = []
@@ -563,11 +568,19 @@ const loadDishList = () => {
     keyword: dishSearch.value,
     cuisineId: dishCuisineFilter.value === '' ? null : dishCuisineFilter.value
   }).then(res => {
-    if (res.data) {
-      dishList.value = res.data.records || []
-      dishTotal.value = res.data.total || 0
+    console.log('菜品列表响应:', res)
+    if (res) {
+      // MyBatis-Plus Page 对象序列化后是 records 字段
+      dishList.value = res.records || res.list || []
+      dishTotal.value = res.total || 0
+      console.log('菜品列表:', dishList.value, '总数:', dishTotal.value)
+    } else {
+      console.warn('菜品列表响应为空')
+      dishList.value = []
+      dishTotal.value = 0
     }
-  }).catch(() => {
+  }).catch(err => {
+    console.error('加载菜品列表失败:', err)
     dishList.value = []
     dishTotal.value = 0
   }).finally(() => {
@@ -608,18 +621,28 @@ const addDish = async () => {
       }
     )
 
-    const { value: cuisineId } = await ElMessageBox.alert(
-      '请选择菜系',
+    // 选择菜系（简单提示）
+    const cuisineText = cuisineList.value.map(c => `${c.id}-${c.cuisineName}`).join('，')
+    const { value: cuisineIdStr } = await ElMessageBox.prompt(
+      `请输入菜系 ID（${cuisineText}）`,
       '新增菜品',
       {
         confirmButtonText: '确定',
-        showCancelButton: true,
         cancelButtonText: '取消',
+        inputPattern: /^\d+$/,
+        inputErrorMessage: '请输入数字',
+        inputValue: '1',
         type: 'success'
       }
-    ).catch(() => ({ value: null }))
+    )
 
-    if (!cuisineId) return
+    const cuisineId = parseInt(cuisineIdStr)
+    // 验证菜系 ID 是否存在
+    const cuisine = cuisineList.value.find(c => c.id === cuisineId)
+    if (!cuisine) {
+      ElMessage.error('菜系 ID 不存在')
+      return
+    }
 
     const { value: price } = await ElMessageBox.prompt(
       '请输入菜品价格',
@@ -634,6 +657,18 @@ const addDish = async () => {
       }
     )
 
+    const { value: dishType } = await ElMessageBox.prompt(
+      '请输入菜品类型（热菜/凉菜/汤品/主食）',
+      '新增菜品',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        inputPlaceholder: '请输入菜品类型',
+        inputValue: '热菜',
+        type: 'success'
+      }
+    ).catch(() => ({ value: '热菜' }))
+
     const { value: description } = await ElMessageBox.prompt(
       '请输入菜品描述',
       '新增菜品',
@@ -647,10 +682,12 @@ const addDish = async () => {
 
     await addDishApi({
       dishName,
-      cuisineId: parseInt(cuisineId),
+      cuisineId: cuisineId,
       price: parseFloat(price),
+      dishType: dishType || '热菜',
       description: description || '',
-      isFeatured: 0
+      isFeatured: 0,
+      userId: 2 // 默认使用测试厨师 ID
     })
 
     ElMessage.success(`菜品「${dishName}」已添加`)
@@ -766,10 +803,9 @@ const handleLogout = async () => {
       }
     )
 
-    localStorage.removeItem('token')
-    localStorage.removeItem('userInfo')
-    sessionStorage.removeItem('token')
-    sessionStorage.removeItem('userInfo')
+    localStorage.removeItem('admin-token')
+    localStorage.removeItem('admin-refreshToken')
+    localStorage.removeItem('admin-userInfo')
 
     router.replace('/login')
 
@@ -792,6 +828,7 @@ const handleLogout = async () => {
 // 页面加载时加载数据
 onMounted(() => {
   loadCuisineList()
+  loadDishList()
 })
 </script>
 

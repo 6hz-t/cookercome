@@ -56,10 +56,10 @@
       </div>
       <div class="sidebar-footer">
         <div class="user-info">
-          <el-avatar :size="32" src="https://img.yzcdn.cn/vant/cat.jpeg"></el-avatar>
+          <el-avatar :size="32" :src="adminInfo.avatar || 'https://img.yzcdn.cn/vant/cat.jpeg'"></el-avatar>
           <div class="user-text">
-            <div class="user-name">超级管理员</div>
-            <div class="user-id">ID: 10001</div>
+            <div class="user-name">{{ adminInfo.realName || '管理员' }}</div>
+            <div class="user-id">ID: {{ adminInfo.userId || '-' }}</div>
           </div>
         </div>
       </div>
@@ -155,24 +155,24 @@
           ></el-input>
         </div>
         <el-table border :data="userList" style="width: 100%;">
-          <el-table-column prop="id" label="用户 ID" />
+          <el-table-column prop="userId" label="用户 ID" />
           <el-table-column prop="name" label="用户名" />
           <el-table-column prop="role" label="角色">
             <template #default="scope">
-              {{ scope.row.role === 2 ? '管理员' : '普通用户' }}
+              {{ scope.row.role === 2 ? '管理员' : scope.row.role === 1 ? '厨师' : '顾客' }}
             </template>
           </el-table-column>
           <el-table-column prop="status" label="状态">
             <template #default="scope">
-              <el-tag :type="scope.row.status === 'active' ? 'success' : 'danger'">
-                {{ scope.row.status === 'active' ? '启用' : '禁用' }}
+              <el-tag :type="scope.row.status === '1' ? 'success' : 'danger'">
+                {{ scope.row.status === '1' ? '启用' : '禁用' }}
               </el-tag>
             </template>
           </el-table-column>
           <el-table-column label="操作">
             <template #default="scope">
               <el-button size="mini" type="primary" @click="toggleUserStatus(scope.row)">
-                {{ scope.row.status === 'active' ? '禁用' : '启用' }}
+                {{ scope.row.status === '1' ? '禁用' : '启用' }}
               </el-button>
               <el-button size="mini" type="warning" @click="resetPassword(scope.row)">重置密码</el-button>
             </template>
@@ -210,6 +210,8 @@ import { ElMessageBox, ElMessage } from 'element-plus'
 import { getUserList, changeUserStatus, resetPassword as resetPasswordApi } from '@/api/user'
 // 引入仪表盘接口
 import { getDashboardStats } from '@/api/dashboard'
+// 引入管理员信息 composable
+import { useAdminInfo } from '@/composables/useAdminInfo'
 
 // 创建路由器实例
 const router = useRouter()
@@ -219,6 +221,9 @@ const activeMenu = ref('account')
 
 // 当前日期（动态获取）
 const currentDate = ref('')
+
+// 管理员信息
+const { adminInfo } = useAdminInfo()
 
 // 格式化日期为 YYYY 年 MM 月 DD 日
 const formatDate = (date) => {
@@ -349,7 +354,7 @@ const handleCurrentChange = (val) => {
 // 切换用户状态（调用后端接口）
 const toggleUserStatus = (row) => {
   ElMessageBox.confirm(
-    `确定要${row.status === 'active' ? '禁用' : '启用'}用户「${row.name}」吗？`,
+    `确定要${row.status === '1' ? '禁用' : '启用'}用户「${row.name}」吗？`,
     '提示',
     {
       confirmButtonText: '确定',
@@ -357,9 +362,9 @@ const toggleUserStatus = (row) => {
       type: 'warning'
     }
   ).then(() => {
-    // 调用切换状态接口
-    changeUserStatus(row.id, row.status === 'active' ? 'disabled' : 'active').then(() => {
-      ElMessage.success(`用户「${row.name}」已${row.status === 'active' ? '禁用' : '启用'}！`)
+    // 调用切换状态接口，使用 userId，状态值转为 Integer
+    changeUserStatus(row.userId, row.status === '1' ? 0 : 1).then(() => {
+      ElMessage.success(`用户「${row.name}」已${row.status === '1' ? '禁用' : '启用'}！`)
       loadUserList() // 重新加载列表
     })
   }).catch(() => {
@@ -381,7 +386,7 @@ const resetPassword = (row) => {
       type: 'warning'
     }
   ).then(() => {
-    resetPasswordApi(row.id).then(() => {
+    resetPasswordApi(row.userId).then(() => {
       ElMessage.success(`用户「${row.name}」密码已重置！`)
     })
   }).catch(() => {
@@ -404,10 +409,9 @@ const handleLogout = () => {
     }
   ).then(() => {
     // 清空本地存储中的登录相关数据
-    localStorage.removeItem('token')
-    localStorage.removeItem('userInfo')
-    sessionStorage.removeItem('token')
-    sessionStorage.removeItem('userInfo')
+    localStorage.removeItem('admin-token')
+    localStorage.removeItem('admin-refreshToken')
+    localStorage.removeItem('admin-userInfo')
 
     // 跳转到登录页面并防止通过浏览器返回按钮返回
     router.replace('/login')

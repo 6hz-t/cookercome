@@ -62,6 +62,16 @@ public class ChefDishController {
         if (chefDish.getIsFeatured() == null) {
             chefDish.setIsFeatured(0);
         }
+        if (chefDish.getDishType() == null) {
+            chefDish.setDishType("");
+        }
+        if (chefDish.getDescription() == null) {
+            chefDish.setDescription("");
+        }
+        // 如果没有设置 userId，默认使用测试厨师 ID（实际应该从 Token 中获取）
+        if (chefDish.getUserId() == null) {
+            chefDish.setUserId(2L);
+        }
         chefDishService.save(chefDish);
         return Result.success(chefDish);
     }

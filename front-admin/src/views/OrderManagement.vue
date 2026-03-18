@@ -56,10 +56,10 @@
       </div>
       <div class="sidebar-footer">
         <div class="user-info">
-          <el-avatar :size="32" src="https://img.yzcdn.cn/vant/cat.jpeg"></el-avatar>
+          <el-avatar :size="32" :src="adminInfo.avatar || 'https://img.yzcdn.cn/vant/cat.jpeg'"></el-avatar>
           <div class="user-text">
-            <div class="user-name">超级管理员</div>
-            <div class="user-id">ID: 10001</div>
+            <div class="user-name">{{ adminInfo.realName || '管理员' }}</div>
+            <div class="user-id">ID: {{ adminInfo.userId || '-' }}</div>
           </div>
         </div>
       </div>
@@ -210,9 +210,14 @@ import {
 import { ElMessageBox, ElMessage } from 'element-plus'
 // 引入订单管理接口
 import { getOrderList, forceCancelOrder as forceCancelOrderApi } from '@/api/order'
+// 引入管理员信息 composable
+import { useAdminInfo } from '@/composables/useAdminInfo'
 
 // 创建路由器实例
 const router = useRouter()
+
+// 管理员信息
+const { adminInfo } = useAdminInfo()
 
 // 当前激活菜单
 const activeMenu = ref('order')
@@ -269,9 +274,9 @@ const loadOrderList = () => {
     startDate: dateRange.value ? dateRange.value[0] : null,
     endDate: dateRange.value ? dateRange.value[1] : null
   }).then(res => {
-    if (res.data) {
-      orderList.value = res.data.records || []
-      total.value = res.data.total || 0
+    if (res) {
+      orderList.value = res.records || []
+      total.value = res.total || 0
     }
   }).catch(() => {
     orderList.value = []
@@ -410,10 +415,9 @@ const handleLogout = async () => {
       }
     )
 
-    localStorage.removeItem('token')
-    localStorage.removeItem('userInfo')
-    sessionStorage.removeItem('token')
-    sessionStorage.removeItem('userInfo')
+    localStorage.removeItem('admin-token')
+    localStorage.removeItem('admin-refreshToken')
+    localStorage.removeItem('admin-userInfo')
 
     router.replace('/login')
 

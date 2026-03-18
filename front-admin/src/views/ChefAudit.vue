@@ -56,10 +56,10 @@
       </div>
       <div class="sidebar-footer">
         <div class="user-info">
-          <el-avatar :size="32" src="https://img.yzcdn.cn/vant/cat.jpeg"></el-avatar>
+          <el-avatar :size="32" :src="adminInfo.avatar || 'https://img.yzcdn.cn/vant/cat.jpeg'"></el-avatar>
           <div class="user-text">
-            <div class="user-name">超级管理员</div>
-            <div class="user-id">ID: 10001</div>
+            <div class="user-name">{{ adminInfo.realName || '管理员' }}</div>
+            <div class="user-id">ID: {{ adminInfo.userId || '-' }}</div>
           </div>
         </div>
       </div>
@@ -191,6 +191,8 @@ import { ElMessageBox, ElMessage, ElInput } from 'element-plus'
 import { getDashboardStats } from '@/api/dashboard'
 // 引入厨师审核接口
 import { getChefAuditList, auditChef as auditChefApi } from '@/api/chef'
+// 引入管理员信息 composable
+import { useAdminInfo } from '@/composables/useAdminInfo'
 
 // 创建路由器实例
 const router = useRouter()
@@ -200,6 +202,9 @@ const activeMenu = ref('chef')
 
 // 当前日期（动态获取）
 const currentDate = ref('')
+
+// 管理员信息
+const { adminInfo } = useAdminInfo()
 
 // 格式化日期为 YYYY 年 MM 月 DD 日
 const formatDate = (date) => {
@@ -223,9 +228,9 @@ let refreshTimer = null
 // 加载统计数据
 const loadStats = () => {
   getDashboardStats().then(res => {
-    if (res.data) {
+    if (res) {
       stats.value = {
-        pendingChefs: res.data.pendingChefs || 0
+        pendingChefs: res.pendingChefs || 0
       }
     }
   }).catch(() => {
@@ -254,9 +259,9 @@ const loadChefList = () => {
     keyword: searchKeyword.value,
     auditStatus: filterStatus.value === '' ? null : parseInt(filterStatus.value)
   }).then(res => {
-    if (res.data) {
-      chefList.value = res.data.records || []
-      total.value = res.data.total || 0
+    if (res) {
+      chefList.value = res.records || []
+      total.value = res.total || 0
     }
   }).catch(() => {
     chefList.value = []
@@ -397,10 +402,9 @@ const handleLogout = async () => {
     )
 
     // 清空本地存储中的登录相关数据
-    localStorage.removeItem('token')
-    localStorage.removeItem('userInfo')
-    sessionStorage.removeItem('token')
-    sessionStorage.removeItem('userInfo')
+    localStorage.removeItem('admin-token')
+    localStorage.removeItem('admin-refreshToken')
+    localStorage.removeItem('admin-userInfo')
 
     // 跳转到登录页面并防止通过浏览器返回按钮返回
     router.replace('/login')

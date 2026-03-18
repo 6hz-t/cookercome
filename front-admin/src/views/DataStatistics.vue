@@ -56,10 +56,10 @@
       </div>
       <div class="sidebar-footer">
         <div class="user-info">
-          <el-avatar :size="32" src="https://img.yzcdn.cn/vant/cat.jpeg"></el-avatar>
+          <el-avatar :size="32" :src="adminInfo.avatar || 'https://img.yzcdn.cn/vant/cat.jpeg'"></el-avatar>
           <div class="user-text">
-            <div class="user-name">超级管理员</div>
-            <div class="user-id">ID: 10001</div>
+            <div class="user-name">{{ adminInfo.realName || '管理员' }}</div>
+            <div class="user-id">ID: {{ adminInfo.userId || '-' }}</div>
           </div>
         </div>
       </div>
@@ -138,7 +138,7 @@
             </div>
           </div>
 
-          <div ref="chartRef" class="chart" style="height: 400px;"></div>
+          <div ref="chartRef" class="chart" style="height: 400px;" v-loading="loading"></div>
         </el-card>
 
         <!-- 操作按钮 -->
@@ -165,9 +165,14 @@ import { ElMessageBox, ElMessage } from 'element-plus'
 import * as echarts from 'echarts'
 // 引入统计接口
 import { getStatistics as getStatisticsApi } from '@/api/statistics'
+// 引入管理员信息 composable
+import { useAdminInfo } from '@/composables/useAdminInfo'
 
 // 创建路由器实例
 const router = useRouter()
+
+// 管理员信息
+const { adminInfo } = useAdminInfo()
 
 // 当前激活菜单
 const activeMenu = ref('stats')
@@ -221,23 +226,25 @@ const growthClass = (rate) => {
 const loadStatistics = () => {
   loading.value = true
   getStatisticsApi(timeRange.value).then(res => {
-    if (res.data) {
+    if (res) {
       statistics.value = {
-        userCount: res.data.userCount || 0,
-        userGrowthRate: res.data.userGrowthRate || 0,
-        chefCount: res.data.chefCount || 0,
-        chefGrowthRate: res.data.chefGrowthRate || 0,
-        orderCount: res.data.orderCount || 0,
-        orderGrowthRate: res.data.orderGrowthRate || 0,
-        dates: res.data.dates || [],
-        newUserCounts: res.data.newUserCounts || [],
-        newChefCounts: res.data.newChefCounts || [],
-        newOrderCounts: res.data.newOrderCounts || []
+        userCount: res.userCount || 0,
+        userGrowthRate: res.userGrowthRate || 0,
+        chefCount: res.chefCount || 0,
+        chefGrowthRate: res.chefGrowthRate || 0,
+        orderCount: res.orderCount || 0,
+        orderGrowthRate: res.orderGrowthRate || 0,
+        dates: res.dates || [],
+        newUserCounts: res.newUserCounts || [],
+        newChefCounts: res.newChefCounts || [],
+        newOrderCounts: res.newOrderCounts || []
       }
       renderChart()
+      ElMessage.success(`加载${timeRange.value}天数据成功`)
     }
-  }).catch(() => {
-    ElMessage.error('加载统计数据失败')
+  }).catch((err) => {
+    console.error('加载统计数据失败:', err)
+    ElMessage.error('加载统计数据失败，请稍后重试')
   }).finally(() => {
     loading.value = false
   })
@@ -376,10 +383,9 @@ const handleLogout = async () => {
       }
     )
 
-    localStorage.removeItem('token')
-    localStorage.removeItem('userInfo')
-    sessionStorage.removeItem('token')
-    sessionStorage.removeItem('userInfo')
+    localStorage.removeItem('admin-token')
+    localStorage.removeItem('admin-refreshToken')
+    localStorage.removeItem('admin-userInfo')
 
     router.replace('/login')
 
