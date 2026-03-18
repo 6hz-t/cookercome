@@ -15,16 +15,46 @@ export interface ChefListParams {
  */
 export interface ChefInfo {
   id: number
-  userId: number
+  userId: string
   realName: string
-  level: number
-  serviceCount: number
-  basePrice: number
-  introduction: string
   gender: number
+  chefLevel: number
+  experienceYears: number
+  completedOrders: number
+  minPrice: number
+  introduction: string
   phone: string
   avatarUrl: string
-  workYears: number
+}
+
+/**
+ * 地址信息接口
+ */
+export interface UserAddress {
+  id: number
+  userId: number
+  receiver: string
+  phone: string
+  province: string
+  city: string
+  district: string
+  detailAddress: string
+  latitude?: number
+  longitude?: number
+  isDefault: number
+}
+
+/**
+ * 订单创建请求参数
+ */
+export interface OrderCreateParams {
+  chefId: number
+  addressId: number
+  reserveDate: string
+  reserveTime: string
+  dishRequirements?: string
+  totalAmount: number
+  remark?: string
 }
 
 /**
@@ -60,5 +90,87 @@ export function getNearbyChefs(longitude: number, latitude: number, radius = 10)
       latitude,
       radius
     }
+  })
+}
+
+/**
+ * 订单信息接口
+ */
+export interface OrderInfo {
+  id: number
+  orderNo: string
+  chefId: number
+  chefName?: string
+  chefAvatar?: string
+  chefLevel?: number
+  addressId: number
+  reserveDate: string
+  reserveTime: string
+  dishRequirements?: string
+  totalAmount: number
+  status: number
+  remark?: string
+  createTime: string
+}
+
+/**
+ * 订单分类类型
+ */
+export type OrderCategory = 'all' | 'pending' | 'payment' | 'fulfillment' | 'refunding' | 'history'
+
+/**
+ * 订单操作类型
+ */
+export type OrderActionType = 'cancel' | 'pay' | 'refund'
+
+/**
+ * 订单操作请求参数
+ */
+export interface OrderActionParams {
+  orderId: number
+  actionType: OrderActionType
+  reason?: string
+}
+
+/**
+ * 获取用户地址列表
+ */
+export function getUserAddresses() {
+  return request({
+    url: '/customer/addresses',
+    method: 'get'
+  })
+}
+
+/**
+ * 创建订单
+ */
+export function createOrder(params: OrderCreateParams) {
+  return request({
+    url: '/customer/order/create',
+    method: 'post',
+    data: params
+  })
+}
+
+/**
+ * 获取用户订单列表
+ */
+export function getUserOrders(category: OrderCategory = 'all') {
+  return request({
+    url: '/customer/orders',
+    method: 'get',
+    params: { category }
+  })
+}
+
+/**
+ * 操作订单（取消、支付、退款）
+ */
+export function actionOrder(params: OrderActionParams) {
+  return request({
+    url: '/customer/order/action',
+    method: 'post',
+    data: params
   })
 }

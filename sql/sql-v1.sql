@@ -35,29 +35,23 @@ DROP TABLE IF EXISTS `t_chef_info`;
 CREATE TABLE `t_chef_info` (
   `id` bigint NOT NULL AUTO_INCREMENT COMMENT '厨师信息 ID',
   `user_id` bigint NOT NULL COMMENT '关联用户 ID（逻辑外键：t_user.id）',
-  `real_name` varchar(50) DEFAULT '' COMMENT '厨师真实姓名',
-  `gender` tinyint DEFAULT 0 COMMENT '性别：0-未知，1-男，2-女',
-  `id_card_no` varchar(18) DEFAULT '' COMMENT '身份证号码（18 位）',
-  `phone` varchar(20) DEFAULT '' COMMENT '手机号（支持国际号码）',
   `id_card_front` varchar(255) DEFAULT '' COMMENT '身份证正面照 URL',
   `id_card_back` varchar(255) DEFAULT '' COMMENT '身份证背面照 URL',
-  `detail_address` varchar(255) DEFAULT '' COMMENT '详细地址（街道、门牌号等）',
-  `avatar_url` varchar(255) DEFAULT '' COMMENT '厨师头像 URL',
-  `qualification_url` varchar(500) DEFAULT '' COMMENT '厨师资质证书 URL',
   `experience_years` tinyint DEFAULT 0 COMMENT '烹饪年限',
   `introduction` text COMMENT '厨师简介',
   `audit_status` tinyint NOT NULL DEFAULT 0 COMMENT '审核状态：0-待审核，1-审核通过，2-审核拒绝',
   `audit_remark` varchar(255) DEFAULT '' COMMENT '审核备注',
-  `latitude` decimal(10,8) DEFAULT NULL COMMENT '常驻位置纬度（-90~90）',
-  `longitude` decimal(11,8) DEFAULT NULL COMMENT '常驻位置经度（-180~180）',
-  `status` tinyint DEFAULT 1 COMMENT '状态：0-禁用，1-启用',
+  `latitude` decimal(10,8) DEFAULT NULL COMMENT '常驻位置纬度',
+  `longitude` decimal(11,8) DEFAULT NULL COMMENT '常驻位置经度',
+  `service_radius` int NOT NULL DEFAULT 5000 COMMENT '服务半径（米）',
+  `price_per_meal` decimal(10,2) DEFAULT 0.00 COMMENT '每餐基础定价',
+  `service_status` tinyint NOT NULL DEFAULT 0 COMMENT '服务状态：0-休息，1-可接单',
   `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
   `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
   PRIMARY KEY (`id`),
   UNIQUE KEY `uk_user_id` (`user_id`) COMMENT '一个用户仅一条厨师信息',
-  KEY `idx_user_id` (`user_id`) COMMENT '查询厨师信息',
-  KEY `idx_audit_status` (`audit_status`) COMMENT '审核状态索引，筛选已审核厨师',
-  KEY `idx_chef_location` (`latitude`, `longitude`) COMMENT '地理位置索引，用于附近厨师匹配'
+  KEY `idx_chef_location` (`latitude`, `longitude`) COMMENT '地理位置索引，用于附近厨师匹配',
+  KEY `idx_audit_status` (`audit_status`) COMMENT '审核状态索引，筛选已审核厨师'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='厨师专属信息表';
 
 -- ============================================
@@ -246,8 +240,8 @@ INSERT INTO `t_user` (`username`, `password`, `role`) VALUES
 ('customer_test', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iDJqpL0K0yMlS0M5D5qXJQJQJQJQ', 0);
 
 -- 厨师信息扩展数据
-INSERT INTO `t_chef_info` (`user_id`, `real_name`, `gender`, `experience_years`, `introduction`, `audit_status`, `status`) VALUES
-(2, '张大厨', 1, 15, '从事川菜烹饪 15 年，擅长水煮鱼、麻婆豆腐等经典菜品', 1, 1);
+INSERT INTO `t_chef_info` (`user_id`, `real_name`, `gender`, `phone`, `detail_address`, `avatar_url`, `qualification_url`, `experience_years`, `chef_level`, `min_price`, `completed_orders`, `introduction`, `audit_status`, `latitude`, `longitude`, `status`) VALUES
+(2, '张大厨', 1, '13800138001', '四川省成都市高新区天府大道 100 号', 'chefs/avatar/zhangdachuf.jpg', 'chefs/qualification/zhangdachuf_cert.jpg', 15, 4, 200.00, 50, '从事川菜烹饪 15 年，擅长水煮鱼、麻婆豆腐等经典菜品', 1, 30.57269312, 104.06670380, 1);
 
 -- 客户信息扩展数据
 INSERT INTO `t_customer_info` (`user_id`, `real_name`, `gender`, `email`) VALUES

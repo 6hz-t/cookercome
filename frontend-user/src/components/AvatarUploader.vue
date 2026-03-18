@@ -7,7 +7,7 @@
         :src="displaySrc" 
         fit="cover" 
         class="user-avatar"
-        @error="handleImageError"
+        @error="handleImageErrorIgnore"
       />
       
       <!-- 悬停时显示上传按钮 -->
@@ -63,27 +63,28 @@ const emit = defineEmits<{
 
 // 显示头像（直接使用后端返回的 URL，不做任何处理）
 const displaySrc = computed(() => {
-  // 如果加载失败，显示默认头像
-  if (hasError.value) {
-    return defaultAvatar
-  }
+  console.log('displaySrc 计算属性被触发')
+  console.log('props.modelValue:', props.modelValue)
+  
   // 如果有头像 URL，直接使用（后端已经处理好签名）
   if (props.modelValue) {
+    console.log('✅ 显示上传的头像 URL')
     return props.modelValue
   }
   // 否则使用默认头像
+  console.log('没有头像 URL，显示默认头像')
   return defaultAvatar
 })
 
 // 文件输入引用
 const fileInput = ref<HTMLInputElement | null>(null)
 const uploading = ref(false)
-const hasError = ref(false)  // 图片加载是否失败
+// const hasError = ref(false)  // 图片加载是否失败 - 已移除
 
-// 处理图片加载错误（显示默认头像）
-const handleImageError = (e: Event) => {
-  // 加载失败时使用默认头像
-  hasError.value = true
+// 忽略图片加载错误（不显示默认头像，直接显示 URL）
+const handleImageErrorIgnore = (e: Event) => {
+  console.warn('⚠️ 图片加载失败，但不显示默认头像:', e)
+  // 不做任何处理，让 displaySrc 继续返回原始 URL
 }
 
 // 触发文件选择
@@ -123,11 +124,15 @@ const uploadFile = async (file: File) => {
     const response = await uploadAvatar(file)
     const { fullUrl, relativePath } = response.data
     
+    console.log('头像上传成功，后端返回:')
+    console.log('- fullUrl:', fullUrl)
+    console.log('- relativePath:', relativePath)
+    
     // 通知父组件更新显示（使用完整 URL）
     emit('update:modelValue', fullUrl)
     emit('success', fullUrl, relativePath)
     
-    ElMessage.success('头像上传成功')
+    // 不在这里显示提示，由父组件统一处理
     
   } catch (error: any) {
     ElMessage.error('上传失败：' + (error.message || '请重试'))

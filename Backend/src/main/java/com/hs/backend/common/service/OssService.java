@@ -78,7 +78,14 @@ public class OssService {
             
             ossClient.putObject(putObjectRequest);
             
-            String fullUrl = ossConfig.getFullUrl(relativePath);
+            // 生成预签名 URL（30 天有效期）
+            Date expiration = new Date(System.currentTimeMillis() + 30L * 24 * 60 * 60 * 1000);
+            java.net.URL presignedUrl = ossClient.generatePresignedUrl(
+                ossConfig.getBucketName(),
+                relativePath,
+                expiration
+            );
+            String fullUrl = presignedUrl.toString();
             
             Map<String, String> result = new HashMap<>();
             result.put("relativePath", relativePath);

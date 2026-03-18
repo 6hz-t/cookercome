@@ -1,14 +1,21 @@
 package com.hs.backend.controller;
 
 import com.hs.backend.common.Result;
+import com.hs.backend.common.exception.BusinessException;
+import com.hs.backend.dto.request.OrderCreateRequest;
+import com.hs.backend.dto.request.OrderActionRequest;
+import com.hs.backend.dto.OrderDTO;
 import com.hs.backend.entity.CustomerInfo;
 import com.hs.backend.entity.UserAddress;
+import com.hs.backend.service.CustomerOrderService;
+import com.hs.backend.service.CustomerOrderQueryService;
 import com.hs.backend.service.CustomerPersonalCenterService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.validation.Valid;
 import java.security.Principal;
 import java.util.List;
 
@@ -23,9 +30,15 @@ import java.util.List;
 public class CustomerController {
 
     private final CustomerPersonalCenterService personalCenterService;
+    private final CustomerOrderService customerOrderService;
+    private final CustomerOrderQueryService customerOrderQueryService;
 
-   public CustomerController(CustomerPersonalCenterService personalCenterService) {
+   public CustomerController(CustomerPersonalCenterService personalCenterService, 
+                            CustomerOrderService customerOrderService,
+                            CustomerOrderQueryService customerOrderQueryService) {
         this.personalCenterService = personalCenterService;
+        this.customerOrderService = customerOrderService;
+        this.customerOrderQueryService = customerOrderQueryService;
     }
 
     /**
@@ -124,5 +137,53 @@ public class CustomerController {
         Long userId = getCurrentUserId(principal);
         java.util.Map<String, Object> stats = personalCenterService.getPersonalCenterStats(userId);
         return Result.success(stats);
+    }
+
+    /**
+     * 创建订单
+     */
+    @PostMapping("/order/create")
+    @Operation(summary = "创建订单", description = "客户预约厨师，创建新订单")
+    public Result<String> createOrder(@Valid @RequestBody OrderCreateRequest request, Principal principal) {
+        // 从 Principal 中获取当前登录用户 ID
+        Long userId = getCurrentUserId(principal);
+        String orderNo = customerOrderService.createOrder(userId, request);
+        return Result.success(orderNo);
+    }
+
+    /**
+     * 获取用户订单列表
+     */
+    @GetMapping("/orders")
+    @Operation(summary = "获取用户订单列表", description = "支持分类查询：all-全部 pending-预约中 payment-待支付 fulfillment-待履约 history-历史订单")
+    public Result<List<OrderDTO>> getUserOrders(
+            @RequestParam(defaultValue = "all") String category,
+            Principal principal) {
+        Long userId = getCurrentUserId(principal);
+        List<OrderDTO> orders = customerOrderQueryService.getUserOrders(userId, category);
+        return Result.success(orders);
+    }
+
+    /**
+     * 操作订单（取消、支付、退款）
+     */
+    @PostMapping("/order/action")
+    @Operation(summary = "操作订单", description = "操作类型：cancel-取消订单，pay-支付订单，refund-申请退款")
+    public Result<String> actionOrder(@Valid @RequestBody OrderActionRequest request, Principal principal) {
+        Long userId = getCurrentUserId(principal);
+        
+        switch (request.getActionType()) {
+            case "cancel":
+                customerOrderQueryService.cancelOrder(userId, request.getOrderId(), request.getReason());
+                return Result.success("订单已取消");
+            case "pay":
+                customerOrderQueryService.payOrder(userId, request.getOrderId());
+                return Result.success("订单已支付");
+            case "refund":
+                customerOrderQueryService.refundOrder(userId, request.getOrderId(), request.getReason());
+                return Result.success("退款申请已提交");
+            default:
+                throw new BusinessException("不支持的操作类型");
+        }
     }
 }

@@ -220,8 +220,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import {Medal, Star, Trophy, User, ArrowRight} from "@element-plus/icons-vue"
 import { getUserInfo } from '@/utils/token'
 import { getUserAvatar, updateUserAvatar } from '@/utils/avatar'
-import axios from 'axios'
-import { getAccessToken } from '@/utils/token'
+import request from '@/utils/request'
 
 // 用户头像（从缓存获取，与服务中心保持一致）
 const userAvatar = ref('')
@@ -229,16 +228,11 @@ const userAvatar = ref('')
 // 从后端获取最新用户头像（优先从 Redis 读取）
 const loadUserAvatar = async () => {
   try {
-    const token = getAccessToken()
-    if (!token) return
-    // 调用后端 API 获取最新用户信息（后端会先从 Redis 读取）
-    const response = await axios.get('/api/customer/settings/profile', {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    })
-    if (response.data && response.data.code === 200 && response.data.data) {
-      const userData = response.data.data
+    // 使用封装的 request，会自动携带 token 并处理 401 刷新
+    const response = await request.get('/customer/settings/profile')
+    
+    if (response && response.data) {
+      const userData = response.data
       // 更新本地缓存
       if (userData.avatar) {
         updateUserAvatar(userData.avatar)
@@ -250,6 +244,7 @@ const loadUserAvatar = async () => {
       userAvatar.value = getUserAvatar()
     }
   } catch (error) {
+    // request 拦截器已经处理了 401 刷新逻辑，这里只需要兜底
     console.error('加载用户头像失败:', error)
     // 如果请求失败，使用本地缓存
     const userInfo = getUserInfo()

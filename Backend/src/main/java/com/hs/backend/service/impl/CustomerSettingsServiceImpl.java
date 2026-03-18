@@ -6,7 +6,6 @@ import com.hs.backend.dto.request.CustomerAddressRequest;
 import com.hs.backend.dto.request.SettingsProfileUpdateRequest;
 import com.hs.backend.entity.CustomerInfo;
 import com.hs.backend.common.exception.BusinessException;
-import com.hs.backend.entity.Order;
 import com.hs.backend.entity.User;
 import com.hs.backend.entity.UserAddress;
 import com.hs.backend.mapper.CustomerInfoMapper;
@@ -50,12 +49,6 @@ public class CustomerSettingsServiceImpl implements CustomerSettingsService {
     
     @Autowired
     private OSS ossClient;
-    
-    @Autowired
-    private com.hs.backend.mapper.OrderMapper ordersMapper;
-    
-    @Autowired
-    private com.hs.backend.mapper.ReviewMapper reviewMapper;
 
     @Value("${aliyun.oss.bucket-name}")
     private String bucketName;
@@ -120,9 +113,6 @@ public class CustomerSettingsServiceImpl implements CustomerSettingsService {
             customerInfo.setTotalSpent(java.math.BigDecimal.ZERO);
             customerInfoMapper.insert(customerInfo);
             
-            // 计算订单统计数据
-            calculateAndSetOrderStats(customerInfo, userId);
-            
             // 缓存新创建的记录
             try {
                 redisUtils.set(cacheKey, customerInfo, userInfoTtl, TimeUnit.MINUTES);
@@ -135,9 +125,6 @@ public class CustomerSettingsServiceImpl implements CustomerSettingsService {
             if (user != null) {
                 customerInfo.setPhone(user.getPhone());
             }
-            
-            // 计算订单统计数据（每次刷新缓存）
-            calculateAndSetOrderStats(customerInfo, userId);
             
             // 头像处理：将相对路径转换为完整 URL
             String avatar = customerInfo.getAvatar();
@@ -498,42 +485,6 @@ public class CustomerSettingsServiceImpl implements CustomerSettingsService {
             log.debug("[缓存失效] 用户地址列表已删除 userId={}, cacheKey={}", userId, cacheKey);
         } catch (Exception e) {
             log.warn("Redis 删除缓存失败：{}", e.getMessage());
-        }
-    }
-
-    /**
-     * 计算并设置订单统计数据
-     */
-    private void calculateAndSetOrderStats(CustomerInfo customerInfo, Long userId) {
-        try {
-            // 定义订单状态分类
-            // 已完成订单：服务完成 (4) + 已退款 (7)
-            java.util.List<Integer> completedStatuses = java.util.Arrays.asList(4, 7);
-            
-            // 查询总订单数
-            Long totalOrders = ordersMapper.selectCount(
-                new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<Order>()
-                    .eq("user_id", userId)
-            );
-            
-            // 查询已完成订单数
-            Long completedOrders = ordersMapper.selectCount(
-                new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<Order>()
-                    .eq("user_id", userId)
-                    .in("status", completedStatuses)
-            );
-            
-            // 设置到对象中
-            customerInfo.setTotalOrders(totalOrders.intValue());
-            customerInfo.setCompletedOrders(completedOrders.intValue());
-            
-            log.debug("订单统计计算完成 userId={}, totalOrders={}, completedOrders={}", 
-                userId, totalOrders, completedOrders);
-        } catch (Exception e) {
-            log.warn("计算订单统计失败：{}", e.getMessage());
-            // 设置默认值
-            if (customerInfo.getTotalOrders() == null) customerInfo.setTotalOrders(0);
-            if (customerInfo.getCompletedOrders() == null) customerInfo.setCompletedOrders(0);
         }
     }
     
