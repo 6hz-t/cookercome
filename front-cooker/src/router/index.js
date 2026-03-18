@@ -6,6 +6,7 @@ import CookerHomeView from '../views/cookerviews/CookerHome.vue'
 import CookerLoginView from '../views/cookerviews/CookerLogin.vue'
 import IndexView from '../views/index.vue'
 import CookerTodoView from '../views/cookerviews/CookerTodo.vue'
+import CookerServingView from '../views/cookerviews/CookerServing.vue'
 import CookerMessageView from '../views/cookerviews/CookerMessage.vue'
 import CookerOrderView from '../views/cookerviews/CookerOrders.vue'
 import CookerDeskView from '../views/cookerviews/CookerDesk.vue'
@@ -43,6 +44,11 @@ const routes = [{
             path: 'todo',
             name: 'cookertodo',
             component: CookerTodoView
+        },
+        {
+            path: 'serving',
+            name: 'cookerserving',
+            component: CookerServingView
         },
         {
             path: 'profile',

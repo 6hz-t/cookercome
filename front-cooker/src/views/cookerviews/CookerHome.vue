@@ -38,7 +38,7 @@ export default {
       activeIndex: '1',
       activeIndex2: '1',
       routeMap: {
-        '1': '/cooker/todo',      // 待处理
+        '1': '/cooker/todo',      // 待接单
         '2': '/cooker/desk',      // 我的工作台
         '3': '/cooker/message',   // 消息中心
         '4': '/cooker/orders'     // 订单管理

@@ -28,7 +28,7 @@
 
     <!-- 数据统计卡片 -->
     <section class="stats">
-      <div class="stats-card" v-for="(item, index) in statsData" :key="index">
+      <div class="stats-card" v-for="(item, index) in statsData" :key="index" @click="handleStatsClick(index)" style="cursor: pointer;">
         <div class="stats-icon" :style="{ background: item.color }">
           {{ item.icon }}
         </div>
@@ -103,11 +103,12 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
-import { 
-  UserFilled, 
-  Menu, 
-  Money, 
+import {
+  UserFilled,
+  Menu,
+  Money,
   TrendCharts,
   User,
   Food,
@@ -118,6 +119,8 @@ import {
   Document,
   DataAnalysis
 } from '@element-plus/icons-vue'
+
+const router = useRouter()
 
 // 响应式数据
 const chefName = ref('王师傅')
@@ -169,7 +172,7 @@ const handleStatusChange = (val) => {
 const handleFuncClick = (item) => {
   switch (item.action) {
     case 'profile':
-      ElMessage.info('进入个人资料页面')
+      router.push('/cooker/profile')
       break
     case 'menu':
       ElMessage.info('进入我的菜单页面')
@@ -178,7 +181,7 @@ const handleFuncClick = (item) => {
       ElMessage.info('进入收入明细页面')
       break
     case 'notice':
-      ElMessage.info('进入消息通知页面')
+      router.push('/cooker/message')
       break
     case 'setting':
       ElMessage.info('进入系统设置页面')
@@ -188,6 +191,20 @@ const handleFuncClick = (item) => {
       break
     default:
       ElMessage.info(`点击了${item.name}`)
+  }
+}
+
+// 统计卡片点击处理
+const handleStatsClick = (index) => {
+  if (index === 1) {
+    // 点击"待服务订单"
+    router.push('/cooker/serving')
+  } else if (index === 0) {
+    // 点击"今日已接订单"
+    router.push('/cooker/serving')
+  } else if (index === 2) {
+    // 点击"今日收入"
+    router.push('/cooker/serving')
   }
 }
 

@@ -29,7 +29,7 @@ chefrequest.interceptors.request.use(
 )
 
 // 响应拦截器
-  chefrequest.interceptors.response.use(
+chefrequest.interceptors.response.use(
   response => {
     return response.data
   },
@@ -42,6 +42,10 @@ chefrequest.interceptors.request.use(
   }
 )
 
+<<<<<<< Updated upstream
 
 
 export default request
+=======
+export default { chefrequest, authrequest }
+>>>>>>> Stashed changes

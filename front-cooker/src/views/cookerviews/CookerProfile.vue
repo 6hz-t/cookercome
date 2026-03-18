@@ -19,17 +19,17 @@
   "qualificationFile": ""
 } -->
         <el-form :model="chef" :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
-            <el-form-item label="姓名" prop="name">
-                <el-input v-model="chef.name" placeholder="请输入姓名"></el-input>
+            <el-form-item label="姓名" prop="relName">
+                <el-input v-model="chef.relName" placeholder="请输入姓名"></el-input>
             </el-form-item>
-            <el-form-item label="性别" prop="sex">
-                <el-radio-group v-model="chef.sex">
-                    <el-radio label="1">男</el-radio>
-                    <el-radio label="0">女</el-radio>
+            <el-form-item label="性别" prop="gender">
+                <el-radio-group v-model="chef.gender">
+                    <el-radio :label="1">男</el-radio>
+                    <el-radio :label="0">女</el-radio>
                 </el-radio-group>
             </el-form-item>
-            <el-form-item label="身份证号" prop="sfzid">
-                <el-input v-model="chef.sfzid" placeholder="请输入身份证号"></el-input>
+            <el-form-item label="身份证号" prop="idCard">
+                <el-input v-model="chef.idCard" placeholder="请输入身份证号"></el-input>
             </el-form-item>
             <el-form-item label="身份证正面">
                 <el-upload class="avatar-uploader" action="https://run.mocky.io/v3/9d059bf9-4660-45f2-925d-ce80ad6c4d15"
@@ -152,8 +152,9 @@ export default {
                 "relName": "张师傅",
                 "phone": "13800138000",
                 "password": "********",
-                "idCardFront": "https://example.com/idcard-front.jpg",
-                "idCardBack": "https://example.com/idcard-back.jpg",
+                "idCard": "",
+                "idCardFront": "",
+                "idCardBack": "",
                 "gender": 1,
                 "address": {
                     "fullAddress": "湖北省武汉市洪山区珞喻路129号",
@@ -179,7 +180,7 @@ export default {
                 "auditStatus": 1
             },
             rules: {
-                name: [
+                relName: [
                     { required: true, message: '请输入姓名', trigger: 'blur' },
                     { min: 2, max: 10, message: '长度在 2 到 10 个字符', trigger: 'blur' }
                 ],
@@ -187,7 +188,7 @@ export default {
                     { required: true, message: '请输入电话号码', trigger: 'blur' },
                     { pattern: /^1[3-9]\d{9}$/, message: '请输入有效的电话号码', trigger: 'blur' }
                 ],
-                sfzid: [
+                idCard: [
                     { required: true, message: '请输入身份证号', trigger: 'blur' },
                     { pattern: /^\d{15}$|^\d{18}$|^\d{17}(\d|X|x)$/, message: '请输入有效的身份证号', trigger: 'blur' }
                 ]
@@ -378,6 +379,11 @@ export default {
 <style scoped>
 .container {
     width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    background-color: #fff;
 }
 
 .avatar-uploader .avatar {

@@ -4,8 +4,16 @@ import authrequest from './request'
 // 厨师登录
 export const login = (data) => authrequest.post('/login', data)
 
+<<<<<<< Updated upstream
 //获取新订单/api/chef/getNewOrders
 export const getNewOrders = () => chefrequest.get('/getNewOrders')
+=======
+// 获取新订单/api/chef/getNewOrders
+export const getNewOrders = () => chefrequest.post('/getNewOrders')
+
+// 接单/api/chef/acceptOrder
+export const acceptOrder = (data) => chefrequest.post('/acceptOrder', data)
+>>>>>>> Stashed changes
 
 // 获取厨师信息
 export const getChefInfo = () => chefrequest.get('/cooker/info')
@@ -49,11 +57,16 @@ export const deleteDish = (id) => chefrequest.delete(`/cooker/dishes/${id}`)
 // 获取待接单列表
 export const getPendingOrders = () => chefrequest.get('/cooker/orders/pending')
 
+<<<<<<< Updated upstream
 // 接单
 export const acceptOrder = (orderId) => chefrequest.post(`/cooker/orders/${orderId}/accept`)
 
 // 拒单
 export const rejectOrder = (orderId, reason) => chefrequest.post(`/cooker/orders/${orderId}/reject`, { reason })
+=======
+// 获取待服务订单列表（已接单但未服务）
+export const getServingOrders = () => chefrequest.get('/cooker/orders/serving')
+>>>>>>> Stashed changes
 
 // 确认服务开始
 export const startService = (orderId) => chefrequest.post(`/cooker/orders/${orderId}/start`)

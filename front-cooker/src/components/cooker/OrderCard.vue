@@ -2,10 +2,6 @@
   <el-card class="order-card">
     <div class="order-header flex-between">
       <span class="order-id">订单编号：{{ order.orderNo || '暂无编号' }}</span>
-<<<<<<< Updated upstream
-=======
-      <!-- 订单总价 -->
->>>>>>> Stashed changes
       <div class="order-total">
         <span class="total-label">订单总价：</span>
         <span class="total-price">¥{{ order.totalprice || '0.00' }}</span>
@@ -13,13 +9,7 @@
     </div>
 
     <div class="customer-info">
-<<<<<<< Updated upstream
-      <span>普通用户</span>
-      <span>{{ order.userphone }}</span>
-=======
       用户:<span>{{ order.username }}</span>
-      
->>>>>>> Stashed changes
     </div>
 
     <div class="order-detail-row">
@@ -46,95 +36,7 @@
 
     <div class="order-actions">
       <button class="refuse-btn" @click="handleRefuse">拒单</button>
-<<<<<<< Updated upstream
       <button class="accept-btn" @click="showAcceptDialog = true">接单</button>
-=======
-
-
-      <button class="accept-btn" @click="handleAccept">接单</button>
-
-
-      <el-dialog
-        v-model="dialogVisible"
-        title="确认接单"
-        width="650px"
-        :close-on-click-modal="false"
-        :close-on-press-escape="false"
-        @close="handleClose"
-        class="accept-dialog"
-      >
-        <div class="dialog-content">
-          <div class="dialog-section">
-            <div class="section-title">订单信息</div>
-            <div class="info-row">
-              <span class="info-label">订单编号：</span>
-              <span class="info-value">{{ order.orderNo }}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">客户姓名：</span>
-              <span class="info-value">{{ order.username }}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">联系电话：</span>
-              <span class="info-value">{{ order.userphone }}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">服务时间：</span>
-              <span class="info-value">{{ order.servetime }}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">服务地址：</span>
-              <span class="info-value">{{ order.serveaddress }}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">订单金额：</span>
-              <span class="info-value price">¥{{ order.totalprice }}</span>
-            </div>
-          </div>
-
-          <div class="dialog-section" v-if="order.requirement">
-            <div class="section-title">特殊要求</div>
-            <div class="requirement-text">{{ order.requirement }}</div>
-          </div>
-
-          <div class="dialog-section">
-            <div class="section-title">接单确认</div>
-            <div class="confirm-tips">
-              <el-alert
-                title="温馨提示"
-                type="warning"
-                :closable="false"
-                show-icon
-              >
-                <template #default>
-                  <p>1. 请确认您能够按时到达服务地点</p>
-                  <p>2. 请提前与客户联系确认服务细节</p>
-                  <p>3. 接单后请按时完成服务</p>
-                </template>
-              </el-alert>
-            </div>
-            <div class="confirm-input">
-              <el-input
-                v-model="remark"
-                type="textarea"
-                :rows="3"
-                placeholder="请输入接单备注（选填）"
-                maxlength="200"
-                show-word-limit
-              ></el-input>
-            </div>
-          </div>
-        </div>
-
-        <template #footer>
-          <span class="dialog-footer">
-            <el-button @click="handleCancel">取消</el-button>
-            <el-button type="primary" @click="handleConfirm" :loading="submitting">确认接单</el-button>
-          </span>
-        </template>
-      </el-dialog>
-    
->>>>>>> Stashed changes
     </div>
 
     <!-- 优化布局但保留原配色的接单确认弹窗 -->
@@ -248,63 +150,27 @@ export default {
   },
   data() {
     return {
-<<<<<<< Updated upstream
       showAcceptDialog: false,
-      showRequirement: true, // 控制定制要求折叠
-=======
-      showRequirement: false,
-      dialogVisible: false,
->>>>>>> Stashed changes
+      showRequirement: true,
       remark: '',
       submitting: false
     }
   },
   methods: {
-<<<<<<< Updated upstream
-    handleRefuse() { // 修正方法名不匹配问题
+    handleRefuse() {
       this.$emit('reject', this.order);
     },
     handleConfirmAccept() {
       this.submitting = true;
-=======
-    handleAccept() {
-      this.dialogVisible = true;
-      this.remark = '';
-    },
-    handleReject() {
-      this.$emit('reject', this.order);
-    },
-    handleClose() {
-      this.dialogVisible = false;
-      this.remark = '';
-    },
-    handleCancel() {
-      this.dialogVisible = false;
-      this.remark = '';
-    },
-    handleConfirm() {
-      this.submitting = true;
-      // 触发接单事件，传递订单和备注信息
->>>>>>> Stashed changes
       this.$emit('accept', {
         order: this.order,
         remark: this.remark
       });
-<<<<<<< Updated upstream
       setTimeout(() => {
         this.submitting = false;
         this.showAcceptDialog = false;
-        this.remark = ''; // 重置备注
-      }, 800);
-=======
-      
-      // 模拟异步操作，实际使用时根据接口返回结果处理
-      setTimeout(() => {
-        this.submitting = false;
-        this.dialogVisible = false;
         this.remark = '';
-      }, 500);
->>>>>>> Stashed changes
+      }, 800);
     }
   }
 }
@@ -609,75 +475,4 @@ export default {
   background-color: var(--color-accent);
   --el-button-hover-bg-color: var(--color-accent-hover);
 }
-<<<<<<< Updated upstream
 </style>
-=======
-
-/* 接单弹窗样式 */
-.accept-dialog .dialog-content {
-  padding: 10px 0;
-}
-
-.accept-dialog .dialog-section {
-  margin-bottom: 20px;
-}
-
-.accept-dialog .dialog-section:last-child {
-  margin-bottom: 0;
-}
-
-.accept-dialog .section-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--color-text-primary);
-  margin-bottom: 12px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid var(--color-border-light);
-}
-
-.accept-dialog .info-row {
-  display: flex;
-  margin-bottom: 10px;
-  font-size: 14px;
-}
-
-.accept-dialog .info-label {
-  color: var(--color-text-secondary);
-  min-width: 80px;
-}
-
-.accept-dialog .info-value {
-  color: var(--color-text-primary);
-  flex: 1;
-}
-
-.accept-dialog .info-value.price {
-  color: var(--color-danger);
-  font-size: 18px;
-  font-weight: 600;
-}
-
-.accept-dialog .requirement-text {
-  padding: 10px;
-  background-color: var(--color-bg-soft);
-  border-radius: 4px;
-  font-size: 14px;
-  color: var(--color-text-primary);
-  line-height: 1.6;
-}
-
-.accept-dialog .confirm-tips {
-  margin-bottom: 15px;
-}
-
-.accept-dialog .confirm-tips p {
-  margin: 5px 0;
-  font-size: 13px;
-  color: var(--color-text-secondary);
-}
-
-.accept-dialog .confirm-input {
-  margin-top: 15px;
-}
-</style>
->>>>>>> Stashed changes

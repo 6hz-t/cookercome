@@ -18,9 +18,6 @@ export default {
     },
     data() {
         return {
-<<<<<<< Updated upstream
-            orders: []
-=======
             orders: [
                 {
                     orderNo: '20240315000000001',
@@ -31,7 +28,6 @@ export default {
                     serveaddress: '北京市朝阳区建国路 88 号 SOHO 现代城 1 号楼 2305 室',
                     requirement: '不要放洋葱和香菜，菜品偏清淡，4 人份',
                     totalprice: '156.00',
-
                     status: 'waiting'
                 },
                 {
@@ -43,7 +39,6 @@ export default {
                     serveaddress: '上海市浦东新区张江高科技园区博云路 2 号浦软大厦 4 层',
                     requirement: '特辣口味，优先川菜，需要做一份水煮鱼，6 人份',
                     totalprice: '328.00',
-
                     status: 'waiting'
                 },
                 {
@@ -58,35 +53,48 @@ export default {
                     status: 'waiting'
                 }
             ]
->>>>>>> Stashed changes
         }
     },
     methods: {
         async handleAccept(data) {
-<<<<<<< Updated upstream
-            const { order } = data;
-=======
             const { order, remark } = data;
->>>>>>> Stashed changes
 
-            
-            
             try {
-                // 调用接单API，传递订单ID和厨师ID
+                // 调用接单 API
                 await acceptOrder({
                     orderId: order.orderid,
-                    chefId: localStorage.getItem('userId') // 从localStorage获取厨师ID
+                    chefId: localStorage.getItem('userId')
                 });
-                console.log('接单  orderid:', order.orderid, '厨师ID:', localStorage.getItem('userId'));
+                console.log('接单 orderid:', order.orderid, '厨师 ID:', localStorage.getItem('userId'));
+
+                // 将订单添加到待服务列表
+                const servingOrder = {
+                    orderNo: order.orderNo,
+                    orderid: order.orderid,
+                    status: 'accepted',
+                    username: order.username,
+                    userphone: order.userphone,
+                    servetime: order.servetime,
+                    serveaddress: order.serveaddress,
+                    requirement: order.requirement,
+                    totalprice: order.totalprice,
+                    createTime: new Date().toISOString()
+                };
                 
-                // 接单成功后，从列表中移除该订单
+                // 保存到 localStorage
+                const servingOrders = localStorage.getItem('servingOrders')
+                let orders = servingOrders ? JSON.parse(servingOrders) : []
+                orders.push(servingOrder)
+                localStorage.setItem('servingOrders', JSON.stringify(orders))
+
+                // 从待接单列表中移除
                 this.orders = this.orders.filter(item => item.orderid !== order.orderid);
-                
+
                 // 显示成功提示
                 this.$message.success('接单成功');
             } catch (error) {
                 console.error('接单失败:', error);
-                this.$message.error('接单失败: ' + (error.message || '未知错误'));
+                this.$message.error('接单失败：' + (error.message || '未知错误'));
             }
         }
     },
@@ -105,44 +113,10 @@ export default {
                 serveaddress: order.addressId,
                 requirement: order.dishRequirements,
                 totalprice: order.totalAmount
-
-<<<<<<< Updated upstream
-                
-
             }
         });
         console.log(res.records);
         console.log(this.orders);
-=======
-            }
-        });
->>>>>>> Stashed changes
-        /*
-        * {
-      "id": 2,
-      "orderNo": "20260316100000002",
-      "customerId": 1002,
-      "chefId": 2002,
-      "addressId": 3002,
-      "reserveDate": "2026-03-18T16:00:00.000+00:00",
-      "reserveTime": "17:00-19:00",
-      "dishRequirements": "清淡口味，适合老人",
-      "totalAmount": 398,
-      "status": 1,
-      "paymentTime": "2026-03-16T02:05:30.000+00:00",
-      "serviceStartTime": null,
-      "serviceEndTime": null,
-      "remark": "",
-      "createTime": "2026-03-16T07:31:38.000+00:00",
-      "updateTime": "2026-03-16T07:31:38.000+00:00"
-    }
-        */
-
-
-
-
-
-        //todo: 将接口返回的数据转换成订单列表的格式
     }
 }
 </script>
