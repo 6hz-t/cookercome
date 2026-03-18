@@ -33,10 +33,9 @@ public class AuthController {
     @Operation(summary = "用户注册", description = "新用户通过手机号和密码进行注册")
     public Result<User> register(@Valid @RequestBody RegisterRequest request) {
         User user = userService.register(
-                request.getPhone(),
+                request.getPhone(),  // 使用手机号
                 request.getPassword(),
-                request.getRole(),
-                request.getRealName()  // 传递姓名参数
+                request.getRole()  // 传递角色参数
         );
         return Result.success("注册成功", user);
     }

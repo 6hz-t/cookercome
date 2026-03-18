@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/user-manage")
+@RequestMapping("/user-manage")
 @Tag(name = "用户管理")
 public class UserManageController {
 

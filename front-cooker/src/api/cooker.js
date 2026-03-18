@@ -1,21 +1,11 @@
-import request from './request'
-const { chefrequest, authrequest } = request
+import chefrequest from './request'
+import authrequest from './request'
 
 // 厨师登录
 export const login = (data) => authrequest.post('/login', data)
 
-<<<<<<< Updated upstream
 //获取新订单/api/chef/getNewOrders
-export const getNewOrders = () => chefrequest.post('/getNewOrders')
-
-//接单/api/chef/acceptOrder
-=======
-// 获取新订单
-export const getNewOrders = () => chefrequest.post('/getNewOrders')
-
-//厨师接单 /api/chef/acceptOrder
->>>>>>> Stashed changes
-export const acceptOrder = (data) => chefrequest.post('/acceptOrder', data)
+export const getNewOrders = () => chefrequest.get('/getNewOrders')
 
 // 获取厨师信息
 export const getChefInfo = () => chefrequest.get('/cooker/info')
@@ -59,10 +49,12 @@ export const deleteDish = (id) => chefrequest.delete(`/cooker/dishes/${id}`)
 // 获取待接单列表
 export const getPendingOrders = () => chefrequest.get('/cooker/orders/pending')
 
-<<<<<<< Updated upstream
-=======
+// 接单
+export const acceptOrder = (orderId) => chefrequest.post(`/cooker/orders/${orderId}/accept`)
 
->>>>>>> Stashed changes
+// 拒单
+export const rejectOrder = (orderId, reason) => chefrequest.post(`/cooker/orders/${orderId}/reject`, { reason })
+
 // 确认服务开始
 export const startService = (orderId) => chefrequest.post(`/cooker/orders/${orderId}/start`)
 

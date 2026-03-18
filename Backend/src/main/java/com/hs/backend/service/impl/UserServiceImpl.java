@@ -5,12 +5,10 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hs.backend.common.exception.BusinessException;
 import com.hs.backend.common.config.OssConfig;
 import com.hs.backend.dto.response.AuthResponse;
-import com.hs.backend.entity.AdminInfo;
 import com.hs.backend.entity.CustomerInfo;
 import com.hs.backend.entity.User;
 import com.hs.backend.mapper.UserMapper;
 import com.hs.backend.security.JwtTokenProvider;
-import com.hs.backend.service.AdminInfoService;
 import com.hs.backend.service.CustomerInfoService;
 import com.hs.backend.service.UserService;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -28,37 +26,19 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     private final JwtTokenProvider jwtTokenProvider;
     private final CustomerInfoService customerInfoService;
     private final OssConfig ossConfig;
-    private final AdminInfoService adminInfoService;
 
-    public UserServiceImpl(PasswordEncoder passwordEncoder,
+    public UserServiceImpl(PasswordEncoder passwordEncoder, 
                           JwtTokenProvider jwtTokenProvider,
                           CustomerInfoService customerInfoService,
-                          OssConfig ossConfig,
-                          AdminInfoService adminInfoService) {
+                          OssConfig ossConfig) {
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
         this.customerInfoService = customerInfoService;
         this.ossConfig = ossConfig;
-        this.adminInfoService = adminInfoService;
     }
 
     @Override
     public User register(String phone, String password, Integer role) {
-        return registerWithRealName(phone, password, role, null);
-    }
-
-    /**
-     * 注册用户（支持设置姓名）
-     */
-    @Override
-    public User register(String phone, String password, Integer role, String realName) {
-        return registerWithRealName(phone, password, role, realName);
-    }
-
-    /**
-     * 注册用户（支持设置姓名）- 内部方法
-     */
-    private User registerWithRealName(String phone, String password, Integer role, String realName) {
         // 检查手机号是否存在
         User existingPhone = getByPhone(phone);
         if (existingPhone != null) {
@@ -69,40 +49,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         User user = new User();
         user.setPhone(phone);
         user.setPassword(passwordEncoder.encode(password));
-        user.setRole(role != null ? role : 0);  // 默认为客户
+        user.setRole(role != null ? role : 0);  // 默认为客户（role=0）
         // 手动设置时间（确保不会为 NULL）
         user.setCreateTime(LocalDateTime.now());
         user.setUpdateTime(LocalDateTime.now());
 
         save(user);
-
-        // 根据角色创建对应的信息
-        if (role == 2) {
-            // 管理员：创建 AdminInfo
-            createAdminInfo(user.getId(), realName);
-        } else {
-            // 客户：创建 CustomerInfo
-            String username = realName != null ? realName : "新用户" + user.getId();
-            customerInfoService.createDefaultCustomerInfo(user.getId(), username);
-        }
-
+        
+        // 创建默认客户信息
+        String username = "新用户" + user.getId();
+        customerInfoService.createDefaultCustomerInfo(user.getId(), username);
+        
         return user;
-    }
-
-    /**
-     * 创建管理员信息
-     */
-    private void createAdminInfo(Long userId, String realName) {
-        AdminInfo adminInfo = new AdminInfo();
-        adminInfo.setUserId(userId);
-        adminInfo.setRealName(realName != null ? realName : "管理员");
-        adminInfo.setStatus(1); // 启用状态
-        adminInfo.setCreateTime(LocalDateTime.now());
-        adminInfo.setUpdateTime(LocalDateTime.now());
-        boolean success = adminInfoService.save(adminInfo);
-        if (!success) {
-            throw new BusinessException("创建管理员信息失败");
-        }
     }
 
     @Override
@@ -185,11 +143,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     public void updateUserInfo(User user) {
         updateById(user);
     }
-
+    
     /**
      * 刷新 Token
      */
-    @Override
     public AuthResponse refreshToken(String refreshToken) {
         // 验证 Refresh Token
         if (!jwtTokenProvider.validateToken(refreshToken)) {

@@ -15,15 +15,10 @@ public interface UserService extends IService<User> {
     User register(String phone, String password, Integer role);
 
     /**
-     * 用户注册（支持姓名）
-     */
-    User register(String phone, String password, Integer role, String realName);
-
-    /**
      * 用户登录（返回双 Token）
      */
     AuthResponse login(String phone, String password);
-
+    
     /**
      * 刷新 Token
      */

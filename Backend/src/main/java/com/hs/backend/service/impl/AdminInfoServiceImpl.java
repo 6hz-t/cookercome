@@ -14,7 +14,7 @@ import java.util.List;
 public class AdminInfoServiceImpl extends ServiceImpl<AdminInfoMapper, AdminInfo> implements AdminInfoService {
 
     /*
-    * 根据 userId 查询管理员详情
+    * 根据userId查询管理员详情
     * */
     @Override
     public AdminInfo getByUserId(Long userId) {
@@ -24,7 +24,7 @@ public class AdminInfoServiceImpl extends ServiceImpl<AdminInfoMapper, AdminInfo
     }
 
     /*
-    * 根据 id 更新管理员详情
+    * 根据id更新管理员详情
     * */
     @Override
     public boolean updateById(AdminInfo adminInfo) {
@@ -37,13 +37,5 @@ public class AdminInfoServiceImpl extends ServiceImpl<AdminInfoMapper, AdminInfo
     @Override
     public List<AdminInfo> list(LambdaQueryWrapper<AdminInfo> like) {
         return baseMapper.selectList(like);
-    }
-
-    /*
-    * 保存管理员信息
-    * */
-    @Override
-    public boolean save(AdminInfo adminInfo) {
-        return super.save(adminInfo);
     }
 }
