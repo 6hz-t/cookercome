@@ -63,6 +63,8 @@
         <component
           :is="currentComponent"
           v-bind="currentComponentProps"
+          @book-chef="handleBookChef"
+          @order-created="handleOrderCreated"
         />
       </transition>
     </main>
@@ -278,6 +280,20 @@ const confirmLogout = () => {
   removeToken()
   router.push('/login')
   ElMessage.success('已退出登录')
+}
+
+// 处理预约厨师事件
+const handleBookChef = (chef) => {
+  console.log('预约厨师:', chef)
+  // 这个事件会传递给 BookingChef 组件处理
+}
+
+// 处理订单创建成功事件
+const handleOrderCreated = (orderNo) => {
+  console.log('订单创建成功:', orderNo)
+  // 消息已在 BookingChef 组件中显示，这里不再重复显示
+  // 可以跳转到订单详情页或我的订单页面
+  // navigateTo('orders')
 }
 
 // 加载用户信息

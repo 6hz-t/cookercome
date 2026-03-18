@@ -7,6 +7,7 @@ import com.hs.backend.common.exception.BusinessException;
 import com.hs.backend.entity.ChefInfo;
 import com.hs.backend.mapper.ChefInfoMapper;
 import com.hs.backend.service.ChefInfoService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -16,6 +17,7 @@ import java.util.stream.Collectors;
 /**
  * 厨师服务实现类
  */
+@Slf4j
 @Service
 public class ChefInfoInfoServiceImpl extends ServiceImpl<ChefInfoMapper, ChefInfo> implements ChefInfoService {
 
@@ -25,18 +27,20 @@ public class ChefInfoInfoServiceImpl extends ServiceImpl<ChefInfoMapper, ChefInf
 
         LambdaQueryWrapper<ChefInfo> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(ChefInfo::getAuditStatus, 1)  // 只查询已审核通过的
-                .eq(com.hs.backend.entity.ChefInfo::getOnlineStatus, 1); // 只查询已上架的
+                .eq(ChefInfo::getStatus, 1); // 只查询启用的
 
         if (StringUtils.hasText(specialty)) {
-            wrapper.like(com.hs.backend.entity.ChefInfo::getSpecialty, specialty);
+            // specialty 字段不存在，暂时忽略此条件
+            log.warn("specialty 字段不存在，忽略此搜索条件");
         }
 
         if (level != null) {
-            wrapper.eq(com.hs.backend.entity.ChefInfo::getLevel, level);
+            // 使用 chefLevel 代替 level
+            wrapper.eq(ChefInfo::getChefLevel, level);
         }
 
-        wrapper.orderByDesc(com.hs.backend.entity.ChefInfo::getRating)
-                .orderByDesc(com.hs.backend.entity.ChefInfo::getServiceCount);
+        // 按完成订单数和评分排序（rating 字段不存在，只用完成订单数）
+        wrapper.orderByDesc(ChefInfo::getCompletedOrders);
 
         return page(chefPage, wrapper);
     }
@@ -54,10 +58,10 @@ public class ChefInfoInfoServiceImpl extends ServiceImpl<ChefInfoMapper, ChefInf
     public List<ChefInfo> getNearbyChefs(Double longitude, Double latitude, Integer radius) {
         // 这里简化实现，实际应该使用数据库的空间查询或百度地图 API
         LambdaQueryWrapper<ChefInfo> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(com.hs.backend.entity.ChefInfo::getAuditStatus, 1)
-                .eq(com.hs.backend.entity.ChefInfo::getOnlineStatus, 1)
-                .isNotNull(com.hs.backend.entity.ChefInfo::getLongitude)
-                .isNotNull(com.hs.backend.entity.ChefInfo::getLatitude);
+        wrapper.eq(ChefInfo::getAuditStatus, 1)
+                .eq(ChefInfo::getStatus, 1)
+                .isNotNull(ChefInfo::getLongitude)
+                .isNotNull(ChefInfo::getLatitude);
 
         List<ChefInfo> chefInfos = list(wrapper);
 
@@ -68,14 +72,14 @@ public class ChefInfoInfoServiceImpl extends ServiceImpl<ChefInfoMapper, ChefInf
                         return false;
                     }
                     double distance = calculateDistance(longitude, latitude,
-                            chefInfo.getLongitude(), chefInfo.getLatitude());
+                            chefInfo.getLongitude().doubleValue(), chefInfo.getLatitude().doubleValue());
                     return distance <= radius;
                 })
                 .sorted((c1, c2) -> {
                     double d1 = calculateDistance(longitude, latitude,
-                            c1.getLongitude(), c1.getLatitude());
+                            c1.getLongitude().doubleValue(), c1.getLatitude().doubleValue());
                     double d2 = calculateDistance(longitude, latitude,
-                            c2.getLongitude(), c2.getLatitude());
+                            c2.getLongitude().doubleValue(), c2.getLatitude().doubleValue());
                     return Double.compare(d1, d2);
                 })
                 .collect(Collectors.toList());
@@ -100,11 +104,12 @@ public class ChefInfoInfoServiceImpl extends ServiceImpl<ChefInfoMapper, ChefInf
         }
 
         chefInfo.setAuditStatus(status);
-        if (status == 1) {
-            chefInfo.setOnlineStatus(1); // 审核通过自动上架
-        } else if (status == 2) {
-            chefInfo.setOnlineStatus(0); // 审核拒绝自动下架
-        }
+        // onlineStatus 字段不存在，移除相关代码
+        // if (status == 1) {
+        //     chefInfo.setOnlineStatus(1); // 审核通过自动上架
+        // } else if (status == 2) {
+        //     chefInfo.setOnlineStatus(0); // 审核拒绝自动下架
+        // }
 
         updateById(chefInfo);
     }

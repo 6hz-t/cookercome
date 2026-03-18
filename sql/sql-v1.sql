@@ -240,8 +240,8 @@ INSERT INTO `t_user` (`username`, `password`, `role`) VALUES
 ('customer_test', '$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iDJqpL0K0yMlS0M5D5qXJQJQJQJQ', 0);
 
 -- 厨师信息扩展数据
-INSERT INTO `t_chef_info` (`user_id`, `experience_years`, `introduction`, `audit_status`, `service_radius`, `price_per_meal`, `service_status`) VALUES
-(2, 15, '从事川菜烹饪 15 年，擅长水煮鱼、麻婆豆腐等经典菜品', 1, 5000, 200.00, 1);
+INSERT INTO `t_chef_info` (`user_id`, `real_name`, `gender`, `phone`, `detail_address`, `avatar_url`, `qualification_url`, `experience_years`, `chef_level`, `min_price`, `completed_orders`, `introduction`, `audit_status`, `latitude`, `longitude`, `status`) VALUES
+(2, '张大厨', 1, '13800138001', '四川省成都市高新区天府大道 100 号', 'chefs/avatar/zhangdachuf.jpg', 'chefs/qualification/zhangdachuf_cert.jpg', 15, 4, 200.00, 50, '从事川菜烹饪 15 年，擅长水煮鱼、麻婆豆腐等经典菜品', 1, 30.57269312, 104.06670380, 1);
 
 -- 客户信息扩展数据
 INSERT INTO `t_customer_info` (`user_id`, `real_name`, `gender`, `email`) VALUES

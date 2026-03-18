@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hs.backend.mapper.CustomerFavoriteMapper">
+
+    <!-- 检查是否已收藏 -->
+    <select id="exists" resultType="boolean">
+        SELECT COUNT(*) > 0 
+        FROM t_customer_favorite 
+        WHERE customer_id = #{customerId} AND chef_id = #{chefId}
+    </select>
+
+</mapper>

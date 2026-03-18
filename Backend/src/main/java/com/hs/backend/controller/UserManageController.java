@@ -82,7 +82,9 @@ public class UserManageController {
                 List<ChefInfo> chefList = chefInfoService.list(
                         new LambdaQueryWrapper<ChefInfo>().like(ChefInfo::getRealName, keyword)
                 );
-                matchUserIds.addAll(chefList.stream().map(ChefInfo::getUserId).collect(Collectors.toList()));
+                matchUserIds.addAll(chefList.stream()
+                        .map(chef -> Long.valueOf(chef.getUserId()))
+                        .collect(Collectors.toList()));
 
                 // 搜索客户姓名（CustomerInfo.realName）
                 List<CustomerInfo> customerList = customerInfoService.list(

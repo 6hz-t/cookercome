@@ -22,9 +22,9 @@ public class ChefInfo {
     private Long id;
 
     /**
-     * 关联用户 ID（逻辑外键： t_user.id ）
+     * 关联用户 ID（逻辑外键：t_user.phone）
      */
-    private Long userId;
+    private String userId;
 
     /**
      * 厨师真实姓名
@@ -74,10 +74,25 @@ public class ChefInfo {
     private String qualificationUrl;
 
     /**
-     * 烹饪年限（无负数，用unsigned）
+     * 烹饪年限（无负数，用 unsigned）
      */
     private Integer experienceYears;
-
+    
+    /**
+     * 厨师等级：1-初级厨师，2-中级厨师，3-高级厨师，4-资深厨师，5-特级厨师
+     */
+    private Integer chefLevel;
+    
+    /**
+     * 最低服务价格（元）
+     */
+    private BigDecimal minPrice;
+    
+    /**
+     * 已完成订单数（冗余字段，便于查询）
+     */
+    private Integer completedOrders;
+    
     /**
      * 厨师简介
      */
