@@ -3,6 +3,7 @@ package com.hs.backend.controller;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.hs.backend.common.Result;
 import com.hs.backend.entity.ChefInfo;
+import com.hs.backend.entity.Order;
 import com.hs.backend.service.ChefInfoService;
 import com.hs.backend.vo.ChefAuditVO;
 import io.swagger.v3.oas.annotations.Operation;
@@ -95,4 +96,31 @@ public class ChefController {
         chefInfoService.updateChef(chefInfo);
         return Result.success("更新成功");
     }
+<<<<<<< Updated upstream
+=======
+
+    /**
+     * 审核厨师（仅管理员）
+     */
+    @PostMapping("/audit/{id}")
+    @Operation(summary = "审核厨师", description = "管理员审核厨师资质，可设置通过或拒绝")
+    public Result<String> auditChef(
+            @PathVariable Long id,
+            @RequestParam Integer status,
+            @RequestParam(required = false) String reason
+    ) {
+        chefInfoService.auditChef(id, status, reason);
+        return Result.success("审核成功");
+    }
+
+    /**
+     * 获取厨师待接单列表
+     */
+    @GetMapping("/orders/pending")
+    @Operation(summary = "获取待接单列表", description = "获取当前厨师待接的订单列表")
+    public Result<List<Order>> getPendingOrders() {
+        // TODO: 实现获取待接单列表逻辑
+        return Result.success(List.of());
+    }
+>>>>>>> Stashed changes
 }

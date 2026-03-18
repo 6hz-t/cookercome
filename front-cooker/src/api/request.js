@@ -44,4 +44,9 @@ chefrequest.interceptors.request.use(
 
 
 
+<<<<<<< Updated upstream
 export default {chefrequest, authrequest}
+=======
+
+export default { chefrequest, authrequest } 
+>>>>>>> Stashed changes
