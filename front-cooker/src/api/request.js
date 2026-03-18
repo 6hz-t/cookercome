@@ -44,4 +44,4 @@ chefrequest.interceptors.request.use(
 
 
 
-export default request
+export default {chefrequest, authrequest}

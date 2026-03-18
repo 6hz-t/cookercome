@@ -79,9 +79,7 @@
                     <el-checkbox label="HuiCai">徽菜</el-checkbox>
                 </el-checkbox-group>
             </el-form-item>
-            <el-form-item label="评分">
-                <el-rate v-model="star" disabled text-color="#ff9900" />
-            </el-form-item>
+            
 
             <el-form-item label="执业资质">
                 <el-upload class="upload-demo" drag
@@ -147,24 +145,38 @@ export default {
     },
     data() {
         return {
-            imageUrl: '',
-            star: 3.7,
+            imageUrl: "https://example.com/avatar.jpg",
+            star: 4.8,
             chef: {
-                "username": "",
-                "relName": "",
-                "phone": "",
-                "password": "",
-                "idCardFront": "",
-                "idCardBack": "",
-                "gender": 0,
-                "address": "",
-                "lon": 0,
-                "lat": 0,
-                "introduction": "",
-                "avatar": "",
-                "idCardFrontFile": "",
-                "idCardBackFile": "",
-                "qualificationFile": ""
+                "username": "chef123",
+                "relName": "张师傅",
+                "phone": "13800138000",
+                "password": "********",
+                "idCardFront": "https://example.com/idcard-front.jpg",
+                "idCardBack": "https://example.com/idcard-back.jpg",
+                "gender": 1,
+                "address": {
+                    "fullAddress": "湖北省武汉市洪山区珞喻路129号",
+                    "province": "湖北省",
+                    "city": "武汉市",
+                    "district": "洪山区",
+                    "street": "珞喻路",
+                    "streetNumber": "129号",
+                    "longitude": 114.398833,
+                    "latitude": 30.506859
+                },
+                "lon": 114.398833,
+                "lat": 30.506859,
+                "introduction": "拥有20年烹饪经验，擅长川菜和粤菜，曾获得多项烹饪比赛奖项。注重食材新鲜，烹饪手法独特，深受顾客喜爱。服务态度热情周到，善于根据客户需求定制个性化菜单。",
+                "avatar": "https://example.com/avatar.jpg",
+                "idCardFrontFile": "idcard_front.jpg",
+                "idCardBackFile": "idcard_back.jpg",
+                "qualificationFile": "qualification.pdf",
+                "dishkinds": ["ChuanCai", "YueCai", "LuCai", "SuCai"],
+                "registerTime": "2022-05-15",
+                "status": 0,
+                "score": 4.8,
+                "auditStatus": 1
             },
             rules: {
                 name: [

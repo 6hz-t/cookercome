@@ -3,17 +3,13 @@
         <h3>待接单</h3>
 
         <div class="orders-area">
-            <OrderCard 
-                v-for="order in orders" 
-                :key="order.orderid" 
-                :order="order"
-                @accept="handleAccept"
-            ></OrderCard>
+            <OrderCard v-for="order in orders" :key="order.orderid" :order="order" @accept="handleAccept"></OrderCard>
         </div>
     </div>
 </template>
 <script>
 import OrderCard from '@/components/cooker/OrderCard.vue';
+import { getNewOrders, acceptOrder } from '@/api/cooker';
 
 export default {
     name: 'CookerTodo',
@@ -22,83 +18,105 @@ export default {
     },
     data() {
         return {
-            orders: [
-                {
-                    orderid: 1,
-                    username: '张三',
-                    userphone: '13800138000',
-                    servetime: '2024-03-15 11:00:00',
-                    serveaddress: '北京市朝阳区建国路 88 号 SOHO 现代城 1 号楼 2305 室',
-                    requirement: '不要放洋葱和香菜，菜品偏清淡，4 人份',
-                    totalprice: '156.00',
-                    dishes: [
-                        { name: '宫保鸡丁', spec: '中辣', price: 48, quantity: 1 },
-                        { name: '清炒时蔬', spec: '标准', price: 28, quantity: 2 },
-                        { name: '米饭', spec: '大碗', price: 3, quantity: 4 }
-                    ],
-                    status: 'waiting'
-                },
-                {
-                    orderid: 2,
-                    username: '李四',
-                    userphone: '13900139000',
-                    servetime: '2024-03-15 17:30:00',
-                    serveaddress: '上海市浦东新区张江高科技园区博云路 2 号浦软大厦 4 层',
-                    requirement: '特辣口味，优先川菜，需要做一份水煮鱼，6 人份',
-                    totalprice: '328.00',
-                    dishes: [
-                        { name: '水煮鱼', spec: '特辣', price: 128, quantity: 1 },
-                        { name: '麻婆豆腐', spec: '中辣', price: 28, quantity: 2 },
-                        { name: '夫妻肺片', spec: '标准', price: 48, quantity: 1 },
-                        { name: '米饭', spec: '大碗', price: 3, quantity: 6 }
-                    ],
-                    status: 'waiting'
-                },
-                {
-                    orderid: 3,
-                    username: '王芳',
-                    userphone: '13700137000',
-                    servetime: '2024-03-16 12:00:00',
-                    serveaddress: '广州市天河区天河路 385 号太古汇一座 18 层',
-                    requirement: '粤菜为主，少油少盐，需要提前 1 小时到达准备，5 人份',
-                    totalprice: '268.00',
-                    dishes: [
-                        { name: '白切鸡', spec: '标准', price: 88, quantity: 1 },
-                        { name: '清蒸石斑鱼', spec: '标准', price: 158, quantity: 1 },
-                        { name: '米饭', spec: '大碗', price: 3, quantity: 5 }
-                    ],
-                    status: 'waiting'
-                }
-            ]
+            orders: []
         }
     },
     methods: {
-        handleAccept(order) {
-            console.log('accepted', order.orderid);
+        async handleAccept(data) {
+            const { order } = data;
+
+            
+            
+            try {
+                // 调用接单API，传递订单ID和厨师ID
+                await acceptOrder({
+                    orderId: order.orderid,
+                    chefId: localStorage.getItem('userId') // 从localStorage获取厨师ID
+                });
+                console.log('接单  orderid:', order.orderid, '厨师ID:', localStorage.getItem('userId'));
+                
+                // 接单成功后，从列表中移除该订单
+                this.orders = this.orders.filter(item => item.orderid !== order.orderid);
+                
+                // 显示成功提示
+                this.$message.success('接单成功');
+            } catch (error) {
+                console.error('接单失败:', error);
+                this.$message.error('接单失败: ' + (error.message || '未知错误'));
+            }
         }
+    },
+    async mounted() {
+
+        const res = await getNewOrders();
+
+        this.orders = res.records.map(order => {
+            return {
+                orderNo: order.orderNo,
+                orderid: order.id,
+                status: 'waiting',
+                username: order.customerId,
+                userphone: order.customerId,
+                servetime: order.reserveDate + ' ' + order.reserveTime.split('-')[0],
+                serveaddress: order.addressId,
+                requirement: order.dishRequirements,
+                totalprice: order.totalAmount
+
+                
+
+            }
+        });
+        console.log(res.records);
+        console.log(this.orders);
+        /*
+        * {
+      "id": 2,
+      "orderNo": "20260316100000002",
+      "customerId": 1002,
+      "chefId": 2002,
+      "addressId": 3002,
+      "reserveDate": "2026-03-18T16:00:00.000+00:00",
+      "reserveTime": "17:00-19:00",
+      "dishRequirements": "清淡口味，适合老人",
+      "totalAmount": 398,
+      "status": 1,
+      "paymentTime": "2026-03-16T02:05:30.000+00:00",
+      "serviceStartTime": null,
+      "serviceEndTime": null,
+      "remark": "",
+      "createTime": "2026-03-16T07:31:38.000+00:00",
+      "updateTime": "2026-03-16T07:31:38.000+00:00"
+    }
+        */
+
+
+
+
+
+        //todo: 将接口返回的数据转换成订单列表的格式
     }
 }
 </script>
 <style scoped>
 .container {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 24px;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 24px;
 }
 
 h3 {
-  margin: 20px 0;
-  text-align: center;
-  color: var(--color-text-primary);
-  font-size: 20px;
-  font-weight: 600;
+    margin: 20px 0;
+    text-align: center;
+    color: var(--color-text-primary);
+    font-size: 20px;
+    font-weight: 600;
 }
 
 .orders-area {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
 }
 </style>
