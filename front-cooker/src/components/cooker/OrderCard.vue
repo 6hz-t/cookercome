@@ -1,10 +1,11 @@
 <template>
   <el-card class="order-card">
-
-
     <div class="order-header flex-between">
-      <span class="order-id">订单编号：{{ order.orderid || '暂无编号' }}</span>
+      <span class="order-id">订单编号：{{ order.orderNo || '暂无编号' }}</span>
+<<<<<<< Updated upstream
+=======
       <!-- 订单总价 -->
+>>>>>>> Stashed changes
       <div class="order-total">
         <span class="total-label">订单总价：</span>
         <span class="total-price">¥{{ order.totalprice || '0.00' }}</span>
@@ -12,8 +13,13 @@
     </div>
 
     <div class="customer-info">
-      <span>{{ order.username }}</span>
+<<<<<<< Updated upstream
+      <span>普通用户</span>
       <span>{{ order.userphone }}</span>
+=======
+      用户:<span>{{ order.username }}</span>
+      
+>>>>>>> Stashed changes
     </div>
 
     <div class="order-detail-row">
@@ -22,154 +28,343 @@
       <span class="detail-value">{{ order.servetime || '暂无时间' }}</span>
     </div>
 
-
     <div class="order-detail-row">
       <span class="detail-icon">📍</span>
       <span class="detail-label">服务地址：</span>
       <span class="detail-value">{{ order.serveaddress || '暂无地址' }}</span>
     </div>
 
-
-
-
-
     <div class="requirement-wrap" v-if="order.requirement">
-      <!-- 折叠/展开头部（点击切换） -->
       <div class="requirement-header" @click="showRequirement = !showRequirement">
         <span class="requirement-label">菜品定制要求</span>
         <span class="toggle-icon">{{ showRequirement ? '▲' : '▼' }}</span>
       </div>
-      <!-- 定制要求内容（展开时显示） -->
-      <div class="requirement-content">
+      <div class="requirement-content" v-show="showRequirement">
         {{ order.requirement }}
       </div>
     </div>
 
     <div class="order-actions">
       <button class="refuse-btn" @click="handleRefuse">拒单</button>
+<<<<<<< Updated upstream
+      <button class="accept-btn" @click="showAcceptDialog = true">接单</button>
+=======
+
+
       <button class="accept-btn" @click="handleAccept">接单</button>
+
+
+      <el-dialog
+        v-model="dialogVisible"
+        title="确认接单"
+        width="650px"
+        :close-on-click-modal="false"
+        :close-on-press-escape="false"
+        @close="handleClose"
+        class="accept-dialog"
+      >
+        <div class="dialog-content">
+          <div class="dialog-section">
+            <div class="section-title">订单信息</div>
+            <div class="info-row">
+              <span class="info-label">订单编号：</span>
+              <span class="info-value">{{ order.orderNo }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">客户姓名：</span>
+              <span class="info-value">{{ order.username }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">联系电话：</span>
+              <span class="info-value">{{ order.userphone }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">服务时间：</span>
+              <span class="info-value">{{ order.servetime }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">服务地址：</span>
+              <span class="info-value">{{ order.serveaddress }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">订单金额：</span>
+              <span class="info-value price">¥{{ order.totalprice }}</span>
+            </div>
+          </div>
+
+          <div class="dialog-section" v-if="order.requirement">
+            <div class="section-title">特殊要求</div>
+            <div class="requirement-text">{{ order.requirement }}</div>
+          </div>
+
+          <div class="dialog-section">
+            <div class="section-title">接单确认</div>
+            <div class="confirm-tips">
+              <el-alert
+                title="温馨提示"
+                type="warning"
+                :closable="false"
+                show-icon
+              >
+                <template #default>
+                  <p>1. 请确认您能够按时到达服务地点</p>
+                  <p>2. 请提前与客户联系确认服务细节</p>
+                  <p>3. 接单后请按时完成服务</p>
+                </template>
+              </el-alert>
+            </div>
+            <div class="confirm-input">
+              <el-input
+                v-model="remark"
+                type="textarea"
+                :rows="3"
+                placeholder="请输入接单备注（选填）"
+                maxlength="200"
+                show-word-limit
+              ></el-input>
+            </div>
+          </div>
+        </div>
+
+        <template #footer>
+          <span class="dialog-footer">
+            <el-button @click="handleCancel">取消</el-button>
+            <el-button type="primary" @click="handleConfirm" :loading="submitting">确认接单</el-button>
+          </span>
+        </template>
+      </el-dialog>
+    
+>>>>>>> Stashed changes
     </div>
 
+    <!-- 优化布局但保留原配色的接单确认弹窗 -->
+    <el-dialog
+      v-model="showAcceptDialog"
+      title="确认接单"
+      width="580px"
+      :close-on-click-modal="false"
+      center
+      class="accept-order-dialog"
+    >
+      <div class="accept-dialog-content">
+        <!-- 订单摘要卡片 -->
+        <div class="order-summary-card">
+          <h3 class="summary-title">订单信息</h3>
+          <div class="summary-list">
+            <div class="summary-item">
+              <span class="item-label">订单编号：</span>
+              <span class="item-value">{{ order.orderid || '暂无编号' }}</span>
+            </div>
+            <div class="summary-item">
+              <span class="item-label">服务时间：</span>
+              <span class="item-value">{{ order.servetime || '暂无时间' }}</span>
+            </div>
+            <div class="summary-item">
+              <span class="item-label">服务地址：</span>
+              <span class="item-value">{{ order.serveaddress || '暂无地址' }}</span>
+            </div>
+            <div class="summary-item total-item">
+              <span class="item-label">订单金额：</span>
+              <span class="item-value">¥{{ order.totalprice || '0.00' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 温馨提示 -->
+        <div class="confirm-tips">
+          <el-alert
+            title="温馨提示"
+            type="warning"
+            :closable="false"
+            show-icon
+            class="tips-alert"
+          >
+            <template #default>
+              <ul class="tips-list">
+                <li>请确认您能够按时到达服务地点</li>
+                <li>请提前与客户联系确认服务细节</li>
+                <li>接单后请按时完成服务，否则会影响您的接单权限</li>
+              </ul>
+            </template>
+          </el-alert>
+        </div>
+
+        <!-- 备注输入框 -->
+        <div class="confirm-input">
+          <el-form label-width="80px" class="remark-form">
+            <el-form-item label="接单备注：">
+              <el-input
+                v-model="remark"
+                type="textarea"
+                :rows="4"
+                placeholder="请输入接单备注（选填，如：已确认可按时服务）"
+                maxlength="200"
+                show-word-limit
+                class="remark-input"
+              ></el-input>
+            </el-form-item>
+          </el-form>
+        </div>
+      </div>
+
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button 
+            @click="showAcceptDialog = false"
+            class="cancel-btn"
+          >取消</el-button>
+          <el-button 
+            type="primary" 
+            @click="handleConfirmAccept" 
+            :loading="submitting"
+            class="confirm-btn"
+          >确认接单</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </el-card>
 </template>
+
 <script>
-import { timelineItemProps } from 'element-plus';
-
-
 export default {
   name: 'OrderCard',
   props: {
     order: {
       type: Object,
       required: true
+    // // {
+    //                 orderNo: '20240316000000003',
+    //                 orderid: 3,
+    //                 username: '王芳',
+    //                 userphone: '13700137000',
+    //                 servetime: '2024-03-16 12:00:00',
+    //                 serveaddress: '广州市天河区天河路 385 号太古汇一座 18 层',
+    //                 requirement: '粤菜为主，少油少盐，需要提前 1 小时到达准备，5 人份',
+    //                 totalprice: '268.00',
+    //                 status: 'waiting'
+    //             }
     }
-  },
-  components: {
+
   },
   data() {
     return {
+<<<<<<< Updated upstream
+      showAcceptDialog: false,
+      showRequirement: true, // 控制定制要求折叠
+=======
+      showRequirement: false,
+      dialogVisible: false,
+>>>>>>> Stashed changes
+      remark: '',
+      submitting: false
     }
   },
   methods: {
+<<<<<<< Updated upstream
+    handleRefuse() { // 修正方法名不匹配问题
+      this.$emit('reject', this.order);
+    },
+    handleConfirmAccept() {
+      this.submitting = true;
+=======
     handleAccept() {
-      this.$emit('accept', this.order);
+      this.dialogVisible = true;
+      this.remark = '';
     },
     handleReject() {
       this.$emit('reject', this.order);
+    },
+    handleClose() {
+      this.dialogVisible = false;
+      this.remark = '';
+    },
+    handleCancel() {
+      this.dialogVisible = false;
+      this.remark = '';
+    },
+    handleConfirm() {
+      this.submitting = true;
+      // 触发接单事件，传递订单和备注信息
+>>>>>>> Stashed changes
+      this.$emit('accept', {
+        order: this.order,
+        remark: this.remark
+      });
+<<<<<<< Updated upstream
+      setTimeout(() => {
+        this.submitting = false;
+        this.showAcceptDialog = false;
+        this.remark = ''; // 重置备注
+      }, 800);
+=======
+      
+      // 模拟异步操作，实际使用时根据接口返回结果处理
+      setTimeout(() => {
+        this.submitting = false;
+        this.dialogVisible = false;
+        this.remark = '';
+      }, 500);
+>>>>>>> Stashed changes
     }
-  },
-  created() {
-  },
-  mounted() {
   }
 }
 </script>
+
 <style scoped>
+/* 基础样式完全保留原有配色 */
 .order-card {
   width: 100%;
   border: none;
   box-shadow: 0 2px 12px rgba(74, 68, 62, 0.08);
   border-radius: 8px;
+  padding: 20px;
 }
 
-/* 新增：菜品定制要求样式 */
-.requirement-wrap {
-  margin: 10px 0 0 0;
-}
-
-/* 新增：操作按钮样式 */
-.order-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 20px;
-  padding-top: 10px;
-  border-top: 1px solid var(--color-border);
-}
-
-/* 拒单按钮：文字按钮，浅灰色 */
-.refuse-btn {
-  padding: 6px 16px;
-  font-size: 14px;
-  color: var(--color-text-secondary);
-  background-color: var(--color-bg-white);
-  border: 1px solid var(--color-border);
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.refuse-btn:hover {
-  border-color: var(--color-text-light);
-  background-color: var(--color-bg-mute);
-}
-
-.accept-btn {
-  padding: 6px 16px;
-  font-size: 14px;
-  color: #fff;
-  background-color: var(--color-accent);
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.accept-btn:hover {
-  background-color: var(--color-accent-hover);
-}
-
-/* 折叠头部 */
-.requirement-header {
+.flex-between {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 14px;
-  color: var(--color-text-secondary);
-  cursor: pointer;
-  padding: 5px 0;
 }
 
-/* 折叠图标 */
-.toggle-icon {
+.order-header {
+  width: 100%;
+  margin-bottom: 15px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.order-id {
   font-size: 12px;
   color: var(--color-text-light);
-  transition: transform 0.2s;
+  white-space: nowrap;
 }
 
-/* 定制要求内容 */
-.requirement-content {
-  margin-top: 8px;
-  padding: 10px;
-  background-color: var(--color-bg-soft);
-  border-radius: 4px;
+.order-total {
+  display: flex;
+  align-items: center;
+}
+
+.total-label {
   font-size: 14px;
-  color: var(--color-text-primary);
-  line-height: 1.5;
-  word-break: break-all;
+  color: var(--color-text-secondary);
 }
 
-/* 新增：服务时间/地址通用样式 */
+.total-price {
+  font-size: 20px;
+  color: var(--color-danger);
+  font-weight: bold;
+  margin-left: 10px;
+}
+
+.customer-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  font-size: 14px;
+  margin: 12px 0;
+  color: var(--color-text-primary);
+}
+
 .order-detail-row {
   display: flex;
   align-items: flex-start;
@@ -179,162 +374,310 @@ export default {
   line-height: 1.5;
 }
 
-/* 图标样式 */
 .detail-icon {
   font-size: 14px;
   margin-top: 1px;
   white-space: nowrap;
 }
 
-/* 标签样式（服务时间：/服务地址：） */
 .detail-label {
   color: var(--color-text-secondary);
   white-space: nowrap;
 }
 
-/* 内容值样式（时间/地址） */
 .detail-value {
   color: var(--color-text-primary);
   flex: 1;
   word-break: break-all;
 }
 
-/* 新增：客户姓名 + 电话样式 */
-.customer-info {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  font-size: 14px;
-  margin: 8px 0;
+.requirement-wrap {
+  margin: 15px 0 0 0;
 }
 
-.customer-name {
-  font-weight: 500;
-  color: var(--color-text-primary);
-}
-
-.customer-phone {
-  color: var(--color-text-secondary);
-  font-size: 13px;
-}
-
-/* 通用 flex 布局（你的原有样式，保留） */
-.flex-between {
+.requirement-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  padding: 8px 0;
 }
 
-/* 订单头部行样式（保留，补充 width:100%） */
-.order-header {
-  width: 100%;
-  margin-bottom: 15px;
-  padding-bottom: 10px;
+.toggle-icon {
+  font-size: 12px;
+  color: var(--color-text-light);
+  transition: transform 0.2s;
+}
+
+.requirement-content {
+  margin-top: 8px;
+  padding: 12px;
+  background-color: var(--color-bg-soft);
+  border-radius: 6px;
+  font-size: 14px;
+  color: var(--color-text-primary);
+  line-height: 1.6;
+  word-break: break-all;
+}
+
+.order-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid var(--color-border);
+}
+
+.refuse-btn {
+  padding: 8px 20px;
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  background-color: var(--color-bg-white);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.refuse-btn:hover {
+  border-color: var(--color-text-light);
+  background-color: var(--color-bg-mute);
+}
+
+.accept-btn {
+  padding: 8px 20px;
+  font-size: 14px;
+  color: #fff;
+  background-color: var(--color-accent);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.accept-btn:hover {
+  background-color: var(--color-accent-hover);
+}
+
+/* 弹窗样式：仅优化布局，完全复用原有配色变量 */
+.accept-order-dialog {
+  --el-dialog-border-radius: 12px;
+}
+
+.accept-order-dialog :deep(.el-dialog__header) {
+  padding: 20px 24px 16px;
   border-bottom: 1px solid var(--color-border);
 }
 
-/* 订单编号文字（保留） */
-.order-id {
-  font-size: 12px;
-  color: var(--color-text-light);
-  white-space: nowrap;
-}
-
-/* 状态标签通用样式（保留） */
-.status-tag {
-  font-size: 12px;
-  padding: 2px 8px;
-  border-radius: 4px;
-  white-space: nowrap;
-}
-
-/* 待接单状态样式（保留） */
-.status-tag.pending {
-  color: var(--color-danger);
-  background-color: #fff0f1;
-  border: 1px solid #ffccd0;
-}
-
-/* 菜品清单区域 */
-.dishes-section {
-  margin: 15px 0;
-  padding: 12px;
-  background-color: var(--color-bg-soft);
-  border-radius: 4px;
-}
-
-/* 区域标题 */
-.section-title {
-  font-size: 14px;
-  font-weight: 500;
+.accept-order-dialog :deep(.el-dialog__title) {
+  font-size: 18px;
+  font-weight: 600;
   color: var(--color-text-primary);
-  margin-bottom: 10px;
-  padding-bottom: 8px;
-  border-bottom: 1px dashed var(--color-border);
 }
 
-/* 单个菜品项 */
-.dish-item {
+.accept-order-dialog :deep(.el-dialog__body) {
+  padding: 20px 24px;
+}
+
+.accept-order-dialog :deep(.el-dialog__footer) {
+  padding: 16px 24px 20px;
+  border-top: 1px solid var(--color-border);
+}
+
+.accept-dialog-content {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 6px 0;
-  font-size: 14px;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* 订单摘要卡片 - 复用原有配色 */
+.order-summary-card {
+  background-color: var(--color-bg-soft);
+  border-radius: 8px;
+  padding: 16px;
+  border: 1px solid var(--color-border);
+}
+
+.summary-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0 0 12px 0;
+  padding-bottom: 8px;
   border-bottom: 1px dashed var(--color-border-light);
 }
 
-.dish-item:last-child {
-  border-bottom: none;
+.summary-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
-/* 菜品名称 */
-.dish-name {
+.summary-item {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+}
+
+.item-label {
+  color: var(--color-text-secondary);
+  min-width: 80px;
+  flex-shrink: 0;
+}
+
+.item-value {
   color: var(--color-text-primary);
-  font-weight: 500;
+  flex: 1;
+  word-break: break-all;
+}
+
+.total-item {
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--color-border-light);
+}
+
+.total-item .item-value {
+  color: var(--color-danger);
+  font-weight: 600;
+  font-size: 15px;
+}
+
+/* 提示样式 - 仅调整布局，保留组件原有样式 */
+.confirm-tips {
+  margin: 0;
+}
+
+.tips-alert {
+  --el-alert-padding: 12px 16px;
+  --el-alert-border-radius: 8px;
+}
+
+.tips-list {
+  margin: 8px 0 0 0;
+  padding-left: 20px;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.tips-list li {
+  margin-bottom: 4px;
+}
+
+.tips-list li:last-child {
+  margin-bottom: 0;
+}
+
+/* 备注输入框 - 仅调整布局，保留原有配色 */
+.confirm-input {
+  margin: 0;
+}
+
+.remark-form {
+  margin: 0;
+}
+
+.remark-input {
+  --el-input-border-radius: 8px;
+  --el-input-padding: 10px 12px;
+  font-size: 14px;
+  /* 保留Element默认配色，不覆盖 */
+}
+
+/* 弹窗按钮 - 复用原有配色 */
+.dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.cancel-btn {
+  padding: 8px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  /* 保留Element默认按钮配色 */
+}
+
+.confirm-btn {
+  padding: 8px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  background-color: var(--color-accent);
+  --el-button-hover-bg-color: var(--color-accent-hover);
+}
+<<<<<<< Updated upstream
+</style>
+=======
+
+/* 接单弹窗样式 */
+.accept-dialog .dialog-content {
+  padding: 10px 0;
+}
+
+.accept-dialog .dialog-section {
+  margin-bottom: 20px;
+}
+
+.accept-dialog .dialog-section:last-child {
+  margin-bottom: 0;
+}
+
+.accept-dialog .section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.accept-dialog .info-row {
+  display: flex;
+  margin-bottom: 10px;
+  font-size: 14px;
+}
+
+.accept-dialog .info-label {
+  color: var(--color-text-secondary);
+  min-width: 80px;
+}
+
+.accept-dialog .info-value {
+  color: var(--color-text-primary);
   flex: 1;
 }
 
-/* 菜品规格 */
-.dish-spec {
-  color: var(--color-text-secondary);
-  font-size: 12px;
-  margin: 0 10px;
-}
-
-/* 菜品数量 */
-.dish-quantity {
-  color: var(--color-text-secondary);
-  margin: 0 10px;
-}
-
-/* 菜品价格 */
-.dish-price {
-  color: var(--color-accent);
-  font-weight: 500;
-  min-width: 70px;
-  text-align: right;
-}
-
-/* 订单总价区域 */
-.order-total {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  padding: 12px 0;
-  margin-top: 10px;
-}
-
-/* 总价标签 */
-.total-label {
-  font-size: 14px;
-  color: var(--color-text-secondary);
-}
-
-/* 总价金额 */
-.total-price {
-  font-size: 20px;
+.accept-dialog .info-value.price {
   color: var(--color-danger);
-  font-weight: bold;
-  margin-left: 10px;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.accept-dialog .requirement-text {
+  padding: 10px;
+  background-color: var(--color-bg-soft);
+  border-radius: 4px;
+  font-size: 14px;
+  color: var(--color-text-primary);
+  line-height: 1.6;
+}
+
+.accept-dialog .confirm-tips {
+  margin-bottom: 15px;
+}
+
+.accept-dialog .confirm-tips p {
+  margin: 5px 0;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.accept-dialog .confirm-input {
+  margin-top: 15px;
 }
 </style>
+>>>>>>> Stashed changes

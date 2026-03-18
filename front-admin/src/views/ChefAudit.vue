@@ -19,8 +19,8 @@
           </div>
           <div
             class="menu-item"
-            :class="{ active: activeMenu === 'chefInfo' }"
-            @click="navigateTo('/chefInfo-audit')"
+            :class="{ active: activeMenu === 'chef' }"
+            @click="navigateTo('/chef-audit')"
           >
             <el-icon><UserFilled /></el-icon>
             <span>厨师审核</span>
@@ -56,10 +56,10 @@
       </div>
       <div class="sidebar-footer">
         <div class="user-info">
-          <el-avatar :size="32" src="https://img.yzcdn.cn/vant/cat.jpeg"></el-avatar>
+          <el-avatar :size="32" :src="adminInfo.avatar || 'https://img.yzcdn.cn/vant/cat.jpeg'"></el-avatar>
           <div class="user-text">
-            <div class="user-name">超级管理员</div>
-            <div class="user-id">ID: 10001</div>
+            <div class="user-name">{{ adminInfo.realName || '管理员' }}</div>
+            <div class="user-id">ID: {{ adminInfo.userId || '-' }}</div>
           </div>
         </div>
       </div>
@@ -83,8 +83,11 @@
           <div class="card-content">
             <div class="card-info">
               <div class="card-title">待审核厨师</div>
-              <div class="card-value">{{ pendingChefs }}</div>
-              <div class="card-tip" style="color: #ff6b35;">⚠️ 需尽快处理</div>
+              <div class="card-value">{{ stats.pendingChefs }}</div>
+              <div class="card-tip" style="color: #ff6b35;">
+                <el-icon><Warning /></el-icon>
+                <span>需尽快处理</span>
+              </div>
             </div>
             <div class="card-icon" style="background-color: #fff2e8;">
               <el-icon size="24" color="#ff6b35;"><Shop /></el-icon>
@@ -96,31 +99,37 @@
       <!-- 厨师审核列表 -->
       <div class="audit-section">
         <div class="section-header">
-          <h3>待审核厨师</h3>
+          <h3>厨师审核列表</h3>
           <div class="filter-and-search">
-            <el-select v-model="filterStatus" placeholder="筛选状态" style="width: 120px; margin-right: 10px;">
+            <el-select v-model="filterStatus" placeholder="筛选状态" style="width: 120px; margin-right: 10px;" @change="loadChefList">
               <el-option label="全部" value=""></el-option>
-              <el-option label="待审核" value="pending"></el-option>
-              <el-option label="已通过" value="approved"></el-option>
-              <el-option label="已拒绝" value="rejected"></el-option>
+              <el-option label="待审核" value="0"></el-option>
+              <el-option label="已通过" value="1"></el-option>
+              <el-option label="已拒绝" value="2"></el-option>
             </el-select>
             <el-input
               v-model="searchKeyword"
-              placeholder="搜索厨师姓名/ID"
+              placeholder="搜索厨师姓名/手机号/ID"
               prefix-icon="Search"
               style="width: 300px;"
+              @keyup.enter="loadChefList"
             ></el-input>
+            <el-button type="primary" @click="loadChefList" style="margin-left: 10px;">搜索</el-button>
           </div>
         </div>
-        
-        <el-table border :data="filteredChefList" style="width: 100%;">
-          <el-table-column prop="id" label="厨师ID" width="100" />
-          <el-table-column prop="name" label="姓名" width="120" />
+
+        <el-table :data="chefList" style="width: 100%;" v-loading="loading">
+          <el-table-column prop="id" label="厨师 ID" width="100" />
+          <el-table-column prop="realName" label="姓名" width="120" />
           <el-table-column prop="phone" label="手机号" width="150" />
-          <el-table-column prop="applyTime" label="申请时间" width="180" />
+          <el-table-column prop="applyTime" label="申请时间" width="180">
+            <template #default="scope">
+              {{ formatDateTime(scope.row.applyTime) }}
+            </template>
+          </el-table-column>
           <el-table-column prop="auditStatus" label="审核状态" width="120">
             <template #default="scope">
-              <el-tag 
+              <el-tag
                 :type="getStatusType(scope.row.auditStatus)"
                 disable-transitions
               >
@@ -128,103 +137,179 @@
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column prop="rejectReason" label="拒绝原因" v-if="showRejectReasonColumn" />
-          <el-table-column label="操作" width="200">
+          <el-table-column prop="rejectReason" label="拒绝原因" min-width="200" v-if="showRejectReasonColumn" />
+          <el-table-column label="操作" width="200" fixed="right">
             <template #default="scope">
-              <el-button 
-                size="mini" 
-                type="success" 
+              <el-button
+                size="mini"
+                type="success"
                 @click="approveChef(scope.row)"
-                :disabled="scope.row.auditStatus !== 'pending'"
+                :disabled="scope.row.auditStatus !== 0"
               >
                 通过
               </el-button>
-              <el-button 
-                size="mini" 
-                type="danger" 
+              <el-button
+                size="mini"
+                type="danger"
                 @click="rejectChef(scope.row)"
-                :disabled="scope.row.auditStatus !== 'pending'"
+                :disabled="scope.row.auditStatus !== 0"
               >
                 拒绝
               </el-button>
             </template>
           </el-table-column>
         </el-table>
+
+        <!-- 分页组件 -->
+        <div class="pagination-wrapper">
+          <el-pagination
+            v-model:current-page="currentPage"
+            v-model:page-size="pageSize"
+            :page-sizes="[10, 20, 50, 100]"
+            layout="total, sizes, prev, pager, next, jumper"
+            :total="total"
+            @size-change="handleSizeChange"
+            @current-change="handleCurrentChange"
+          />
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
-// 引入Element Plus图标
-import { 
-  User, UserFilled, Grid, ShoppingCart, TrendCharts, 
-  Bell, InfoFilled, Shop, Search 
+// 引入 Element Plus 图标
+import {
+  User, UserFilled, Grid, ShoppingCart, TrendCharts,
+  Bell, InfoFilled, Shop, Search, Warning
 } from '@element-plus/icons-vue'
-// 引入Element Plus提示框
+// 引入 Element Plus 提示框
 import { ElMessageBox, ElMessage, ElInput } from 'element-plus'
+// 引入仪表盘接口
+import { getDashboardStats } from '@/api/dashboard'
+// 引入厨师审核接口
+import { getChefAuditList, auditChef as auditChefApi } from '@/api/chef'
+// 引入管理员信息 composable
+import { useAdminInfo } from '@/composables/useAdminInfo'
 
 // 创建路由器实例
 const router = useRouter()
 
 // 当前激活菜单
-const activeMenu = ref('chefInfo')
+const activeMenu = ref('chef')
 
-// 当前日期
-const currentDate = ref('2026年03月06日')
+// 当前日期（动态获取）
+const currentDate = ref('')
 
-// 待审核厨师数量
-const pendingChefs = ref(45)
+// 管理员信息
+const { adminInfo } = useAdminInfo()
 
-// 筛选条件
+// 格式化日期为 YYYY 年 MM 月 DD 日
+const formatDate = (date) => {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}年${month}月${day}日`
+}
+
+// 初始化当前日期
+currentDate.value = formatDate(new Date())
+
+// 统计数据（动态获取）
+const stats = ref({
+  pendingChefs: 0
+})
+
+// 定时器
+let refreshTimer = null
+
+// 加载统计数据
+const loadStats = () => {
+  getDashboardStats().then(res => {
+    if (res) {
+      stats.value = {
+        pendingChefs: res.pendingChefs || 0
+      }
+    }
+  }).catch(() => {
+    // 加载失败时使用默认值
+    stats.value = {
+      pendingChefs: 0
+    }
+  })
+}
+
+// 厨师列表相关
+const loading = ref(false)
+const chefList = ref([])
+const currentPage = ref(1)
+const pageSize = ref(10)
+const total = ref(0)
 const filterStatus = ref('')
 const searchKeyword = ref('')
 
-// 厨师列表数据
-const chefList = ref([
-  { id: 20001, name: '张大厨', phone: '13800138001', applyTime: '2026-03-01 10:30:25', auditStatus: 'pending', rejectReason: '' },
-  { id: 20002, name: '李师傅', phone: '13900139002', applyTime: '2026-03-02 14:22:10', auditStatus: 'pending', rejectReason: '' },
-  { id: 20003, name: '王厨师', phone: '13700137003', applyTime: '2026-02-28 09:15:33', auditStatus: 'approved', rejectReason: '' },
-  { id: 20004, name: '赵大师', phone: '13600136004', applyTime: '2026-03-03 16:45:12', auditStatus: 'rejected', rejectReason: '资质证明不全' },
-  { id: 20005, name: '陈大厨', phone: '13500135005', applyTime: '2026-03-04 11:20:45', auditStatus: 'pending', rejectReason: '' },
-  { id: 20006, name: '刘师傅', phone: '13400134006', applyTime: '2026-03-05 08:30:20', auditStatus: 'approved', rejectReason: '' },
-])
+// 加载厨师审核列表
+const loadChefList = () => {
+  loading.value = true
+  getChefAuditList({
+    page: currentPage.value,
+    size: pageSize.value,
+    keyword: searchKeyword.value,
+    auditStatus: filterStatus.value === '' ? null : parseInt(filterStatus.value)
+  }).then(res => {
+    if (res) {
+      chefList.value = res.records || []
+      total.value = res.total || 0
+    }
+  }).catch(() => {
+    chefList.value = []
+    total.value = 0
+  }).finally(() => {
+    loading.value = false
+  })
+}
 
-// 计算属性：过滤后的厨师列表
-const filteredChefList = computed(() => {
-  let result = chefList.value
-  
-  // 按状态筛选
-  if (filterStatus.value) {
-    result = result.filter(chefInfo => chefInfo.auditStatus === filterStatus.value)
-  }
-  
-  // 按姓名或ID搜索
-  if (searchKeyword.value) {
-    result = result.filter(chefInfo =>
-      chefInfo.name.includes(searchKeyword.value) ||
-      chefInfo.id.toString().includes(searchKeyword.value)
-    )
-  }
-  
-  return result
-})
+// 处理每页条数变化
+const handleSizeChange = (val) => {
+  pageSize.value = val
+  currentPage.value = 1
+  loadChefList()
+}
+
+// 处理页码变化
+const handleCurrentChange = (val) => {
+  currentPage.value = val
+  loadChefList()
+}
+
+// 格式化日期时间
+const formatDateTime = (dateTime) => {
+  if (!dateTime) return ''
+  const date = new Date(dateTime)
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  const hour = String(date.getHours()).padStart(2, '0')
+  const minute = String(date.getMinutes()).padStart(2, '0')
+  const second = String(date.getSeconds()).padStart(2, '0')
+  return `${year}-${month}-${day} ${hour}:${minute}:${second}`
+}
 
 // 计算属性：是否显示拒绝原因列
 const showRejectReasonColumn = computed(() => {
-  return filterStatus.value === 'rejected' || 
-         (filterStatus.value === '' && 
-          chefList.value.some(chefInfo => chefInfo.auditStatus === 'rejected'))
+  return filterStatus.value === '2' ||
+         (filterStatus.value === '' &&
+          chefList.value.some(chef => chef.auditStatus === 2))
 })
 
 // 获取状态文本
 const getStatusText = (status) => {
   switch(status) {
-    case 'pending': return '待审核'
-    case 'approved': return '已通过'
-    case 'rejected': return '已拒绝'
+    case 0: return '待审核'
+    case 1: return '已通过'
+    case 2: return '已拒绝'
     default: return '未知'
   }
 }
@@ -232,18 +317,18 @@ const getStatusText = (status) => {
 // 获取状态标签类型
 const getStatusType = (status) => {
   switch(status) {
-    case 'pending': return 'warning'
-    case 'approved': return 'success'
-    case 'rejected': return 'danger'
+    case 0: return 'warning'
+    case 1: return 'success'
+    case 2: return 'danger'
     default: return 'info'
   }
 }
 
 // 审核通过
-const approveChef = async (chefInfo) => {
+const approveChef = async (chef) => {
   try {
     await ElMessageBox.confirm(
-      `确定要通过「${chefInfo.name}」的厨师申请吗？`,
+      `确定要通过「${chef.realName}」的厨师申请吗？`,
       '审核通过',
       {
         confirmButtonText: '确定',
@@ -251,21 +336,14 @@ const approveChef = async (chefInfo) => {
         type: 'success'
       }
     )
-    
-    // 更新厨师审核状态
-    chefInfo.auditStatus = 'approved'
-    pendingChefs.value -= 1
-    
-    ElMessage.success(`已通过「${chefInfo.name}」的厨师申请`)
-    
-    // 记录操作日志
-    console.log('Approve chefInfo:', {
-      chefId: chefInfo.id,
-      chefName: chefInfo.name,
-      operator: '超级管理员',
-      timestamp: new Date().toLocaleString(),
-      action: 'approve'
-    })
+
+    await auditChefApi(chef.id, 1)
+
+    ElMessage.success(`已通过「${chef.realName}」的厨师申请`)
+
+    // 重新加载列表和统计数据
+    loadChefList()
+    loadStats()
   } catch (error) {
     if (error !== 'cancel') {
       console.error('Approve error:', error)
@@ -274,9 +352,7 @@ const approveChef = async (chefInfo) => {
 }
 
 // 审核拒绝
-const rejectChef = async (chefInfo) => {
-  let reason = ''
-  
+const rejectChef = async (chef) => {
   try {
     const result = await ElMessageBox.prompt(
       '请输入拒绝原因',
@@ -292,25 +368,14 @@ const rejectChef = async (chefInfo) => {
         type: 'warning'
       }
     )
-    
-    reason = result.value
-    
-    // 更新厨师审核状态
-    chefInfo.auditStatus = 'rejected'
-    chefInfo.rejectReason = reason
-    pendingChefs.value -= 1
-    
-    ElMessage.warning(`已拒绝「${chefInfo.name}」的厨师申请，原因：${reason}`)
-    
-    // 记录操作日志
-    console.log('Reject chefInfo:', {
-      chefId: chefInfo.id,
-      chefName: chefInfo.name,
-      operator: '超级管理员',
-      timestamp: new Date().toLocaleString(),
-      action: 'reject',
-      reason: reason
-    })
+
+    await auditChefApi(chef.id, 2, result.value)
+
+    ElMessage.warning(`已拒绝「${chef.realName}」的厨师申请，原因：${result.value}`)
+
+    // 重新加载列表和统计数据
+    loadChefList()
+    loadStats()
   } catch (error) {
     if (error !== 'cancel') {
       console.error('Reject error:', error)
@@ -335,16 +400,15 @@ const handleLogout = async () => {
         type: 'info'
       }
     )
-    
+
     // 清空本地存储中的登录相关数据
-    localStorage.removeItem('token')
-    localStorage.removeItem('userInfo')
-    sessionStorage.removeItem('token')
-    sessionStorage.removeItem('userInfo')
-    
+    localStorage.removeItem('admin-token')
+    localStorage.removeItem('admin-refreshToken')
+    localStorage.removeItem('admin-userInfo')
+
     // 跳转到登录页面并防止通过浏览器返回按钮返回
     router.replace('/login')
-    
+
     ElMessage({
       type: 'success',
       message: '退出登录成功！'
@@ -360,6 +424,21 @@ const handleLogout = async () => {
     }
   }
 }
+
+// 页面加载时获取统计数据
+onMounted(() => {
+  loadStats()
+  loadChefList()
+  // 每 30 秒自动刷新一次统计数据
+  refreshTimer = setInterval(loadStats, 30000)
+})
+
+// 页面卸载时清除定时器
+onUnmounted(() => {
+  if (refreshTimer) {
+    clearInterval(refreshTimer)
+  }
+})
 </script>
 
 <style scoped>
@@ -519,6 +598,13 @@ const handleLogout = async () => {
 
 .card-tip {
   font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.card-tip .el-icon {
+  font-size: 14px;
 }
 
 .card-icon {
@@ -554,5 +640,12 @@ const handleLogout = async () => {
 .filter-and-search {
   display: flex;
   gap: 10px;
+}
+
+/* 分页组件样式 */
+.pagination-wrapper {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
 }
 </style>

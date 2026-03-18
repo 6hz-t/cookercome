@@ -56,10 +56,10 @@
       </div>
       <div class="sidebar-footer">
         <div class="user-info">
-          <el-avatar :size="32" src="https://img.yzcdn.cn/vant/cat.jpeg"></el-avatar>
+          <el-avatar :size="32" :src="adminInfo.avatar || 'https://img.yzcdn.cn/vant/cat.jpeg'"></el-avatar>
           <div class="user-text">
-            <div class="user-name">超级管理员</div>
-            <div class="user-id">ID: 10001</div>
+            <div class="user-name">{{ adminInfo.realName || '管理员' }}</div>
+            <div class="user-id">ID: {{ adminInfo.userId || '-' }}</div>
           </div>
         </div>
       </div>
@@ -83,8 +83,12 @@
           <div class="card-content">
             <div class="card-info">
               <div class="card-title">总用户数</div>
-              <div class="card-value">{{ totalUsers }}</div>
-              <div class="card-tip" style="color: #07c160;">↗ 较昨日 +12%</div>
+              <div class="card-value">{{ stats.totalUsers }}</div>
+              <div class="card-tip" :class="growthClass(stats.userGrowthRate)">
+                <el-icon v-if="stats.userGrowthRate >= 0"><Top /></el-icon>
+                <el-icon v-else><Bottom /></el-icon>
+                <span>较昨日 {{ stats.userGrowthRate >= 0 ? '+' : '' }}{{ stats.userGrowthRate }}%</span>
+              </div>
             </div>
             <div class="card-icon" style="background-color: #e8f3ff;">
               <el-icon size="24" color="#1989fa"><User /></el-icon>
@@ -95,8 +99,11 @@
           <div class="card-content">
             <div class="card-info">
               <div class="card-title">待审核厨师</div>
-              <div class="card-value">{{ pendingChefs }}</div>
-              <div class="card-tip" style="color: #ff6b35;">⚠️ 需尽快处理</div>
+              <div class="card-value">{{ stats.pendingChefs }}</div>
+              <div class="card-tip" style="color: #ff6b35;">
+                <el-icon><Warning /></el-icon>
+                <span>需尽快处理</span>
+              </div>
             </div>
             <div class="card-icon" style="background-color: #fff2e8;">
               <el-icon size="24" color="#ff6b35;"><Shop /></el-icon>
@@ -107,8 +114,12 @@
           <div class="card-content">
             <div class="card-info">
               <div class="card-title">今日订单</div>
-              <div class="card-value">{{ todayOrders }}</div>
-              <div class="card-tip" style="color: #07c160;">↗ 较昨日 +5.4%</div>
+              <div class="card-value">{{ stats.todayOrders }}</div>
+              <div class="card-tip" :class="growthClass(stats.orderGrowthRate)">
+                <el-icon v-if="stats.orderGrowthRate >= 0"><Top /></el-icon>
+                <el-icon v-else><Bottom /></el-icon>
+                <span>较昨日 {{ stats.orderGrowthRate >= 0 ? '+' : '' }}{{ stats.orderGrowthRate }}%</span>
+              </div>
             </div>
             <div class="card-icon" style="background-color: #e6fffa;">
               <el-icon size="24" color="#00b42a;"><ShoppingCart /></el-icon>
@@ -119,8 +130,11 @@
           <div class="card-content">
             <div class="card-info">
               <div class="card-title">异常订单</div>
-              <div class="card-value">{{ abnormalOrders }}</div>
-              <div class="card-tip">状态稳定</div>
+              <div class="card-value">{{ stats.abnormalOrders }}</div>
+              <div class="card-tip" style="color: #969799;">
+                <el-icon><CircleCheck /></el-icon>
+                <span>状态稳定</span>
+              </div>
             </div>
             <div class="card-icon" style="background-color: #fff0f0;">
               <el-icon size="24" color="#f53f3f;"><InfoFilled /></el-icon>
@@ -140,47 +154,64 @@
             style="width: 300px; margin-left: 20px;"
           ></el-input>
         </div>
-        <el-table border :data="filteredUserList" style="width: 100%;">
-          <el-table-column prop="id" label="用户 ID" />
+        <el-table border :data="userList" style="width: 100%;">
+          <el-table-column prop="userId" label="用户 ID" />
           <el-table-column prop="name" label="用户名" />
           <el-table-column prop="role" label="角色">
             <template #default="scope">
-              {{ scope.row.role === 2 ? '管理员' : '普通用户' }}
+              {{ scope.row.role === 2 ? '管理员' : scope.row.role === 1 ? '厨师' : '顾客' }}
             </template>
           </el-table-column>
           <el-table-column prop="status" label="状态">
             <template #default="scope">
-              <el-tag :type="scope.row.status === 'active' ? 'success' : 'danger'">
-                {{ scope.row.status === 'active' ? '启用' : '禁用' }}
+              <el-tag :type="scope.row.status === '1' ? 'success' : 'danger'">
+                {{ scope.row.status === '1' ? '启用' : '禁用' }}
               </el-tag>
             </template>
           </el-table-column>
           <el-table-column label="操作">
             <template #default="scope">
               <el-button size="mini" type="primary" @click="toggleUserStatus(scope.row)">
-                {{ scope.row.status === 'active' ? '禁用' : '启用' }}
+                {{ scope.row.status === '1' ? '禁用' : '启用' }}
               </el-button>
               <el-button size="mini" type="warning" @click="resetPassword(scope.row)">重置密码</el-button>
             </template>
           </el-table-column>
         </el-table>
+        <!-- 分页组件 -->
+        <div class="pagination-wrapper">
+          <el-pagination
+            v-model:current-page="currentPage"
+            v-model:page-size="pageSize"
+            :page-sizes="[10, 20, 50, 100]"
+            layout="total, sizes, prev, pager, next, jumper"
+            :total="total"
+            @size-change="handleSizeChange"
+            @current-change="handleCurrentChange"
+          />
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 // 引入 Element Plus 图标
 import {
   User, UserFilled, Grid, ShoppingCart, TrendCharts,
-  Bell, InfoFilled, Shop, Search
+  Bell, InfoFilled, Shop, Search,
+  Top, Bottom, Warning, CircleCheck
 } from '@element-plus/icons-vue'
 // 引入 Element Plus 提示框
 import { ElMessageBox, ElMessage } from 'element-plus'
 // 引入接口方法
 import { getUserList, changeUserStatus, resetPassword as resetPasswordApi } from '@/api/user'
+// 引入仪表盘接口
+import { getDashboardStats } from '@/api/dashboard'
+// 引入管理员信息 composable
+import { useAdminInfo } from '@/composables/useAdminInfo'
 
 // 创建路由器实例
 const router = useRouter()
@@ -188,14 +219,68 @@ const router = useRouter()
 // 当前激活菜单
 const activeMenu = ref('account')
 
-// 当前日期
-const currentDate = ref('2026 年 03 月 06 日')
+// 当前日期（动态获取）
+const currentDate = ref('')
 
-// 概览数据
-const totalUsers = ref(12842)
-const pendingChefs = ref(45)
-const todayOrders = ref(856)
-const abnormalOrders = ref(3)
+// 管理员信息
+const { adminInfo } = useAdminInfo()
+
+// 格式化日期为 YYYY 年 MM 月 DD 日
+const formatDate = (date) => {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}年${month}月${day}日`
+}
+
+// 初始化当前日期
+currentDate.value = formatDate(new Date())
+
+// 统计数据（动态获取）
+const stats = ref({
+  totalUsers: 0,
+  userGrowthRate: 0,
+  pendingChefs: 0,
+  todayOrders: 0,
+  orderGrowthRate: 0,
+  abnormalOrders: 0
+})
+
+// 定时器
+let refreshTimer = null
+
+// 加载统计数据
+const loadStats = () => {
+  getDashboardStats().then(res => {
+    if (res) {
+      stats.value = {
+        totalUsers: res.totalUsers || 0,
+        userGrowthRate: res.userGrowthRate || 0,
+        pendingChefs: res.pendingChefs || 0,
+        todayOrders: res.todayOrders || 0,
+        orderGrowthRate: res.orderGrowthRate || 0,
+        abnormalOrders: res.abnormalOrders || 0
+      }
+    }
+  }).catch(() => {
+    // 加载失败时使用默认值
+    stats.value = {
+      totalUsers: 0,
+      userGrowthRate: 0,
+      pendingChefs: 0,
+      todayOrders: 0,
+      orderGrowthRate: 0,
+      abnormalOrders: 0
+    }
+  })
+}
+
+// 根据增长率返回样式类
+const growthClass = (rate) => {
+  if (rate > 0) return 'growth-positive'
+  if (rate < 0) return 'growth-negative'
+  return 'growth-neutral'
+}
 
 // 导航到不同页面的函数
 const navigateToAccount = () => {
@@ -229,6 +314,11 @@ const searchKeyword = ref('')
 // 用户列表（从后端获取）
 const userList = ref([])
 
+// 分页相关
+const currentPage = ref(1)
+const pageSize = ref(10)
+const total = ref(0)
+
 // 页面加载时获取用户列表
 onMounted(() => {
   loadUserList()
@@ -239,27 +329,32 @@ const loadUserList = () => {
   // 传递分页 + 搜索参数
   getUserList({
     keyword: searchKeyword.value,
-    pageNum: 1,
-    pageSize: 10
+    pageNum: currentPage.value,
+    pageSize: pageSize.value
   }).then(res => {
-    // 后端返回的 data 里是分页数据，取 records（用户列表）
-    userList.value = res.data.records
+    // 后端返回的 res 里是分页数据，取 records（用户列表）和 total（总数）
+    userList.value = res.records || res.list || []
+    total.value = res.total || 0
   })
 }
 
-// 过滤后的用户列表
-const filteredUserList = computed(() => {
-  if (!searchKeyword.value) return userList.value
-  return userList.value.filter(user =>
-    user.name.includes(searchKeyword.value) ||
-    user.id.toString().includes(searchKeyword.value)
-  )
-})
+// 处理每页条数变化
+const handleSizeChange = (val) => {
+  pageSize.value = val
+  currentPage.value = 1 // 重置为第一页
+  loadUserList()
+}
+
+// 处理页码变化
+const handleCurrentChange = (val) => {
+  currentPage.value = val
+  loadUserList()
+}
 
 // 切换用户状态（调用后端接口）
 const toggleUserStatus = (row) => {
   ElMessageBox.confirm(
-    `确定要${row.status === 'active' ? '禁用' : '启用'}用户「${row.name}」吗？`,
+    `确定要${row.status === '1' ? '禁用' : '启用'}用户「${row.name}」吗？`,
     '提示',
     {
       confirmButtonText: '确定',
@@ -267,9 +362,9 @@ const toggleUserStatus = (row) => {
       type: 'warning'
     }
   ).then(() => {
-    // 调用切换状态接口
-    changeUserStatus(row.id, row.status === 'active' ? 'disabled' : 'active').then(() => {
-      ElMessage.success(`用户「${row.name}」已${row.status === 'active' ? '禁用' : '启用'}！`)
+    // 调用切换状态接口，使用 userId，状态值转为 Integer
+    changeUserStatus(row.userId, row.status === '1' ? 0 : 1).then(() => {
+      ElMessage.success(`用户「${row.name}」已${row.status === '1' ? '禁用' : '启用'}！`)
       loadUserList() // 重新加载列表
     })
   }).catch(() => {
@@ -291,7 +386,7 @@ const resetPassword = (row) => {
       type: 'warning'
     }
   ).then(() => {
-    resetPasswordApi(row.id).then(() => {
+    resetPasswordApi(row.userId).then(() => {
       ElMessage.success(`用户「${row.name}」密码已重置！`)
     })
   }).catch(() => {
@@ -314,10 +409,9 @@ const handleLogout = () => {
     }
   ).then(() => {
     // 清空本地存储中的登录相关数据
-    localStorage.removeItem('token')
-    localStorage.removeItem('userInfo')
-    sessionStorage.removeItem('token')
-    sessionStorage.removeItem('userInfo')
+    localStorage.removeItem('admin-token')
+    localStorage.removeItem('admin-refreshToken')
+    localStorage.removeItem('admin-userInfo')
 
     // 跳转到登录页面并防止通过浏览器返回按钮返回
     router.replace('/login')
@@ -336,7 +430,23 @@ const handleLogout = () => {
 
 // 监听搜索关键词变化
 watch(searchKeyword, () => {
+  currentPage.value = 1 // 搜索时重置到第一页
   loadUserList()
+})
+
+// 页面加载时获取数据和统计数据
+onMounted(() => {
+  loadUserList()
+  loadStats()
+  // 每 30 秒自动刷新一次统计数据
+  refreshTimer = setInterval(loadStats, 30000)
+})
+
+// 页面卸载时清除定时器
+onUnmounted(() => {
+  if (refreshTimer) {
+    clearInterval(refreshTimer)
+  }
 })
 </script>
 
@@ -464,6 +574,19 @@ watch(searchKeyword, () => {
   cursor: pointer;
 }
 
+/* 增长率样式 */
+.growth-positive {
+  color: #07c160;
+}
+
+.growth-negative {
+  color: #ee0a24;
+}
+
+.growth-neutral {
+  color: #969799;
+}
+
 /* 数据概览卡片 */
 .overview-cards {
   display: grid;
@@ -527,5 +650,12 @@ watch(searchKeyword, () => {
 .section-header h3 {
   margin: 0;
   font-size: 18px;
+}
+
+/* 分页组件样式 */
+.pagination-wrapper {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
 }
 </style>
