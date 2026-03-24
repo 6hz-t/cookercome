@@ -34,6 +34,7 @@ D:\cookerhome\cookercome\Backend\src\main\java\com\hs\backend\security\CustomUse
 D:\cookerhome\cookercome\Backend\src\main\java\com\hs\backend\entity\ChefInfo.java
 D:\cookerhome\cookercome\Backend\src\main\java\com\hs\backend\common\enums\OrderStatusEnum.java
 D:\cookerhome\cookercome\Backend\src\main\java\com\hs\backend\config\CorsConfig.java
+D:\cookerhome\cookercome\Backend\src\main\java\com\hs\backend\dto\response\UserScheduleResponse.java
 D:\cookerhome\cookercome\Backend\src\main\java\com\hs\backend\dto\request\RegisterRequest.java
 D:\cookerhome\cookercome\Backend\src\main\java\com\hs\backend\service\AdminInfoService.java
 D:\cookerhome\cookercome\Backend\src\main\java\com\hs\backend\security\JwtTokenProvider.java

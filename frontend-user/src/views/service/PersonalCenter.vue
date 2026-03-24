@@ -183,118 +183,8 @@
       </div>
     </div>
 
-    <!-- 预约记录 -->
-    <div class="booking-section">
-      <div class="section-header-tech">
-        <h3 class="section-title">
-          <el-icon class="title-icon"><Calendar /></el-icon>
-          <span class="title-text">预约记录</span>
-        </h3>
-      </div>
-
-      <el-tabs v-model="activeTab" class="booking-tabs tech-tabs">
-        <el-tab-pane name="ongoing">
-          <template #label>
-            <span class="tab-label">
-              <el-icon><Clock /></el-icon>
-              进行中
-            </span>
-          </template>
-
-          <div class="booking-list">
-            <div
-              v-for="order in ongoingOrders"
-              :key="order.id"
-              class="booking-card"
-              @click="$router.push(`/order/${order.id}`)"
-            >
-              <div class="booking-content">
-                <div class="chef-info">
-                  <el-avatar :size="50" :src="order.chefAvatar" />
-                  <div class="chef-details">
-                    <h4>{{ order.chefName }}</h4>
-                    <p>{{ order.serviceType }}</p>
-                  </div>
-                </div>
-                <el-tag :type="getStatusType(order.status)" size="small" effect="dark" class="status-tag">{{ getStatusText(order.status) }}</el-tag>
-              </div>
-
-              <div class="booking-info">
-                <div class="info-row">
-                  <el-icon><Calendar /></el-icon>
-                  <span>{{ order.serviceDate }} {{ order.serviceTime }}</span>
-                </div>
-                <div class="info-row">
-                  <el-icon><Location /></el-icon>
-                  <span>{{ order.address }}</span>
-                </div>
-                <div class="info-row">
-                  <el-icon><User /></el-icon>
-                  <span>{{ order.guestCount }}人</span>
-                  <el-divider direction="vertical" />
-                  <el-icon><Money /></el-icon>
-                  <span class="price-highlight">¥{{ order.totalAmount }}</span>
-                </div>
-              </div>
-
-              <div class="booking-actions" v-if="order.status === 'confirmed'">
-                <el-button size="small" plain @click.stop="cancelOrder(order.id)">取消订单</el-button>
-                <el-button size="small" type="primary" @click.stop="contactChef(order)">联系厨师</el-button>
-              </div>
-            </div>
-
-            <el-empty v-if="ongoingOrders.length === 0" description="暂无进行中的订单" />
-          </div>
-        </el-tab-pane>
-
-        <el-tab-pane name="history">
-          <template #label>
-            <span class="tab-label">
-              <el-icon><Finished /></el-icon>
-              历史订单
-            </span>
-          </template>
-
-          <div class="booking-list">
-            <div
-              v-for="order in historyOrders"
-              :key="order.id"
-              class="booking-card history"
-              @click="$router.push(`/order/${order.id}`)"
-            >
-              <div class="booking-content">
-                <div class="chef-info">
-                  <el-avatar :size="50" :src="order.chefAvatar" />
-                  <div class="chef-details">
-                    <h4>{{ order.chefName }}</h4>
-                    <p>{{ order.serviceType }}</p>
-                  </div>
-                </div>
-                <el-tag :type="getStatusType(order.status)" size="small" effect="dark">{{ getStatusText(order.status) }}</el-tag>
-              </div>
-
-              <div class="booking-info">
-                <div class="info-row">
-                  <el-icon><Calendar /></el-icon>
-                  <span>{{ order.serviceDate }} {{ order.serviceTime }}</span>
-                </div>
-                <div class="info-row">
-                  <el-icon><Money /></el-icon>
-                  <span class="price-highlight">¥{{ order.totalAmount }}</span>
-                </div>
-              </div>
-
-              <div class="booking-actions">
-                <el-button size="small" plain @click.stop="reviewOrder(order)">评价</el-button>
-                <el-button size="small" type="primary" @click.stop="bookAgain(order)">再次预约</el-button>
-              </div>
-            </div>
-
-            <el-empty v-if="historyOrders.length === 0" description="暂无历史订单" />
-          </div>
-        </el-tab-pane>
-      </el-tabs>
-    </div>
+    <!-- 我的预约时间表 -->
+    <UserSchedule />
 
     <!-- 地址管理对话框 -->
     <el-dialog v-model="showAddressDialog" title="地址管理" width="600px" class="dark-dialog">
@@ -365,13 +255,14 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { 
-  Phone, ShoppingCart, CircleCheck, Clock, Star,Finished,
+  Phone, ShoppingCart, CircleCheck, Star,
   Menu, Document, Location, Collection, ChatDotRound, Ticket, Service, Calendar, User, Money
 } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { getPersonalCenterStats, getCustomerProfile } from '@/api/personalCenter'
+import UserSchedule from '@/views/service/UserSchedule.vue'
 
-const emit = defineEmits(['show-address', 'cancel-order', 'contact-chef', 'review-order', 'book-again'])
+const emit = defineEmits(['show-address'])
 
 // 用户信息
 const userInfo = ref({
@@ -479,87 +370,10 @@ const stats = ref({
 const favoritesCount = ref(0)
 const couponsCount = ref(0)
 
-// 预约订单
-const activeTab = ref('ongoing')
-const ongoingOrders = ref([
-  {
-    id: 1,
-    chefName: '王师傅',
-    chefAvatar: 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png',
-    serviceType: '川菜定制',
-    status: 'confirmed',
-    serviceDate: '2026-03-08',
-    serviceTime: '18:00-20:00',
-    address: '北京市朝阳区建国路 93 号万达广场 A 座 1001 室',
-    guestCount: 4,
-    totalAmount: 598
-  },
-  {
-    id: 2,
-    chefName: '李师傅',
-    chefAvatar: 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png',
-    serviceType: '粤菜海鲜',
-    status: 'pending',
-    serviceDate: '2026-03-10',
-    serviceTime: '12:00-14:00',
-    address: '北京市朝阳区建国路 93 号万达广场 A 座 1001 室',
-    guestCount: 6,
-    totalAmount: 888
-  }
-])
-
-const historyOrders = ref([
-  {
-    id: 3,
-    chefName: '张师傅',
-    chefAvatar: 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png',
-    serviceType: '家常宴席',
-    status: 'completed',
-    serviceDate: '2026-02-28',
-    serviceTime: '18:00-20:00',
-    address: '北京市朝阳区建国路 93 号万达广场 A 座 1001 室',
-    totalAmount: 468
-  },
-  {
-    id: 4,
-    chefName: '刘师傅',
-    chefAvatar: 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png',
-    serviceType: '火锅烧烤',
-    status: 'completed',
-    serviceDate: '2026-02-14',
-    serviceTime: '17:00-19:00',
-    address: '北京市朝阳区建国路 93 号万达广场 A 座 1001 室',
-    totalAmount: 398
-  }
-])
-
 // 格式化手机号
 const formatPhone = (phone: string) => {
   if (!phone) return ''
   return phone.replace(/(\d{3})\d{4}(\d{4})/, '$1****$2')
-}
-
-// 状态类型映射
-const getStatusType = (status: string) => {
-  const typeMap: Record<string, string> = {
-    'pending': 'warning',
-    'confirmed': 'success',
-    'cooking': 'primary',
-    'completed': 'info',
-    'cancelled': 'danger'
-  }
-  return typeMap[status] || 'info'
-}
-
-const getStatusText = (status: string) => {
-  const textMap: Record<string, string> = {
-    'pending': '待确认',
-    'confirmed': '已确认',
-    'cooking': '烹饪中',
-    'completed': '已完成',
-    'cancelled': '已取消'
-  }
-  return textMap[status] || status
 }
 
 // 地址管理
@@ -625,30 +439,6 @@ const saveAddress = () => {
   }
   
   ElMessage.success('地址保存成功')
-}
-
-// 订单操作
-const cancelOrder = (orderId :any) => {
-  // TODO: 调用后端 API 取消订单
-  console.log('取消订单:', orderId)
-  ElMessage.success('订单已取消')
-}
-
-const contactChef = (order:any) => {
-  // TODO: 实现联系厨师功能（拨打电话或在线聊天）
-  ElMessage.info(`正在联系${order.chefName}...`)
-}
-
-const reviewOrder = (order:any) => {
-  // TODO: 打开评价对话框并提交到后端
-  console.log('评价订单:', order)
-  ElMessage.success('评价功能开发中')
-}
-
-const bookAgain = (order:any) => {
-  // TODO: 跳转到预约页面并填充订单信息
-  console.log('再次预约:', order)
-  ElMessage.info('再次预约功能开发中')
 }
 
 // 加载用户信息和统计数据
@@ -1573,167 +1363,6 @@ onMounted(() => {
 
 .function-card:hover .card-hover-effect {
   transform: scaleX(1);
-}
-
-/* 数据流风格预约记录 */
-.booking-section {
-  background: rgba(30, 30, 60, 0.85); /* 增加不透明度 */
-  backdrop-filter: blur(20px);
-  border-radius: 20px;
-  padding: 30px;
-  border: 1px solid var(--glass-border);
-}
-
-.tech-tabs :deep(.el-tabs__header) {
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 12px;
-  padding: 5px;
-  margin-bottom: 25px;
-}
-
-.tech-tabs :deep(.el-tabs__item) {
-  color: rgba(255, 255, 255, 0.6);
-  border-radius: 8px;
-  transition: all 0.3s ease;
-}
-
-.tech-tabs :deep(.el-tabs__item.is-active) {
-  background: linear-gradient(135deg, rgba(0, 243, 255, 0.2), rgba(188, 19, 254, 0.2));
-  color: var(--neon-blue);
-}
-
-.booking-list {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.booking-card.data-stream {
-  position: relative;
-  background: rgba(30, 30, 60, 0.4);
-  border-radius: 16px;
-  padding: 20px;
-  border: 1px solid rgba(0, 243, 255, 0.1);
-  transition: all 0.4s ease;
-  cursor: pointer;
-  overflow: hidden;
-}
-
-.data-stream-line {
-  position: absolute;
-  top: 0;
-  left: 20px;
-  width: 2px;
-  height: 100%;
-  background: linear-gradient(to bottom, var(--neon-blue), transparent);
-  opacity: 0.3;
-}
-
-.booking-card:hover {
-  transform: translateX(10px);
-  border-color: var(--neon-blue);
-  box-shadow: 0 10px 30px rgba(0, 243, 255, 0.2);
-}
-
-.booking-card:hover .data-stream-line {
-  opacity: 1;
-  animation: dataFlow 1s ease-in-out infinite;
-}
-
-@keyframes dataFlow {
-  0%, 100% { transform: scaleY(0); transform-origin: top; }
-  50% { transform: scaleY(1); transform-origin: top; }
-  51% { transform: scaleY(1); transform-origin: bottom; }
-  100% { transform: scaleY(0); transform-origin: bottom; }
-}
-
-.booking-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 15px;
-}
-
-.chef-info {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-
-.chef-avatar-wrapper {
-  position: relative;
-}
-
-.avatar-status-dot {
-  position: absolute;
-  bottom: 0;
-  right: 0;
-  width: 12px;
-  height: 12px;
-  background: var(--neon-green);
-  border-radius: 50%;
-  border: 2px solid var(--tech-gray);
-  animation: dotPulse 2s ease-in-out infinite;
-}
-
-@keyframes dotPulse {
-  0%, 100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.2); opacity: 0.7; }
-}
-
-.chef-details h4 {
-  font-size: 18px;
-  font-weight: bold;
-  color: white;
-  margin: 0 0 5px 0;
-}
-
-.chef-details p {
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.6);
-  margin: 0;
-}
-
-.status-tag {
-  border-color: var(--neon-blue);
-}
-
-.booking-info {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-bottom: 15px;
-  padding: 15px;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 12px;
-  border-left: 3px solid var(--neon-blue);
-}
-
-.info-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.7);
-}
-
-.info-row .el-icon {
-  color: var(--neon-blue);
-  font-size: 18px;
-}
-
-.price-highlight {
-  color: var(--neon-green);
-  font-weight: bold;
-  font-size: 16px;
-}
-
-.booking-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  padding-top: 15px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 /* 响应式设计 */

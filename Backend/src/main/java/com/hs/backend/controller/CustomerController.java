@@ -5,6 +5,7 @@ import com.hs.backend.common.exception.BusinessException;
 import com.hs.backend.dto.request.OrderCreateRequest;
 import com.hs.backend.dto.request.OrderActionRequest;
 import com.hs.backend.dto.OrderDTO;
+import com.hs.backend.dto.response.UserScheduleResponse;
 import com.hs.backend.entity.CustomerInfo;
 import com.hs.backend.entity.UserAddress;
 import com.hs.backend.service.CustomerOrderService;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 import java.security.Principal;
+import java.time.LocalDate;
 import java.util.List;
 
 /**
@@ -185,5 +187,19 @@ public class CustomerController {
             default:
                 throw new BusinessException("不支持的操作类型");
         }
+    }
+    
+    /**
+     * 获取用户时间段占用情况
+     */
+    @GetMapping("/schedule")
+    @Operation(summary = "获取用户时间段占用情况", description = "获取当前用户从今天开始未来 15 天的时间段占用情况")
+    public Result<List<UserScheduleResponse>> getUserSchedule(Principal principal) {
+        Long userId = getCurrentUserId(principal);
+        LocalDate startDate = LocalDate.now();
+        LocalDate endDate = startDate.plusDays(14); // 15 天
+        
+        List<UserScheduleResponse> schedule = customerOrderService.getUserSchedule(userId, startDate, endDate);
+        return Result.success(schedule);
     }
 }
