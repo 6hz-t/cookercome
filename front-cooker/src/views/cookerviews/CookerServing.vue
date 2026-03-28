@@ -1,6 +1,6 @@
 <template>
     <div class="container">
-        <h3>待服务订单</h3>
+        <h3>服务订单</h3>
 
         <!-- 订单统计 -->
         <div class="stats-cards">
@@ -168,7 +168,7 @@ import {
     Clock, Timer, Calendar, Money, Phone, Document, VideoPlay, CircleCheck
 } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getServingOrders, startService, endService } from '@/api/cooker'
+import { getServingOrders, startService, endService, updateOrderStatus, getOrders } from '@/api/cooker'
 
 export default {
     name: 'CookerServing',
@@ -210,13 +210,42 @@ export default {
     methods: {
         async loadOrders() {
             try {
-                // 从 localStorage 获取已接订单
-                const servingOrders = localStorage.getItem('servingOrders')
-                if (servingOrders) {
-                    this.orders = JSON.parse(servingOrders)
+                // 从后端API获取订单数据
+                const chefId = localStorage.getItem('userId')
+                console.log('[调试] 厨师ID:', chefId)
+                
+                if (!chefId) {
+                    ElMessage.warning('未找到厨师ID，请重新登录')
+                    return
+                }
+                
+                console.log('[调试] 开始调用获取订单API...')
+                const res = await getOrders(chefId)
+                console.log('[调试] API返回完整数据:', res)
+                
+                // 直接处理返回的数据
+                if (res.records && res.records.length > 0) {
+                    console.log('[调试] 订单记录:', res.records)
+                    // 转换后端数据格式为前端需要的格式
+                    this.orders = res.records.map(order => ({
+                        orderid: order.id,
+                        orderNo: order.orderNo,
+                        username: order.customerId || '',
+                        userphone: order.customerId || '',
+                        servetime: `${order.reserveDate} ${order.reserveTime}`,
+                        serveaddress: order.addressId || '',
+                        requirement: order.dishRequirements || '',
+                        totalprice: order.totalAmount || 0,
+                        status: this.convertStatus(order.status),
+                        createTime: order.createTime
+                    }))
+                    console.log('[调试] 转换后的订单数据:', this.orders)
+                } else {
+                    console.log('[调试] API返回错误:', res.message)
+                    this.orders = []
                 }
             } catch (error) {
-                console.error('加载待服务订单失败:', error)
+                console.error('[调试] 加载订单失败:', error)
                 ElMessage.error('加载订单失败')
             }
         },
@@ -285,26 +314,23 @@ export default {
         },
         async handleStartService(order) {
             try {
-                await ElMessageBox.confirm(`确认开始服务订单：${order.orderNo}？`, '提示', {
+                await ElMessageBox.confirm(`确认订单：${order.orderNo}？`, '提示', {
                     confirmButtonText: '确认',
                     cancelButtonText: '取消',
                     type: 'info'
                 })
 
-                // 调用开始服务 API
-                await startService(order.orderid)
+                // 调用更新订单状态 API，设置状态为2（服务中）
+                await updateOrderStatus(order.orderid, 1)
                 
                 // 更新订单状态
                 order.status = 'serving'
                 this.updateOrders()
                 
-                ElMessage.success('服务已开始')
+                ElMessage.success('服务已完成')
                 this.detailDialogVisible = false
             } catch (error) {
-                if (error !== 'cancel') {
-                    console.error('开始服务失败:', error)
-                    ElMessage.error('开始服务失败')
-                }
+               console.error('失败:', error)
             }
         },
         async handleCompleteService(order) {
@@ -315,8 +341,8 @@ export default {
                     type: 'warning'
                 })
 
-                // 调用完成服务 API
-                await endService(order.orderid)
+                // 调用更新订单状态 API，设置状态为3
+                await updateOrderStatus(order.orderid, 3)
                 
                 // 从列表中移除已完成的订单
                 this.orders = this.orders.filter(o => o.orderid !== order.orderid)

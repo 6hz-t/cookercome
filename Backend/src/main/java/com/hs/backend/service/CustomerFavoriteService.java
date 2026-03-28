@@ -12,17 +12,17 @@ public interface CustomerFavoriteService {
     /**
      * 添加收藏
      * @param customerId 客户 ID
-     * @param chefId 厨师 ID
+     * @param chefId 厨师 ID（chefinfo 表的 user_id）
      */
-    void addFavorite(Long customerId, Long chefId);
+    void addFavorite(Long customerId, String chefId);
     
     /**
      * 检查是否已收藏
      * @param customerId 客户 ID
-     * @param chefId 厨师 ID
+     * @param chefId 厨师 ID（chefinfo 表的 user_id）
      * @return 是否已收藏
      */
-    boolean isFavorited(Long customerId, Long chefId);
+    boolean isFavorited(Long customerId, String chefId);
     
     /**
      * 获取用户的收藏列表
@@ -34,7 +34,7 @@ public interface CustomerFavoriteService {
     /**
      * 取消收藏
      * @param customerId 客户 ID
-     * @param chefId 厨师 ID
+     * @param chefId 厨师 ID（chefinfo 表的 user_id）
      */
-    void removeFavorite(Long customerId, Long chefId);
+    void removeFavorite(Long customerId, String chefId);
 }

@@ -13,9 +13,9 @@ spring:
     mongodb:
       auto-index-creation: false
     redis:
-      host: localhost
+      host: 124.221.15.13
       port: 6379
-      password: 654321
+      password: 998877
       timeout: 5000ms
       database: 0
       lettuce:

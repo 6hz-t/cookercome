@@ -5,8 +5,13 @@
     <link rel="icon" href="/favicon.ico">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vite App</title>
-      <!-- 百度地图 WebGL 版 (优先使用) -->
-      <script type="text/javascript" src="https://api.map.baidu.com/api?type=webgl&v=1.0&ak=VhLF9CxroEWj5WcVVAWkZSC9HxOVgoJk"></script>
+    
+    <!-- 预加载百度地图资源，提升加载速度 -->
+    <link rel="preconnect" href="https://api.map.baidu.com">
+    <link rel="dns-prefetch" href="https://api.map.baidu.com">
+    
+    <!-- 百度地图 WebGL 版 (异步加载，避免阻塞页面渲染) -->
+    <script type="text/javascript" src="https://api.map.baidu.com/api?type=webgl&v=1.0&ak=VhLF9CxroEWj5WcVVAWkZSC9HxOVgoJk" async defer></script>
 
   </head>
   <body>

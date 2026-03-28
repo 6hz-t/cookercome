@@ -110,8 +110,8 @@ public class CustomerOrderQueryServiceImpl implements CustomerOrderQueryService 
     private List<Integer> getStatusListByCategory(String category) {
         switch (category) {
             case "all":
-                // 全部进行中的订单：0, 1, 2
-                return List.of(0, 1, 2);
+                // 全部订单：0-订单提交 1-待支付，2-已支付，3-服务完成，4-订单取消，5-退款中，6-已退款
+                return List.of(0, 1, 2, 3, 4, 5, 6);
             case "pending":
                 // 预约中：0
                 return List.of(0);
@@ -138,12 +138,12 @@ public class CustomerOrderQueryServiceImpl implements CustomerOrderQueryService 
      */
     private List<OrderDTO> convertToDTOs(List<Order> orders, Long userId) {
         // 批量查询用户的收藏列表
-        Set<Long> favoriteChefIds = getUserFavoriteChefIds(userId);
+        Set<String> favoriteChefIds = getUserFavoriteChefIds(userId);
         
         return orders.stream()
                 .map(order -> {
                     OrderDTO dto = convertToDTO(order);
-                    // 设置收藏标记
+                    // 设置收藏标记（order.getChefId() 存储的是 chefinfo 表的 user_id）
                     dto.setIsFavorited(favoriteChefIds.contains(order.getChefId()));
                     return dto;
                 })
@@ -153,14 +153,14 @@ public class CustomerOrderQueryServiceImpl implements CustomerOrderQueryService 
     /**
      * 获取用户收藏的厨师 ID 列表（从 Redis 缓存）
      */
-    private Set<Long> getUserFavoriteChefIds(Long userId) {
+    private Set<String> getUserFavoriteChefIds(Long userId) {
         String cacheKey = "user:favorites:" + userId;
         
         // 尝试从 Redis 获取
         Object cached = redisTemplate.opsForValue().get(cacheKey);
         if (cached instanceof Set) {
             log.debug("从 Redis 缓存中获取到用户 {} 的收藏列表", userId);
-            return (Set<Long>) cached;
+            return (Set<String>) cached;
         }
         
         // 从数据库查询
@@ -170,7 +170,7 @@ public class CustomerOrderQueryServiceImpl implements CustomerOrderQueryService 
         List<CustomerFavorite> favorites = customerFavoriteMapper.selectList(queryWrapper);
         
         // 转换为 Set
-        Set<Long> chefIds = favorites.stream()
+        Set<String> chefIds = favorites.stream()
                 .map(CustomerFavorite::getChefId)
                 .collect(Collectors.toSet());
         
@@ -200,9 +200,11 @@ public class CustomerOrderQueryServiceImpl implements CustomerOrderQueryService 
         dto.setRemark(order.getRemark());
         dto.setCreateTime(order.getCreateTime());
         
-        // 查询厨师信息
+        // 查询厨师信息（order.getChefId() 存储的是 chefinfo 表的 user_id）
         if (order.getChefId() != null) {
-            ChefInfo chef = chefInfoMapper.selectById(order.getChefId());
+            QueryWrapper<ChefInfo> chefQueryWrapper = new QueryWrapper<>();
+            chefQueryWrapper.eq("user_id", order.getChefId());
+            ChefInfo chef = chefInfoMapper.selectOne(chefQueryWrapper);
             if (chef != null) {
                 dto.setChefName(chef.getRealName());
                 dto.setChefAvatar(chef.getAvatarUrl());
@@ -276,7 +278,10 @@ public class CustomerOrderQueryServiceImpl implements CustomerOrderQueryService 
         // 5. 清除所有订单缓存
         clearAllUserOrdersCache(userId);
         
-        // 6. 清除用户信息缓存（积分、消费金额已更新，需要刷新缓存）
+        // 6. 清除用户的时间段缓存
+        clearUserScheduleCache(userId);
+        
+        // 7. 清除用户信息缓存（积分、消费金额已更新，需要刷新缓存）
         clearUserInfoCache(userId);
         
         log.info("用户 {} 支付了订单 {}, 金额：{}, 获得积分：{}", userId, orderId, order.getTotalAmount(), pointsToAdd);
@@ -302,6 +307,10 @@ public class CustomerOrderQueryServiceImpl implements CustomerOrderQueryService 
 
         // 清除所有订单缓存
         clearAllUserOrdersCache(userId);
+        
+        // 清除用户的时间段缓存
+        clearUserScheduleCache(userId);
+        
         log.info("用户 {} 申请退款订单 {}, 原因：{}", userId, orderId, reason);
     }
 
@@ -355,6 +364,22 @@ public class CustomerOrderQueryServiceImpl implements CustomerOrderQueryService 
         String cacheKey = "user:info:" + userId;
         redisTemplate.delete(cacheKey);
         log.debug("已清除用户信息缓存 key={}", cacheKey);
+    }
+
+    /**
+     * 清除用户时间段缓存
+     */
+    private void clearUserScheduleCache(Long userId) {
+        // 删除该用户所有日期范围的缓存（使用通配符模式）
+        String pattern = "user:schedule:" + userId + ":*";
+        try {
+            redisTemplate.keys(pattern).forEach(key -> {
+                redisTemplate.delete(key);
+                log.debug("已清除用户 {} 的时间段缓存 key={}", userId, key);
+            });
+        } catch (Exception e) {
+            log.warn("清除时间段缓存失败：{}", e.getMessage());
+        }
     }
 
     /**

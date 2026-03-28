@@ -46,10 +46,5 @@ public class UserScheduleResponse {
          * 订单 ID（如果有）
          */
         private Long orderId;
-        
-        /**
-         * 厨师姓名（如果有）
-         */
-        private String chefName;
     }
 }

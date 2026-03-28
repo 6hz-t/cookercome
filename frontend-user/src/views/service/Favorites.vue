@@ -25,7 +25,7 @@
       </div>
       <p class="empty-text">暂无收藏</p>
       <p class="empty-hint">快去发现喜欢的厨师吧</p>
-      <el-button type="primary" @click="$router.push('/chefInfos')">
+      <el-button type="primary" @click="goToBooking">
         去浏览厨师
       </el-button>
     </div>
@@ -243,6 +243,7 @@ import { getUserAddresses, createOrder } from '@/api/chef'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const router = useRouter()
+const emit = defineEmits(['navigate-to'])
 const defaultAvatar = 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png'
 
 // 收藏列表数据
@@ -442,6 +443,11 @@ const handleConfirmBooking = async () => {
 onMounted(() => {
   loadFavorites()
 })
+
+// 跳转到预约厨师页面
+const goToBooking = () => {
+  emit('navigate-to', 'booking')
+}
 </script>
 
 <style scoped>

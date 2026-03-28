@@ -26,11 +26,11 @@ public class CustomerFavoriteController {
     
     /**
      * 添加收藏
-     * @param chefId 厨师 ID
+     * @param chefId 厨师 ID（chefinfo 表的 user_id）
      * @return 操作结果
      */
     @PostMapping("/add/{chefId}")
-    public Result<String> addFavorite(@PathVariable Long chefId) {
+    public Result<String> addFavorite(@PathVariable String chefId) {
         Long customerId = getCurrentUserId();
         customerFavoriteService.addFavorite(customerId, chefId);
         return Result.success("收藏成功");
@@ -38,11 +38,11 @@ public class CustomerFavoriteController {
     
     /**
      * 检查是否已收藏
-     * @param chefId 厨师 ID
+     * @param chefId 厨师 ID（chefinfo 表的 user_id）
      * @return 是否已收藏
      */
     @GetMapping("/check/{chefId}")
-    public Result<Map<String, Boolean>> checkFavorite(@PathVariable Long chefId) {
+    public Result<Map<String, Boolean>> checkFavorite(@PathVariable String chefId) {
         Long customerId = getCurrentUserId();
         boolean isFavorited = customerFavoriteService.isFavorited(customerId, chefId);
         
@@ -77,11 +77,11 @@ public class CustomerFavoriteController {
     
     /**
      * 取消收藏
-     * @param chefId 厨师 ID
+     * @param chefId 厨师 ID（chefinfo 表的 user_id）
      * @return 操作结果
      */
     @PostMapping("/remove/{chefId}")
-    public Result<String> removeFavorite(@PathVariable Long chefId) {
+    public Result<String> removeFavorite(@PathVariable String chefId) {
         Long customerId = getCurrentUserId();
         customerFavoriteService.removeFavorite(customerId, chefId);
         return Result.success("取消收藏成功");

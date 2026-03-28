@@ -155,6 +155,9 @@ public class CustomerBookingChefServiceImpl extends ServiceImpl<ChefInfoMapper, 
         // 使用 BeanUtils 复制相同名称的字段
         BeanUtils.copyProperties(chefInfo, response);
         
+        // 设置 id 为 user_id 而不是 chef_info 的主键 id
+        response.setId(Long.parseLong(chefInfo.getUserId()));
+        
         // 设置手机号（从 User 表获取，如果 ChefInfo 中没有）
         if (chefInfo.getPhone() == null || chefInfo.getPhone().isEmpty()) {
             User user = userService.getById(chefInfo.getUserId());
