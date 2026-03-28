@@ -16,9 +16,9 @@ public class FavoriteChefResponse {
     private Long favoriteId;
     
     /**
-     * 厨师 ID
+     * 厨师 ID（chefinfo 表的 user_id）
      */
-    private Long chefId;
+    private String chefId;
     
     /**
      * 厨师真实姓名

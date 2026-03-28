@@ -32,18 +32,24 @@
                 <el-input v-model="chef.idCard" placeholder="请输入身份证号"></el-input>
             </el-form-item>
             <el-form-item label="身份证正面">
-                <el-upload class="avatar-uploader" action="https://run.mocky.io/v3/9d059bf9-4660-45f2-925d-ce80ad6c4d15"
-                    :show-file-list="false" :on-success="handleAvatarSuccess" :before-upload="beforeAvatarUpload">
-                    <img v-if="imageUrl" :src="imageUrl" class="avatar" />
+                <el-upload 
+                    class="avatar-uploader" 
+                    :http-request="(options) => uploadToOSS(options, 'idCardFront')"
+                    :show-file-list="false" 
+                    :before-upload="beforeAvatarUpload">
+                    <img v-if="chef.idCardFront" :src="chef.idCardFront" class="avatar" />
                     <el-icon v-else class="avatar-uploader-icon">
                         <Plus />
                     </el-icon>
                 </el-upload>
             </el-form-item>
             <el-form-item label="身份证反面">
-                <el-upload class="avatar-uploader" action="https://run.mocky.io/v3/9d059bf9-4660-45f2-925d-ce80ad6c4d15"
-                    :show-file-list="false" :on-success="handleAvatarSuccess" :before-upload="beforeAvatarUpload">
-                    <img v-if="imageUrl" :src="imageUrl" class="avatar" />
+                <el-upload 
+                    class="avatar-uploader" 
+                    :http-request="(options) => uploadToOSS(options, 'idCardBack')"
+                    :show-file-list="false" 
+                    :before-upload="beforeAvatarUpload">
+                    <img v-if="chef.idCardBack" :src="chef.idCardBack" class="avatar" />
                     <el-icon v-else class="avatar-uploader-icon">
                         <Plus />
                     </el-icon>
@@ -82,15 +88,18 @@
             
 
             <el-form-item label="执业资质">
-                <el-upload class="upload-demo" drag
-                    action="https://run.mocky.io/v3/9d059bf9-4660-45f2-925d-ce80ad6c4d15" multiple>
+                <el-upload 
+                    class="upload-demo" 
+                    drag
+                    :http-request="(options) => uploadToOSS(options, 'qualification')"
+                    multiple>
                     <el-icon class="el-icon--upload"><upload-filled /></el-icon>
                     <div class="el-upload__text">
                         相关行业执业证书 <em>点击上传</em>
                     </div>
                     <template #tip>
                         <div class="el-upload__tip">
-                            jpg/png 文件，且不超过 500
+                            jpg/png 文件，且不超过 500kb
                         </div>
                     </template>
                 </el-upload>
@@ -136,6 +145,8 @@
 <script>
 import { Position, UploadFilled, Plus } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
+import OSS from 'ali-oss'
+import axios from 'axios'
 
 export default {
     components: {
@@ -145,7 +156,9 @@ export default {
     },
     data() {
         return {
-            imageUrl: "https://example.com/avatar.jpg",
+            ossClient: null,
+            stsCredentials: null, // 存储STS临时凭证
+            credentialsExpireTime: 0, // 凭证过期时间
             star: 4.8,
             chef: {
                 "username": "chef123",
@@ -200,6 +213,148 @@ export default {
         };
     },
     methods: {
+        /**
+         * 从后端获取STS临时凭证
+         * @returns {Promise<Object>} 返回包含accessKeyId、accessKeySecret和stsToken的对象
+         */
+        async getSTSCredentials() {
+            try {
+                // 检查凭证是否仍然有效
+                if (this.stsCredentials && Date.now() < this.credentialsExpireTime) {
+                    console.log('使用缓存的STS凭证');
+                    return this.stsCredentials;
+                }
+
+                console.log('从后端获取新的STS凭证...');
+                // 替换为您的后端API地址
+                const response = await axios.get('/api/oss/sts');
+
+                // 假设后端返回的数据格式为：
+                // {
+                //   code: 200,
+                //   data: {
+                //     accessKeyId: 'xxx',
+                //     accessKeySecret: 'xxx',
+                //     stsToken: 'xxx',
+                //     expiration: '2023-12-31T12:00:00Z'
+                //   }
+                // }
+                if (response.data.code === 200) {
+                    this.stsCredentials = {
+                        accessKeyId: response.data.data.accessKeyId,
+                        accessKeySecret: response.data.data.accessKeySecret,
+                        stsToken: response.data.data.stsToken
+                    };
+
+                    // 设置凭证过期时间（提前5分钟过期，避免临界点问题）
+                    const expirationTime = new Date(response.data.data.expiration).getTime();
+                    this.credentialsExpireTime = expirationTime - 5 * 60 * 1000;
+
+                    console.log('STS凭证获取成功，过期时间:', new Date(this.credentialsExpireTime));
+                    return this.stsCredentials;
+                } else {
+                    throw new Error(response.data.message || '获取STS凭证失败');
+                }
+            } catch (error) {
+                console.error('获取STS凭证失败:', error);
+                throw error;
+            }
+        },
+        /**
+         * 初始化阿里云OSS客户端
+         * 使用STS临时凭证初始化
+         */
+        async initOSSClient() {
+            try {
+                // 获取STS临时凭证
+                const credentials = await this.getSTSCredentials();
+
+                // 使用STS凭证初始化OSS客户端
+                this.ossClient = new OSS({
+                    region: 'oss-cn-hangzhou', // 您的OSS区域
+                    accessKeyId: credentials.accessKeyId,
+                    accessKeySecret: credentials.accessKeySecret,
+                    stsToken: credentials.stsToken,
+                    bucket: 'lihuahua-cookhome', // 您的OSS存储桶名称
+                    secure: true // 使用HTTPS
+                });
+
+                console.log('OSS客户端初始化成功');
+            } catch (error) {
+                console.error('初始化OSS客户端失败:', error);
+                throw error;
+            }
+        },
+        /**
+         * 上传文件到阿里云OSS
+         * @param {Object} options - Element Plus上传组件传递的参数
+         * @param {File} options.file - 要上传的文件对象
+         * @param {string} fileType - 文件类型，用于标识是身份证正面、反面还是资质证书
+         */
+        async uploadToOSS(options, fileType) {
+            try {
+                const file = options.file;
+                console.log('开始上传文件:', {
+                    fileType,
+                    fileName: file.name,
+                    fileSize: (file.size / 1024).toFixed(2) + 'KB',
+                    fileType: file.type
+                });
+
+                // 如果OSS客户端未初始化或凭证即将过期，重新初始化
+                if (!this.ossClient || Date.now() >= this.credentialsExpireTime) {
+                    console.log('初始化或重新初始化OSS客户端...');
+                    await this.initOSSClient();
+                }
+
+                // 生成唯一文件名
+                const timestamp = new Date().getTime();
+                const randomStr = Math.random().toString(36).substring(2);
+                const fileName = `${fileType}_${timestamp}_${randomStr}.${file.name.split('.').pop()}`;
+                console.log('生成的文件名:', fileName);
+
+                // 上传文件到OSS
+                console.log('正在上传到OSS...');
+                const result = await this.ossClient.put(fileName, file);
+                console.log('OSS上传结果:', result);
+                console.log('文件URL:', result.url);
+
+                // 根据文件类型设置对应的URL
+                if (fileType === 'idCardFront') {
+                    this.chef.idCardFront = result.url;
+                    this.chef.idCardFrontFile = fileName;
+                    console.log('身份证正面URL已更新:', this.chef.idCardFront);
+                } else if (fileType === 'idCardBack') {
+                    this.chef.idCardBack = result.url;
+                    this.chef.idCardBackFile = fileName;
+                    console.log('身份证反面URL已更新:', this.chef.idCardBack);
+                } else if (fileType === 'qualification') {
+                    this.chef.qualificationFile = result.url;
+                    console.log('执业资质URL已更新:', this.chef.qualificationFile);
+                }
+
+                console.log('文件上传成功');
+                ElMessage.success('文件上传成功');
+            } catch (error) {
+                console.error('OSS上传失败:', error);
+                console.error('错误详情:', {
+                    message: error.message,
+                    code: error.code,
+                    name: error.name
+                });
+
+                // 如果是凭证过期错误，清除凭证并提示用户
+                if (error.name === 'AccessDeniedError' || error.code === 'AccessDenied') {
+                    console.log('凭证可能已过期，清除缓存');
+                    this.stsCredentials = null;
+                    this.credentialsExpireTime = 0;
+                    this.ossClient = null;
+                    ElMessage.error('凭证已过期，请重试');
+                } else {
+                    ElMessage.error('文件上传失败: ' + error.message);
+                }
+            }
+        },
         /**
          * 将百度地图墨卡托坐标转换为经纬度坐标
          * @param {number} mercatorX - 墨卡托 X 坐标（米）
@@ -358,7 +513,8 @@ export default {
             this.$refs[formName].resetFields();
         },
         handleAvatarSuccess(res, file) {
-            this.imageUrl = URL.createObjectURL(file.raw);
+            // 由于使用了OSS直传，这个方法已经不再需要
+            // 保留是为了兼容性，实际文件上传逻辑在uploadToOSS方法中处理
         },
         beforeAvatarUpload(file) {
             const isJPG = file.type === 'image/jpeg';

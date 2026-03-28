@@ -67,8 +67,10 @@ public class CustomerOrderServiceImpl implements CustomerOrderService {
     @Transactional(rollbackFor = Exception.class)
     public String createOrder(Long userId, OrderCreateRequest request) {
         try {
-            // 1. 验证厨师是否存在
-            ChefInfo chef = chefInfoMapper.selectById(request.getChefId());
+            // 1. 验证厨师是否存在（request.getChefId() 是 chefinfo 表的 user_id）
+            QueryWrapper<ChefInfo> chefQueryWrapper = new QueryWrapper<>();
+            chefQueryWrapper.eq("user_id", request.getChefId());
+            ChefInfo chef = chefInfoMapper.selectOne(chefQueryWrapper);
             if (chef == null || chef.getStatus() != 1) {
                 throw new BusinessException("厨师不存在或已停用");
             }
@@ -144,11 +146,11 @@ public class CustomerOrderServiceImpl implements CustomerOrderService {
     /**
      * 检查时间段是否有冲突
      * @param userId 当前下单用户 ID
-     * @param chefId 厨师 ID
+     * @param chefId 厨师 ID（chefinfo 表的 user_id）
      * @param reserveDate 预约日期
      * @param reserveTime 预约时间段（如：11:00-13:00）
      */
-    private void checkTimeSlotConflict(Long userId, Long chefId, String reserveDate, String reserveTime) {
+    private void checkTimeSlotConflict(Long userId, String chefId, String reserveDate, String reserveTime) {
         // 查询该厨师在该日期的所有订单
         QueryWrapper<Order> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("chef_id", chefId)
@@ -271,10 +273,14 @@ public class CustomerOrderServiceImpl implements CustomerOrderService {
     private void clearUserScheduleCache(Long userId) {
         // 删除该用户所有日期范围的缓存（使用通配符模式）
         String pattern = USER_SCHEDULE_CACHE_KEY + userId + ":*";
-        redisTemplate.keys(pattern).forEach(key -> {
-            redisTemplate.delete(key);
-            log.debug("已清除用户 {} 的时间段缓存 key={}", userId, key);
-        });
+        try {
+            redisTemplate.keys(pattern).forEach(key -> {
+                redisTemplate.delete(key);
+                log.debug("已清除用户 {} 的时间段缓存 key={}", userId, key);
+            });
+        } catch (Exception e) {
+            log.warn("清除时间段缓存失败：{}", e.getMessage());
+        }
     }
     
     @Override
@@ -305,9 +311,10 @@ public class CustomerOrderServiceImpl implements CustomerOrderService {
         List<Order> orders = orderMapper.selectList(queryWrapper);
         
         // 3. 按日期和时间段分组
+        // 注意：reserveDate 是 LocalDateTime，需要转为 LocalDate 字符串
         Map<String, Map<String, Order>> dateSlotMap = orders.stream()
                 .collect(Collectors.groupingBy(
-                        order -> order.getReserveDate().toString(),
+                        order -> order.getReserveDate().toLocalDate().toString(),  // 关键：先取日期部分再转字符串
                         Collectors.toMap(Order::getReserveTime, order -> order, (v1, v2) -> v1)
                 ));
         
@@ -340,26 +347,24 @@ public class CustomerOrderServiceImpl implements CustomerOrderService {
                     Order order = dayOrders.get(slot);
                     Integer dbStatus = order.getStatus();
                     
-                    // 处理状态：数据库的 4（订单取消）和 6（已退款）按空闲处理
+                    // 状态映射逻辑：根据订单业务流程
+                    // 数据库状态 4（取消订单）和 6（退款成功）按空闲处理
                     if (dbStatus == 4 || dbStatus == 6) {
                         slotStatus.setStatus(0); // 空闲
                         slotStatus.setOrderId(null);
-                        slotStatus.setChefName(null);
                     } else {
-                        // 其他状态直接映射（数据库 0->前端 1，数据库 1->前端 2，以此类推）
-                        slotStatus.setStatus(dbStatus + 1);
+                        // 其他状态直接映射到前端展示状态
+                        // 数据库 0（待接单）-> 前端 1（待接单）
+                        // 数据库 1（待支付）-> 前端 2（待支付）
+                        // 数据库 2（已支付）-> 前端 3（已预约）
+                        // 数据库 3（服务完成）-> 前端 4（服务中）
+                        // 数据库 5（退款中）-> 前端 5（退款中）
+                        slotStatus.setStatus(dbStatus == 3 ? 4 : dbStatus + 1);
                         slotStatus.setOrderId(order.getId());
-                        
-                        // 获取厨师姓名
-                        ChefInfo chef = chefInfoMapper.selectById(order.getChefId());
-                        if (chef != null) {
-                            slotStatus.setChefName(chef.getRealName());
-                        }
                     }
                 } else {
                     slotStatus.setStatus(0); // 空闲
                     slotStatus.setOrderId(null);
-                    slotStatus.setChefName(null);
                 }
                 
                 timeSlots.add(slotStatus);

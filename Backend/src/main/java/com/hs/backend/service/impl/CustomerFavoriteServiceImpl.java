@@ -41,7 +41,7 @@ public class CustomerFavoriteServiceImpl implements CustomerFavoriteService {
     
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void addFavorite(Long customerId, Long chefId) {
+    public void addFavorite(Long customerId, String chefId) {
         // 检查是否已收藏
         if (customerFavoriteMapper.exists(customerId, chefId)) {
             throw new BusinessException("该厨师已在收藏夹中");
@@ -96,7 +96,7 @@ public class CustomerFavoriteServiceImpl implements CustomerFavoriteService {
     }
     
     @Override
-    public boolean isFavorited(Long customerId, Long chefId) {
+    public boolean isFavorited(Long customerId, String chefId) {
         return customerFavoriteMapper.exists(customerId, chefId);
     }
     
@@ -135,16 +135,16 @@ public class CustomerFavoriteServiceImpl implements CustomerFavoriteService {
             return List.of();
         }
         
-        // 获取厨师 ID 列表（favorite 表的 chef_id 是 ChefInfo 的主键 id）
-        List<Long> chefIds = favorites.stream()
+        // 获取厨师 ID 列表（favorite 表的 chef_id 是 chefinfo 表的 user_id）
+        List<String> chefUserIds = favorites.stream()
                 .map(CustomerFavorite::getChefId)
                 .collect(Collectors.toList());
         
-        log.debug("用户 {} 的收藏厨师 ID 列表：{}", customerId, chefIds);
+        log.debug("用户 {} 的收藏厨师 userid 列表：{}", customerId, chefUserIds);
         
-        // 批量查询厨师信息（通过 ChefInfo 的主键 id）
+        // 批量查询厨师信息（通过 chefinfo 表的 user_id）
         QueryWrapper<ChefInfo> chefQueryWrapper = new QueryWrapper<>();
-        chefQueryWrapper.in("id", chefIds)
+        chefQueryWrapper.in("user_id", chefUserIds)
                 .eq("audit_status", 1) // 只查询审核通过的厨师
                 .eq("status", 1); // 只查询启用状态的厨师
         List<ChefInfo> chefs = chefInfoMapper.selectList(chefQueryWrapper);
@@ -155,7 +155,7 @@ public class CustomerFavoriteServiceImpl implements CustomerFavoriteService {
         List<FavoriteChefResponse> responses = chefs.stream()
                 .map(chef -> {
                     FavoriteChefResponse response = new FavoriteChefResponse();
-                    response.setChefId(chef.getId());
+                    response.setChefId(chef.getUserId()); // 返回 userid 而不是 id
                     response.setRealName(chef.getRealName());
                     response.setGender(chef.getGender());
                     response.setChefLevel(chef.getChefLevel());
@@ -166,14 +166,14 @@ public class CustomerFavoriteServiceImpl implements CustomerFavoriteService {
                     response.setAvatarUrl(chef.getAvatarUrl());
                     
                     // 从 User 表获取手机号
-                    User user = userMapper.selectById(chef.getUserId());
+                    User user = userMapper.selectById(Long.parseLong(chef.getUserId()));
                     if (user != null) {
                         response.setPhone(user.getPhone());
                     }
                     
                     // 设置收藏时间
                     CustomerFavorite favorite = favorites.stream()
-                            .filter(f -> f.getChefId().equals(chef.getId()))
+                            .filter(f -> f.getChefId().equals(chef.getUserId()))
                             .findFirst()
                             .orElse(null);
                     if (favorite != null) {
@@ -197,7 +197,7 @@ public class CustomerFavoriteServiceImpl implements CustomerFavoriteService {
     
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void removeFavorite(Long customerId, Long chefId) {
+    public void removeFavorite(Long customerId, String chefId) {
         // 查询收藏记录
         QueryWrapper<CustomerFavorite> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq("customer_id", customerId)

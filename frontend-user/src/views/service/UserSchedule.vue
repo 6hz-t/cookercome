@@ -32,10 +32,12 @@
             <span class="status-indicator"></span>
             <span class="status-text">{{ getStatusText(slot.status) }}</span>
           </div>
-          <div class="slot-chef" v-if="slot.chefName">
-            <el-icon><User /></el-icon>
-            {{ slot.chefName }}
-          </div>
+        </div>
+        
+        <!-- 空状态提示 -->
+        <div v-if="currentTimeSlots.length === 0" class="empty-state">
+          <el-icon class="empty-icon"><Calendar /></el-icon>
+          <p class="empty-text">暂无时间段数据</p>
         </div>
       </div>
 
@@ -59,10 +61,15 @@
               :key="slotIndex"
               class="mini-slot"
               :class="getStatusClass(slot.status)"
-              :title="`${slot.timeSlot}: ${getStatusText(slot.status)}${slot.chefName ? ' - ' + slot.chefName : ''}`"
+              :title="`${slot.timeSlot}: ${getStatusText(slot.status)}`"
             >
             </div>
           </div>
+        </div>
+        
+        <!-- 空状态提示 -->
+        <div v-if="scheduleData.length === 0" class="calendar-empty">
+          <p class="empty-text">暂无日历数据</p>
         </div>
       </div>
 
@@ -99,7 +106,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { Calendar, User, ArrowLeft, ArrowRight } from '@element-plus/icons-vue'
+import { Calendar, ArrowLeft, ArrowRight } from '@element-plus/icons-vue'
 import { getUserSchedule } from '@/api/customer'
 import { ElMessage } from 'element-plus'
 
@@ -107,7 +114,6 @@ interface TimeSlot {
   timeSlot: string
   status: number
   orderId?: number
-  chefName?: string
 }
 
 interface DaySchedule {
@@ -122,6 +128,11 @@ const currentDate = ref<string>('')
 // 计算属性
 const currentTimeSlots = computed(() => {
   const current = scheduleData.value.find(day => isSameDay(day.date, currentDate.value))
+  console.log('=== 当前日期的时间段 ===', {
+    currentDate: currentDate.value,
+    found: current,
+    slots: current ? current.timeSlots : []
+  })
   return current ? current.timeSlots : []
 })
 
@@ -142,23 +153,40 @@ const loadSchedule = async () => {
   loading.value = true
   try {
     const res = await getUserSchedule()
-    // request 拦截器已经处理了 code !== 200 的情况，能到这里说明请求成功
-    // res 就是后端返回的 data 部分
-    if (res && Array.isArray(res)) {
-      scheduleData.value = res.map((day: any) => ({
-        date: day.date,
-        timeSlots: day.timeSlots.map((slot: any) => ({
-          timeSlot: slot.timeSlot,
-          status: slot.status,
-          orderId: slot.orderId,
-          chefName: slot.chefName
-        }))
-      }))
+    console.log('=== 后端返回的完整响应 ===', res)
+    
+    // 后端返回格式：{code: 200, message: '...', data: [...]}
+    // 需要取 res.data 部分
+    const scheduleDataRaw = res.data || res
+    console.log('=== 提取后的数据 ===', scheduleDataRaw)
+    
+    if (scheduleDataRaw && Array.isArray(scheduleDataRaw)) {
+      scheduleData.value = scheduleDataRaw.map((day: any) => {
+        // 处理日期格式：后端可能返回数组 [2026, 3, 24] 或字符串 "2026-03-24"
+        let dateStr = day.date
+        if (Array.isArray(day.date)) {
+          // LocalDate 数组格式：[year, month, day]
+          dateStr = `${day.date[0]}-${String(day.date[1]).padStart(2, '0')}-${String(day.date[2]).padStart(2, '0')}`
+        }
+        
+        return {
+          date: dateStr,
+          timeSlots: day.timeSlots.map((slot: any) => ({
+            timeSlot: slot.timeSlot,
+            status: slot.status,
+            orderId: slot.orderId
+          }))
+        }
+      })
+      console.log('=== 处理后的数据 ===', scheduleData.value)
       
       // 默认选择今天
       if (scheduleData.value.length > 0) {
         currentDate.value = scheduleData.value[0].date
+        console.log('=== 设置当前日期 ===', currentDate.value)
       }
+    } else {
+      console.warn('返回的数据格式不正确，data 应该是一个数组:', scheduleDataRaw)
     }
   } catch (error) {
     console.error('加载时间表失败:', error)
@@ -286,9 +314,10 @@ const getStatusText = (status: number) => {
 /* 时间段展示 */
 .time-slots {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 1rem;
   margin-bottom: 2rem;
+  min-height: 100px; /* 确保有最小高度 */
 }
 
 .time-slot {
@@ -297,11 +326,15 @@ const getStatusText = (status: number) => {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .time-slot:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  border-color: var(--status-color, rgba(255, 255, 255, 0.2));
 }
 
 .slot-time {
@@ -331,12 +364,41 @@ const getStatusText = (status: number) => {
   color: var(--text-primary);
 }
 
-.slot-chef {
+/* 空状态 */
+.empty-state {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 2rem;
+  text-align: center;
+}
+
+.empty-icon {
+  font-size: 4rem;
+  color: var(--text-secondary);
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.empty-text {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.calendar-empty {
+  grid-column: 1 / -1;
   display: flex;
   align-items: center;
-  gap: 0.25rem;
-  font-size: 0.8rem;
+  justify-content: center;
+  min-height: 100px;
+}
+
+.calendar-empty .empty-text {
   color: var(--text-secondary);
+  font-size: 0.95rem;
 }
 
 /* 日历网格 */
@@ -345,6 +407,7 @@ const getStatusText = (status: number) => {
   grid-template-columns: repeat(7, 1fr);
   gap: 0.75rem;
   margin-bottom: 1.5rem;
+  min-height: 120px; /* 确保有最小高度 */
 }
 
 .calendar-day {
@@ -354,11 +417,15 @@ const getStatusText = (status: number) => {
   cursor: pointer;
   transition: all 0.3s ease;
   border: 1px solid transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .calendar-day:hover {
   background: rgba(255, 255, 255, 0.08);
   transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
 .calendar-day.active {
@@ -390,17 +457,20 @@ const getStatusText = (status: number) => {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+  width: 100%;
 }
 
 .mini-slot {
-  height: 8px;
-  border-radius: 4px;
+  height: 6px;
+  border-radius: 3px;
   background: rgba(255, 255, 255, 0.1);
   transition: all 0.3s ease;
+  width: 100%;
 }
 
 .mini-slot:hover {
   transform: scale(1.05);
+  filter: brightness(1.2);
 }
 
 /* 状态样式 */

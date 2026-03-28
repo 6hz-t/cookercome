@@ -25,9 +25,9 @@ public class OrderDTO implements Serializable {
     private String orderNo;
 
     /**
-     * 厨师用户 ID
+     * 厨师用户 ID（chefinfo 表的 user_id）
      */
-    private Long chefId;
+    private String chefId;
 
     /**
      * 厨师姓名
