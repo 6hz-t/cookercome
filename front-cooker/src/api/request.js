@@ -42,10 +42,4 @@ chefrequest.interceptors.response.use(
   }
 )
 
-<<<<<<< Updated upstream
-
-
-export default request
-=======
 export default { chefrequest, authrequest }
->>>>>>> Stashed changes

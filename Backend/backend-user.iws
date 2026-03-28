@@ -1,9 +1,38 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
   <component name="ChangeListManager">
     <list default="true" id="309516b0-aba3-4168-985a-95d260eb52cc" name="更改" comment="">
+      <change afterPath="$PROJECT_DIR$/Backend.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../.vscode/settings.json" beforeDir="false" afterPath="$PROJECT_DIR$/../.vscode/settings.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend-user.ipr" beforeDir="false" afterPath="$PROJECT_DIR$/backend-user.ipr" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/backend-user.iws" beforeDir="false" afterPath="$PROJECT_DIR$/backend-user.iws" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/hs/backend/common/config/RedisConfig.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/hs/backend/common/utils/RedisUtils.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/hs/backend/config/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/hs/backend/config/SecurityConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/hs/backend/controller/ChefController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/hs/backend/controller/ChefController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/hs/backend/controller/CustomerBookingChefController.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/hs/backend/controller/CustomerBookingChefController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/hs/backend/service/CustomerBookingChefService.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/hs/backend/service/CustomerBookingChefService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/hs/backend/service/impl/CustomerBookingChefServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/hs/backend/service/impl/CustomerBookingChefServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/hs/backend/service/impl/CustomerFavoriteServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/hs/backend/service/impl/CustomerFavoriteServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/hs/backend/service/impl/CustomerOrderQueryServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/hs/backend/service/impl/CustomerOrderQueryServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/hs/backend/service/impl/CustomerOrderServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/hs/backend/service/impl/CustomerOrderServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/hs/backend/service/impl/CustomerPersonalCenterServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/hs/backend/service/impl/CustomerPersonalCenterServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/hs/backend/service/impl/CustomerSettingsServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/hs/backend/service/impl/CustomerSettingsServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/application-sensitive.yml" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/application-sensitive.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../doc/开发文档.md" beforeDir="false" afterPath="$PROJECT_DIR$/../doc/开发文档.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../front-cooker/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/../front-cooker/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../front-cooker/src/api/request.js" beforeDir="false" afterPath="$PROJECT_DIR$/../front-cooker/src/api/request.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../frontend-user/.env.development" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend-user/.env.development" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../frontend-user/.env.production" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend-user/.env.production" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../frontend-user/src/api/chefInfo.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend-user/src/api/chefInfo.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../frontend-user/src/views/ChefList.vue" beforeDir="false" afterPath="$PROJECT_DIR$/../frontend-user/src/views/ChefList.vue" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -194,6 +223,13 @@
     <option name="ADD_LABEL_ON_UNIT_TEST_PASSED" value="true" />
     <option name="ADD_LABEL_ON_UNIT_TEST_FAILED" value="true" />
   </component>
+  <component name="MavenImportPreferences">
+    <option name="generalSettings">
+      <MavenGeneralSettings>
+        <option name="mavenHomeTypeForPersistence" value="WRAPPER" />
+      </MavenGeneralSettings>
+    </option>
+  </component>
   <component name="PerforceConfiguration">
     <option name="PORT" value="magic:1666" />
     <option name="USER" value="" />
@@ -236,16 +272,27 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;E:/object-shangmenfuwu/cookercome/Backend&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RequestMappingsPanelOrder0": "0",
+    "RequestMappingsPanelOrder1": "1",
+    "RequestMappingsPanelWidth0": "75",
+    "RequestMappingsPanelWidth1": "75",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
+    "Spring Boot.BackendApplication.executor": "Run",
+    "git-widget-placeholder": "main",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "D:/Code/cookercome/Backend",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RunManager">
     <configuration selected="false" default="true" type="Applet" factoryName="Applet">
       <module name="" />
@@ -274,12 +321,20 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <configuration name="BackendApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <option name="FRAME_DEACTIVATION_UPDATE_POLICY" value="UpdateClassesAndResources" />
+      <module name="Backend" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.hs.backend.BackendApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
   </component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-jdk-9823dce3aa75-b114ca120d71-intellij.indexing.shared.core-IU-242.21829.142" />
-        <option value="bundled-js-predefined-d6986cc7102b-7c0b70fcd90d-JavaScript-IU-242.21829.142" />
+        <option value="bundled-jdk-9823dce3aa75-fbdcb00ec9e3-intellij.indexing.shared.core-IU-251.25410.129" />
+        <option value="bundled-js-predefined-d6986cc7102b-6a121458b545-JavaScript-IU-251.25410.129" />
       </set>
     </attachedChunks>
   </component>
@@ -324,6 +379,11 @@
       <workItem from="1773455704836" duration="16000" />
       <workItem from="1773541743345" duration="9000" />
       <workItem from="1773541757650" duration="5000" />
+      <workItem from="1774694798033" duration="114000" />
+      <workItem from="1774694940050" duration="12000" />
+      <workItem from="1774695044234" duration="87000" />
+      <workItem from="1774695147881" duration="27000" />
+      <workItem from="1774695412942" duration="6369000" />
     </task>
     <servers />
   </component>

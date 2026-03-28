@@ -1,5 +1,6 @@
 package com.hs.backend.controller;
 
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.hs.backend.common.Result;
 import com.hs.backend.entity.ChefInfo;
 import com.hs.backend.service.ChefInfoService;
@@ -26,20 +27,16 @@ public class ChefController {
     /**
      * 分页查询厨师列表
      */
-//    @GetMapping("/list")
-//    public Result<Page<ChefInfo>> getChefList(
-//            @RequestParam(defaultValue = "1") Integer page,
-//            @RequestParam(defaultValue = "10") Integer size,
-//            @RequestParam(required = false) String specialty,
-//            @RequestParam(required = false) Integer level
-//    ) {
-//        Page<ChefInfo> chefPage = chefInfoService.getChefPage(page, size, specialty, level);
-//        return Result.success(chefPage);
-//    }
     @GetMapping("/list")
-    @Operation(summary = "获取厨师列表", description = "获取厨师列表信息（测试接口）")
-    public Result<String> getChefList() {
-        return Result.success("成功调用");
+    @Operation(summary = "获取厨师列表", description = "分页查询厨师列表信息，支持按菜系和等级筛选")
+    public Result<Page<ChefInfo>> getChefList(
+            @RequestParam(defaultValue = "1") Integer page,
+            @RequestParam(defaultValue = "10") Integer size,
+            @RequestParam(required = false) String specialty,
+            @RequestParam(required = false) Integer level
+    ) {
+        Page<ChefInfo> chefPage = chefInfoService.getChefPage(page, size, specialty, level);
+        return Result.success(chefPage);
     }
     /**
      * 获取厨师详情

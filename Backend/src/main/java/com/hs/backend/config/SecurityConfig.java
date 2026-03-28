@@ -96,25 +96,22 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        
-        // 开发环境：允许特定端口（不要使用 * 当 allowCredentials=true 时）
-        configuration.setAllowedOriginPatterns(Arrays.asList(
-            "http://localhost:*",
-            "http://127.0.0.1:*"
-        ));
-        
+
+        // 允许所有来源跨域（生产环境可根据需要限制为特定域名）
+        configuration.setAllowedOriginPatterns(Arrays.asList("*"));
+
         // 允许的请求方法
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        
+
         // 允许的请求头
         configuration.setAllowedHeaders(Arrays.asList("*"));
-        
+
         // 暴露的响应头
         configuration.setExposedHeaders(Arrays.asList("Authorization"));
-        
+
         // 允许携带凭证（Cookie、Authorization 头等）
         configuration.setAllowCredentials(true);
-        
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;

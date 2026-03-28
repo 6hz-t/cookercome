@@ -17,5 +17,6 @@
         }
     ],
     "java.configuration.updateBuildConfiguration": "disabled",
-    "Codegeex.RepoIndex": true
+    "Codegeex.RepoIndex": true,
+    "java.compile.nullAnalysis.mode": "automatic"
 }

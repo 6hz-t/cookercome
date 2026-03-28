@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
@@ -12,7 +12,7 @@
 	<artifactId>Backend</artifactId>
 	<version>1.0.0</version>
 	<name>Backend</name>
-	<description>用户模块 - 后端服务</description>
+	<description>鐢ㄦ埛妯″潡 - 鍚庣鏈嶅姟</description>
 	<url>https://github.com/hs/cookerhome</url>
 	<licenses>
 		<license>
@@ -37,7 +37,7 @@
 		<java.version>17</java.version>
 	</properties>
 
-	<!-- 继承父 POM 的依赖管理 -->
+	<!-- 缁ф壙鐖?POM 鐨勪緷璧栫鐞?-->
 	<dependencies>
 		<dependency>
 			<groupId>com.github.xiaoymin</groupId>
@@ -45,7 +45,7 @@
 			<version>4.4.0</version>
 		</dependency>
 
-		<!-- Web 支持 -->
+		<!-- Web 鏀寔 -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
@@ -57,7 +57,7 @@
 			<artifactId>spring-boot-starter-security</artifactId>
 		</dependency>
 
-		<!-- MongoDB（暂时注释，需要时再开启）
+		<!-- MongoDB锛堟殏鏃舵敞閲婏紝闇€瑕佹椂鍐嶅紑鍚級
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-data-mongodb</artifactId>
@@ -71,25 +71,14 @@
 			<version>3.5.5</version>
 		</dependency>
 
-		<!-- MySQL 驱动 -->
+		<!-- MySQL 椹卞姩 -->
 		<dependency>
 			<groupId>com.mysql</groupId>
 			<artifactId>mysql-connector-j</artifactId>
 			<scope>runtime</scope>
 		</dependency>
 
-		<!-- Redis -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-data-redis</artifactId>
-		</dependency>
-		<!-- Redis 连接池 -->
-		<dependency>
-			<groupId>org.apache.commons</groupId>
-			<artifactId>commons-pool2</artifactId>
-		</dependency>
-
-		<!-- JWT -->
+<!-- JWT -->
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
 			<artifactId>jjwt-api</artifactId>
@@ -116,7 +105,7 @@
 			<optional>true</optional>
 		</dependency>
 
-		<!-- Spring Boot DevTools - 开发时热部署 -->
+		<!-- Spring Boot DevTools - 寮€鍙戞椂鐑儴缃?-->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-devtools</artifactId>
@@ -124,7 +113,7 @@
 			<optional>true</optional>
 		</dependency>
 
-		<!-- Jackson Java 8 日期时间模块 -->
+		<!-- Jackson Java 8 鏃ユ湡鏃堕棿妯″潡 -->
 		<dependency>
 			<groupId>com.fasterxml.jackson.datatype</groupId>
 			<artifactId>jackson-datatype-jsr310</artifactId>
@@ -143,7 +132,7 @@
 			<version>2.3.0</version>
 		</dependency>
 
-		<!-- 阿里云 OSS SDK -->
+		<!-- 闃块噷浜?OSS SDK -->
 		<dependency>
 			<groupId>com.aliyun.oss</groupId>
 			<artifactId>aliyun-sdk-oss</artifactId>
@@ -205,3 +194,4 @@
 	</build>
 
 </project>
+

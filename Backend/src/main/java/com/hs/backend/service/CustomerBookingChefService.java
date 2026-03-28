@@ -7,7 +7,7 @@ import com.hs.backend.dto.response.CustomerBookingChefResponse;
  * 客户预约厨师服务接口
  */
 public interface CustomerBookingChefService {
-    
+
     /**
      * 分页查询厨师列表（支持排序和搜索）
      * @param page 页码
@@ -17,4 +17,9 @@ public interface CustomerBookingChefService {
      * @return 厨师列表分页数据
      */
     Page<CustomerBookingChefResponse> getChefPage(Integer page, Integer size, String sortBy, String name);
+
+    /**
+     * 清除厨师列表缓存
+     */
+    void clearChefListCache();
 }

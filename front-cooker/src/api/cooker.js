@@ -1,19 +1,15 @@
-import chefrequest from './request'
-import authrequest from './request'
+import request from './request'
+
+const { chefrequest, authrequest } = request
 
 // 厨师登录
 export const login = (data) => authrequest.post('/login', data)
 
-<<<<<<< Updated upstream
-//获取新订单/api/chef/getNewOrders
+// 获取新订单 /api/chef/getNewOrders
 export const getNewOrders = () => chefrequest.get('/getNewOrders')
-=======
-// 获取新订单/api/chef/getNewOrders
-export const getNewOrders = () => chefrequest.post('/getNewOrders')
 
-// 接单/api/chef/acceptOrder
+// 接单 /api/chef/acceptOrder
 export const acceptOrder = (data) => chefrequest.post('/acceptOrder', data)
->>>>>>> Stashed changes
 
 // 获取厨师信息
 export const getChefInfo = () => chefrequest.get('/cooker/info')
@@ -57,16 +53,18 @@ export const deleteDish = (id) => chefrequest.delete(`/cooker/dishes/${id}`)
 // 获取待接单列表
 export const getPendingOrders = () => chefrequest.get('/cooker/orders/pending')
 
-<<<<<<< Updated upstream
-// 接单
-export const acceptOrder = (orderId) => chefrequest.post(`/cooker/orders/${orderId}/accept`)
-
 // 拒单
 export const rejectOrder = (orderId, reason) => chefrequest.post(`/cooker/orders/${orderId}/reject`, { reason })
-=======
+
 // 获取待服务订单列表（已接单但未服务）
 export const getServingOrders = () => chefrequest.get('/cooker/orders/serving')
->>>>>>> Stashed changes
+
+// 更新订单状态（与页面调用保持一致）
+export const updateOrderStatus = (orderId, status) =>
+  chefrequest.post('/updateOrderStatus', { orderId, status })
+
+// 获取厨师订单（与页面调用保持一致）
+export const getOrders = (chefId) => chefrequest.get('/getOrders', { params: { chefId } })
 
 // 确认服务开始
 export const startService = (orderId) => chefrequest.post(`/cooker/orders/${orderId}/start`)
@@ -81,4 +79,6 @@ export const getIncomeStats = () => chefrequest.get('/cooker/income/stats')
 export const getEvaluations = () => chefrequest.get('/cooker/evaluations')
 
 // 回复评价
-export const replyEvaluation = (evaluationId, content) => chefrequest.post(`/cooker/evaluations/${evaluationId}/reply`, { content })
+export const replyEvaluation = (evaluationId, content) =>
+  chefrequest.post(`/cooker/evaluations/${evaluationId}/reply`, { content })
+
