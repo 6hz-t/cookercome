@@ -5,8 +5,10 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hs.backend.common.exception.BusinessException;
 import com.hs.backend.common.config.OssConfig;
 import com.hs.backend.dto.response.AuthResponse;
+import com.hs.backend.entity.ChefInfo;
 import com.hs.backend.entity.CustomerInfo;
 import com.hs.backend.entity.User;
+import com.hs.backend.mapper.ChefInfoMapper;
 import com.hs.backend.mapper.UserMapper;
 import com.hs.backend.security.JwtTokenProvider;
 import com.hs.backend.service.CustomerInfoService;
@@ -15,6 +17,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Date;
+import java.util.Random;
 
 /**
  * 用户服务实现类
@@ -26,15 +30,18 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
     private final JwtTokenProvider jwtTokenProvider;
     private final CustomerInfoService customerInfoService;
     private final OssConfig ossConfig;
+    private final ChefInfoMapper chefInfoMapper;
 
     public UserServiceImpl(PasswordEncoder passwordEncoder, 
                           JwtTokenProvider jwtTokenProvider,
                           CustomerInfoService customerInfoService,
-                          OssConfig ossConfig) {
+                          OssConfig ossConfig,
+                           ChefInfoMapper chefInfoMapper) {
         this.passwordEncoder = passwordEncoder;
         this.jwtTokenProvider = jwtTokenProvider;
         this.customerInfoService = customerInfoService;
         this.ossConfig = ossConfig;
+        this.chefInfoMapper = chefInfoMapper;
     }
 
     @Override
@@ -53,14 +60,55 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements Us
         // 手动设置时间（确保不会为 NULL）
         user.setCreateTime(LocalDateTime.now());
         user.setUpdateTime(LocalDateTime.now());
+        if (role == 1)
+        {
+            // 创建厨师信息
+            ChefInfo chefInfo = new ChefInfo();
+            chefInfo.setUserId(String.valueOf(user.getId()));
+            chefInfo.setStatus(0); // 待审核状态
+            chefInfo.setCreateTime(new Date());
+            chefInfo.setUpdateTime(new Date());
+            //随机身份证号
+            chefInfo.setIdCardNo(generateRandomIdCard());
+            chefInfoMapper.insert(chefInfo);
+
+        }
+
 
         save(user);
         
         // 创建默认客户信息
+
+
+        if (role == 1)
+        {
+            // 创建厨师信息
+            ChefInfo chefInfo = new ChefInfo();
+            chefInfo.setUserId(String.valueOf(user.getId()));
+            chefInfo.setPhone(phone);
+            chefInfo.setStatus(0); // 待审核状态
+            chefInfo.setCreateTime(new Date());
+            chefInfo.setUpdateTime(new Date());
+            //随机身份证号
+            chefInfo.setIdCardNo(generateRandomIdCard());
+            chefInfoMapper.insert(chefInfo);
+
+        }
         String username = "新用户" + user.getId();
         customerInfoService.createDefaultCustomerInfo(user.getId(), username);
         
         return user;
+    }
+
+    private String generateRandomIdCard() {
+        // 生成随机的 18 位身份证号
+        Random random = new Random();
+        StringBuilder idCardBuilder = new StringBuilder();
+        for (int i = 0; i < 18; i++) {
+            idCardBuilder.append(random.nextInt(10));
+
+        }
+        return idCardBuilder.toString();
     }
 
     @Override

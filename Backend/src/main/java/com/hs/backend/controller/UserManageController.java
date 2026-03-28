@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/user-manage")
-@Tag(name = "用户管理")
+@Tag(name = "用户管理", description = "后台管理员对用户的管理接口")
 public class UserManageController {
 
     @Autowired

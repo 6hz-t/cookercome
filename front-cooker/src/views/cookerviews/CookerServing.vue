@@ -1,541 +1,258 @@
-<template>
-    <div class="container">
-        <h3>待服务订单</h3>
+﻿<template>
+  <div class="page">
+    <section class="stats-grid">
+      <el-card shadow="hover"><div class="stat"><span>待开始</span><strong>{{ stats.pending }}</strong></div></el-card>
+      <el-card shadow="hover"><div class="stat"><span>服务中</span><strong>{{ stats.serving }}</strong></div></el-card>
+      <el-card shadow="hover"><div class="stat"><span>总数</span><strong>{{ stats.total }}</strong></div></el-card>
+    </section>
 
-        <!-- 订单统计 -->
-        <div class="stats-cards">
-            <el-card shadow="hover" class="stat-card">
-                <div class="stat-item">
-                    <div class="stat-icon pending">
-                        <el-icon :size="28">
-                            <Clock />
-                        </el-icon>
-                    </div>
-                    <div class="stat-info">
-                        <div class="stat-value">{{ stats.pending }}</div>
-                        <div class="stat-label">待服务</div>
-                    </div>
-                </div>
-            </el-card>
-            <el-card shadow="hover" class="stat-card">
-                <div class="stat-item">
-                    <div class="stat-icon servicing">
-                        <el-icon :size="28">
-                            <Timer />
-                        </el-icon>
-                    </div>
-                    <div class="stat-info">
-                        <div class="stat-value">{{ stats.servicing }}</div>
-                        <div class="stat-label">服务中</div>
-                    </div>
-                </div>
-            </el-card>
-            <el-card shadow="hover" class="stat-card">
-                <div class="stat-item">
-                    <div class="stat-icon today">
-                        <el-icon :size="28">
-                            <Calendar />
-                        </el-icon>
-                    </div>
-                    <div class="stat-info">
-                        <div class="stat-value">{{ stats.today }}</div>
-                        <div class="stat-label">今日订单</div>
-                    </div>
-                </div>
-            </el-card>
-            <el-card shadow="hover" class="stat-card">
-                <div class="stat-item">
-                    <div class="stat-icon revenue">
-                        <el-icon :size="28">
-                            <Money />
-                        </el-icon>
-                    </div>
-                    <div class="stat-info">
-                        <div class="stat-value">¥{{ stats.todayRevenue.toFixed(2) }}</div>
-                        <div class="stat-label">今日收入</div>
-                    </div>
-                </div>
-            </el-card>
+    <el-empty v-if="orders.length === 0" description="暂无服务中订单" />
+
+    <section v-else class="order-grid">
+      <el-card v-for="order in orders" :key="order.id" class="order-card" shadow="hover">
+        <div class="head">
+          <strong>{{ order.orderNo }}</strong>
+          <el-tag :type="statusTagType(order.status)">{{ statusText(order.status) }}</el-tag>
         </div>
 
-        <!-- 订单列表 -->
-        <div class="orders-area" v-if="orders.length > 0">
-            <el-card v-for="order in orders" :key="order.orderid" class="order-card" shadow="hover">
-                <div class="order-header">
-                    <div class="order-info-left">
-                        <span class="order-no">订单编号：{{ order.orderNo }}</span>
-                        <span class="order-time">{{ formatTime(order.createTime) }}</span>
-                    </div>
-                    <el-tag :type="getStatusType(order.status)" size="large">
-                        {{ getStatusName(order.status) }}
-                    </el-tag>
-                </div>
+        <div class="row"><span>客户</span>{{ order.customerName || '-' }}</div>
+        <div class="row"><span>电话</span>{{ order.customerPhone || '-' }}</div>
+        <div class="row"><span>时间</span>{{ formatDate(order.reserveDate) }} {{ order.reserveTime || '' }}</div>
+        <div class="row"><span>地址</span>{{ order.address || '-' }}</div>
 
-                <div class="order-body">
-                    <div class="info-row">
-                        <span class="info-label">客户姓名：</span>
-                        <span class="info-value">{{ order.username }}</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">联系电话：</span>
-                        <span class="info-value">{{ order.userphone }}</span>
-                        <el-button link type="primary" @click="handleCall(order.userphone)">
-                            <el-icon>
-                                <Phone />
-                            </el-icon>
-                        </el-button>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">服务时间：</span>
-                        <span class="info-value">{{ order.servetime }}</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">服务地址：</span>
-                        <span class="info-value">{{ order.serveaddress }}</span>
-                    </div>
-                    <div class="info-row" v-if="order.requirement">
-                        <span class="info-label">客户要求：</span>
-                        <span class="info-value requirement">{{ order.requirement }}</span>
-                    </div>
-                </div>
-
-                <div class="order-footer">
-                    <div class="order-total">
-                        <span>订单金额：</span>
-                        <span class="total-price">¥{{ order.totalprice }}</span>
-                    </div>
-                    <div class="order-actions">
-                        <el-button v-if="order.status === 'accepted'" type="primary" @click="handleStartService(order)">
-                            <el-icon>
-                                <VideoPlay />
-                            </el-icon>
-                            开始服务
-                        </el-button>
-                        <el-button v-if="order.status === 'serving'" type="success" @click="handleCompleteService(order)">
-                            <el-icon>
-                                <CircleCheck />
-                            </el-icon>
-                            完成服务
-                        </el-button>
-                        <el-button @click="handleViewDetail(order)">
-                            <el-icon>
-                                <Document />
-                            </el-icon>
-                            查看详情
-                        </el-button>
-                    </div>
-                </div>
-            </el-card>
+        <div class="footer">
+          <div class="price">¥{{ money(order.totalAmount) }}</div>
+          <div class="actions">
+            <el-button link type="primary" @click="$router.push(`/cooker/order/${order.id}`)">详情</el-button>
+            <el-button v-if="order.status === 2" type="success" @click="completeService(order)">完成服务</el-button>
+          </div>
         </div>
-
-        <!-- 空状态 -->
-        <el-empty v-else description="暂无待服务订单" />
-
-        <!-- 订单详情对话框 -->
-        <el-dialog v-model="detailDialogVisible" title="订单详情" width="600px">
-            <div v-if="currentOrder" class="order-detail">
-                <el-descriptions title="订单信息" :column="2" border>
-                    <el-descriptions-item label="订单号">{{ currentOrder.orderNo }}</el-descriptions-item>
-                    <el-descriptions-item label="下单时间">{{ formatTime(currentOrder.createTime) }}</el-descriptions-item>
-                    <el-descriptions-item label="客户姓名">{{ currentOrder.username }}</el-descriptions-item>
-                    <el-descriptions-item label="联系电话">{{ currentOrder.userphone }}</el-descriptions-item>
-                    <el-descriptions-item label="服务时间" :span="2">{{ currentOrder.servetime }}</el-descriptions-item>
-                    <el-descriptions-item label="服务地址" :span="2">{{ currentOrder.serveaddress }}</el-descriptions-item>
-                    <el-descriptions-item label="客户要求" :span="2">{{ currentOrder.requirement || '无' }}</el-descriptions-item>
-                </el-descriptions>
-
-                <div class="order-total-detail">
-                    <span>订单金额：</span>
-                    <span class="total-price">¥{{ currentOrder.totalprice }}</span>
-                </div>
-
-                <div class="dialog-actions">
-                    <el-button v-if="currentOrder.status === 'accepted'" type="primary" @click="handleStartService(currentOrder)">
-                        开始服务
-                    </el-button>
-                    <el-button v-if="currentOrder.status === 'serving'" type="success" @click="handleCompleteService(currentOrder)">
-                        完成服务
-                    </el-button>
-                    <el-button @click="detailDialogVisible = false">关闭</el-button>
-                </div>
-            </div>
-        </el-dialog>
-    </div>
+      </el-card>
+    </section>
+  </div>
 </template>
 
-<script>
-import {
-    Clock, Timer, Calendar, Money, Phone, Document, VideoPlay, CircleCheck
-} from '@element-plus/icons-vue'
+<script setup>
+import { computed, onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getServingOrders, startService, endService } from '@/api/cooker'
+import { getOrders, updateOrderStatus } from '@/api/cooker'
+import { formatDate, money, normalizeOrders, statusTagType, statusText } from '@/utils/cookerOrder'
+import { parseChefId } from '@/utils/cookerSession'
 
-export default {
-    name: 'CookerServing',
-    components: {
-        Clock,
-        Timer,
-        Calendar,
-        Money,
-        Phone,
-        Document,
-        VideoPlay,
-        CircleCheck
-    },
-    data() {
-        return {
-            orders: [],
-            detailDialogVisible: false,
-            currentOrder: null
-        }
-    },
-    computed: {
-        stats() {
-            const pendingOrders = this.orders.filter(o => o.status === 'accepted')
-            const servicingOrders = this.orders.filter(o => o.status === 'serving')
-            const today = new Date().toDateString()
-            const todayOrders = this.orders.filter(o => new Date(o.createTime).toDateString() === today)
-            const todayRevenue = todayOrders
-                .filter(o => o.status === 'completed')
-                .reduce((sum, o) => sum + parseFloat(o.totalprice || 0), 0)
+const router = useRouter()
+const chefId = ref(null)
+const orders = ref([])
 
-            return {
-                pending: pendingOrders.length,
-                servicing: servicingOrders.length,
-                today: todayOrders.length,
-                todayRevenue: todayRevenue
-            }
-        }
-    },
-    methods: {
-        async loadOrders() {
-            try {
-                // 从 localStorage 获取已接订单
-                const servingOrders = localStorage.getItem('servingOrders')
-                if (servingOrders) {
-                    this.orders = JSON.parse(servingOrders)
-                }
-            } catch (error) {
-                console.error('加载待服务订单失败:', error)
-                ElMessage.error('加载订单失败')
-            }
-        },
-        saveOrder(order) {
-            // 保存订单到 localStorage
-            const servingOrders = localStorage.getItem('servingOrders')
-            let orders = servingOrders ? JSON.parse(servingOrders) : []
-            orders.push(order)
-            localStorage.setItem('servingOrders', JSON.stringify(orders))
-        },
-        convertStatus(status) {
-            // 将后端状态转换为前端状态
-            const statusMap = {
-                2: 'accepted',    // 已接单
-                3: 'serving',     // 服务中
-                4: 'completed',   // 已完成
-                5: 'cancelled'    // 已取消
-            }
-            return statusMap[status] || 'accepted'
-        },
-        getStatusType(status) {
-            const typeMap = {
-                accepted: 'warning',
-                serving: 'primary',
-                completed: 'success',
-                cancelled: 'info'
-            }
-            return typeMap[status] || ''
-        },
-        getStatusName(status) {
-            const nameMap = {
-                accepted: '待服务',
-                serving: '服务中',
-                completed: '已完成',
-                cancelled: '已取消'
-            }
-            return nameMap[status] || ''
-        },
-        formatTime(time) {
-            if (!time) return ''
-            const date = new Date(time)
-            const now = new Date()
-            const diff = now - date
+const stats = computed(() => {
+  // 状态 2 = 服务中，状态 3 = 已完成
+  const serving = orders.value.filter((item) => item.status === 2).length
+  return {
+    pending: 0,
+    serving,
+    total: orders.value.length
+  }
+})
 
-            if (diff < 60000) return '刚刚'
-            if (diff < 3600000) return Math.floor(diff / 60000) + '分钟前'
-            if (diff < 86400000) return Math.floor(diff / 3600000) + '小时前'
-            if (diff < 604800000) return Math.floor(diff / 86400000) + '天前'
-
-            return date.toLocaleDateString('zh-CN', {
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit'
-            })
-        },
-        handleCall(phone) {
-            ElMessageBox.confirm(`拨打客户电话：${phone}？`, '提示', {
-                confirmButtonText: '拨打',
-                cancelButtonText: '取消',
-                type: 'info'
-            }).then(() => {
-                window.location.href = `tel:${phone}`
-            }).catch(() => { })
-        },
-        async handleStartService(order) {
-            try {
-                await ElMessageBox.confirm(`确认开始服务订单：${order.orderNo}？`, '提示', {
-                    confirmButtonText: '确认',
-                    cancelButtonText: '取消',
-                    type: 'info'
-                })
-
-                // 调用开始服务 API
-                await startService(order.orderid)
-                
-                // 更新订单状态
-                order.status = 'serving'
-                this.updateOrders()
-                
-                ElMessage.success('服务已开始')
-                this.detailDialogVisible = false
-            } catch (error) {
-                if (error !== 'cancel') {
-                    console.error('开始服务失败:', error)
-                    ElMessage.error('开始服务失败')
-                }
-            }
-        },
-        async handleCompleteService(order) {
-            try {
-                await ElMessageBox.confirm(`确认完成服务订单：${order.orderNo}？`, '提示', {
-                    confirmButtonText: '确认',
-                    cancelButtonText: '取消',
-                    type: 'warning'
-                })
-
-                // 调用完成服务 API
-                await endService(order.orderid)
-                
-                // 从列表中移除已完成的订单
-                this.orders = this.orders.filter(o => o.orderid !== order.orderid)
-                this.updateOrders()
-                
-                ElMessage.success('服务已完成')
-                this.detailDialogVisible = false
-            } catch (error) {
-                if (error !== 'cancel') {
-                    console.error('完成服务失败:', error)
-                    ElMessage.error('完成服务失败')
-                }
-            }
-        },
-        updateOrders() {
-            // 更新 localStorage 中的订单列表
-            localStorage.setItem('servingOrders', JSON.stringify(this.orders))
-        },
-        handleViewDetail(order) {
-            this.currentOrder = order
-            this.detailDialogVisible = true
-        }
-    },
-    async mounted() {
-        await this.loadOrders()
+async function loadOrders() {
+  try {
+    const res = await getOrders(chefId.value)
+    if (res.code !== 200) {
+      ElMessage.error(res.message || '获取订单失败')
+      return
     }
+    
+    const allOrders = normalizeOrders(Array.isArray(res.data) ? res.data : [])
+    console.log('[Serving] 后端返回的所有订单:', allOrders.map(o => ({ 
+      id: o.id, 
+      orderNo: o.orderNo, 
+      status: o.status,
+      statusText: statusText(o.status)
+    })))
+    
+    // 只保留状态为 2（服务中）的订单
+    orders.value = allOrders.filter((item) => item.status === 2)
+    
+    console.log('[Serving] 过滤后的服务中订单:', orders.value.map(o => ({
+      id: o.id,
+      orderNo: o.orderNo,
+      status: o.status
+    })))
+    console.log('[Serving] 服务中订单数量:', orders.value.length)
+  } catch (error) {
+    ElMessage.error(error?.response?.data?.message || error?.message || '获取订单失败')
+  }
 }
+
+/**
+ * 解析预约时间字符串为 Date 对象
+ */
+function parseReserveTime(order) {
+  if (!order.reserveDate) return null
+  
+  const dateStr = formatDate(order.reserveDate)
+  if (!order.reserveTime) return new Date(dateStr)
+  
+  // 解析时间格式 "14:00-16:00" 或 "14:00"
+  const timeMatch = order.reserveTime.match(/(\d{1,2}):(\d{2})/)
+  if (!timeMatch) return new Date(dateStr)
+  
+  const [, hour, minute] = timeMatch
+  const date = new Date(dateStr)
+  date.setHours(parseInt(hour), parseInt(minute), 0, 0)
+  return date
+}
+
+/**
+ * 完成服务（状态 2 -> 4）
+ */
+function completeService(order) {
+  const reserveTime = parseReserveTime(order)
+  const now = new Date()
+
+  // 如果还没到预约时间，显示二次确认
+  if (reserveTime && now < reserveTime) {
+    const timeStr = reserveTime.toLocaleString('zh-CN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+
+    ElMessageBox.confirm(
+      `预约时间为 ${timeStr}，当前还未到预约时间，是否确认完成服务？`,
+      '时间校验提示',
+      {
+        confirmButtonText: '确认完成',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    ).then(async () => {
+      await updateOrderStatusAndReload(order.id, 4)
+    }).catch(() => {
+      // 用户取消，不做任何操作
+    })
+  } else {
+    // 已到时间或无预约时间，直接确认
+    ElMessageBox.confirm('确认完成服务？', '提示', {
+      confirmButtonText: '确认',
+      cancelButtonText: '取消',
+      type: 'success'
+    }).then(async () => {
+      await updateOrderStatusAndReload(order.id, 4)
+    }).catch(() => {
+      // 用户取消
+    })
+  }
+}
+
+/**
+ * 更新订单状态并重新加载
+ */
+async function updateOrderStatusAndReload(orderId, status) {
+  try {
+    const res = await updateOrderStatus(orderId, status)
+    if (res.code !== 200) {
+      ElMessage.error(res.message || '更新订单状态失败')
+      return
+    }
+    ElMessage.success('已完成服务')
+    await loadOrders()
+  } catch (error) {
+    ElMessage.error(error?.response?.data?.message || error?.message || '操作失败')
+  }
+}
+
+onMounted(async () => {
+  chefId.value = parseChefId()
+  if (!chefId.value) {
+    ElMessage.warning('请先登录厨师账号')
+    router.push('/cooker/login')
+    return
+  }
+  await loadOrders()
+})
 </script>
 
 <style scoped>
-.container {
-    width: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 24px;
+.page {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 20px 20px;
 }
 
-h3 {
-    margin: 20px 0;
-    text-align: center;
-    color: var(--color-text-primary);
-    font-size: 20px;
-    font-weight: 600;
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
 }
 
-/* 统计卡片 */
-.stats-cards {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
-    margin-bottom: 20px;
+.stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.stat-card {
-    border-radius: 8px;
+.stat span {
+  color: #738096;
 }
 
-.stat-item {
-    display: flex;
-    align-items: center;
-    gap: 16px;
+.stat strong {
+  font-size: 26px;
+  color: #213247;
 }
 
-.stat-icon {
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
+.order-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 12px;
 }
 
-.stat-icon.pending {
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
 }
 
-.stat-icon.servicing {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+.row {
+  margin: 6px 0;
+  color: #536179;
+  line-height: 1.5;
 }
 
-.stat-icon.today {
-    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+.row span {
+  color: #758199;
+  margin-right: 8px;
 }
 
-.stat-icon.revenue {
-    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+.footer {
+  margin-top: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.stat-info {
-    flex: 1;
+.actions {
+  display: flex;
+  gap: 8px;
 }
 
-.stat-value {
-    font-size: 28px;
-    font-weight: bold;
-    color: #303133;
+.price {
+  color: #f56c6c;
+  font-size: 20px;
+  font-weight: 700;
 }
 
-.stat-label {
-    font-size: 14px;
-    color: #909399;
-    margin-top: 4px;
-}
+@media (max-width: 768px) {
+  .page {
+    padding: 0 12px 14px;
+  }
 
-/* 订单列表 */
-.orders-area {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-
-.order-card {
-    border-radius: 8px;
-}
-
-.order-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-    padding-bottom: 12px;
-    border-bottom: 1px solid #ebeef5;
-}
-
-.order-info-left {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.order-no {
-    font-size: 14px;
-    color: #606266;
-}
-
-.order-time {
-    font-size: 12px;
-    color: #909399;
-}
-
-.order-body {
-    margin-bottom: 16px;
-}
-
-.info-row {
-    display: flex;
-    align-items: flex-start;
-    margin-bottom: 8px;
-    font-size: 14px;
-}
-
-.info-row:last-child {
-    margin-bottom: 0;
-}
-
-.info-label {
-    color: #909399;
-    min-width: 80px;
-}
-
-.info-value {
-    color: #606266;
-    flex: 1;
-}
-
-.info-value.requirement {
-    background-color: #f5f7fa;
-    padding: 8px 12px;
-    border-radius: 4px;
-    display: block;
-}
-
-.order-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-top: 12px;
-    border-top: 1px solid #ebeef5;
-}
-
-.order-total {
-    font-size: 14px;
-    color: #606266;
-}
-
-.total-price {
-    font-size: 20px;
-    color: #f56c6c;
-    font-weight: bold;
-    margin-left: 8px;
-}
-
-.order-actions {
-    display: flex;
-    gap: 8px;
-}
-
-/* 订单详情 */
-.order-total-detail {
-    display: flex;
-    justify-content: flex-end;
-    margin-top: 16px;
-    font-size: 16px;
-}
-
-.order-total-detail .total-price {
-    font-size: 24px;
-    color: #f56c6c;
-    font-weight: bold;
-    margin-left: 16px;
-}
-
-.dialog-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 12px;
-    margin-top: 20px;
-    padding-top: 20px;
-    border-top: 1px solid #ebeef5;
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

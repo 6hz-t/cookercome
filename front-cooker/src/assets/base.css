@@ -1,78 +1,90 @@
-/* 厨师端主题配色 - Cooker Theme (薄荷绿) */
-:root {
-  /* 主色 - Primary (薄荷绿) */
-  --color-primary: #9ED2BE;
-  --color-primary-light: #B8E0D0;
-  --color-primary-dark: #7AC4A9;
+﻿:root {
+  --color-primary: #3f72ff;
+  --color-primary-light: #5f8cff;
+  --color-primary-dark: #2b59d9;
 
-  /* 强调色 - Accent (森绿) */
-  --color-accent: #5A9367;
-  --color-accent-hover: #4A7F56;
-  --color-accent-light: #75A87F;
+  --color-accent: #1d9bf0;
+  --color-accent-hover: #1377ba;
 
-  /* 背景色 - Background */
-  --color-bg-white: #FFFFFF;
-  --color-bg-soft: #F2F8F5;
-  --color-bg-mute: #E8F0EC;
+  --color-bg-white: #ffffff;
+  --color-bg-soft: #f5f7fb;
+  --color-bg-mute: #edf1f8;
 
-  /* 文字色 - Text */
-  --color-text-primary: #3A4B3F;
-  --color-text-secondary: #7A8C80;
-  --color-text-light: #A3B3A8;
+  --color-text-primary: #223447;
+  --color-text-secondary: #607086;
+  --color-text-light: #8b99ad;
 
-  /* 边框色 - Border */
-  --color-border: #E6EEE9;
-  --color-border-light: #F0F5F2;
-  --color-border-dark: #D4E0D8;
+  --color-border: #e3eaf3;
+  --color-border-light: #eff3f8;
+  --color-border-dark: #d3dce8;
 
-  /* 功能色 - Functional */
-  --color-success: #52C41A;
-  --color-warning: #FAAD14;
-  --color-danger: #F5222D;
-  --color-info: #1890FF;
+  --color-success: #23a36f;
+  --color-warning: #f2a93b;
+  --color-danger: #e45454;
+  --color-info: #3f72ff;
 
-  /* 语义化变量 - Semantic Variables */
-  --color-background: var(--color-bg-white);
-  --color-background-soft: var(--color-bg-soft);
-  --color-background-mute: var(--color-bg-mute);
-
-  --color-border: var(--color-border);
-  --color-border-hover: var(--color-border-dark);
-
-  --color-heading: var(--color-text-primary);
-  --color-text: var(--color-text-primary);
-
-  --section-gap: 160px;
+  --cooker-font-scale: 1;
 }
 
-*,
-*::before,
-*::after {
+* {
   box-sizing: border-box;
-  margin: 0;
-  font-weight: normal;
 }
 
 body {
   min-height: 100vh;
+  margin: 0;
   color: var(--color-text-primary);
-  background: var(--color-bg-soft);
+  background: linear-gradient(180deg, #f6f8fc 0%, #f1f5fb 100%);
   line-height: 1.6;
-  font-family:
-    Inter,
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    Roboto,
-    Oxygen,
-    Ubuntu,
-    Cantarell,
-    'Fira Sans',
-    'Droid Sans',
-    'Helvetica Neue',
-    sans-serif;
-  font-size: 15px;
+  font-size: calc(15px * var(--cooker-font-scale));
+  font-family: 'Noto Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+body.theme-dark {
+  --color-primary: #6ea8ff;
+  --color-primary-light: #8bb9ff;
+  --color-primary-dark: #4d87df;
+
+  --color-accent: #55b6ff;
+  --color-accent-hover: #7ec8ff;
+
+  --color-bg-white: #1a2434;
+  --color-bg-soft: #11192a;
+  --color-bg-mute: #1f2b3f;
+
+  --color-text-primary: #e8edf7;
+  --color-text-secondary: #b3bfd3;
+  --color-text-light: #8f9ebb;
+
+  --color-border: #2d3c54;
+  --color-border-light: #25344d;
+  --color-border-dark: #3a4b66;
+
+  background: linear-gradient(180deg, #101828 0%, #121c2f 100%);
+}
+
+a {
+  color: var(--color-accent);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--color-accent-hover);
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-dark);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-bg-soft);
 }

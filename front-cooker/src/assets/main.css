@@ -1,39 +1,34 @@
-@import './base.css';
+﻿@import './base.css';
 
 #app {
   width: 100%;
   min-height: 100vh;
   font-weight: normal;
-  background-color: var(--color-bg-soft);
+  background-color: transparent;
 }
 
-a {
-  text-decoration: none;
-  color: var(--color-accent);
-  transition: 0.3s;
+.el-card {
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-white);
 }
 
-a:hover {
-  color: var(--color-accent-hover);
+body.theme-dark .el-card {
+  background: #1a2434;
+  border-color: #2d3c54;
 }
 
-body {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+body.theme-dark .el-table,
+body.theme-dark .el-table tr,
+body.theme-dark .el-table th,
+body.theme-dark .el-table td {
+  background-color: #1a2434;
+  color: #d7e0ef;
+  border-color: #2d3c54;
 }
 
-/* 全局滚动条样式 */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-thumb {
-  background-color: var(--color-border-dark);
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-track {
-  background-color: var(--color-bg-soft);
+body.theme-dark .el-input__wrapper,
+body.theme-dark .el-select__wrapper,
+body.theme-dark .el-textarea__inner {
+  background-color: #11192a;
+  box-shadow: 0 0 0 1px #2d3c54 inset;
 }

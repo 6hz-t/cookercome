@@ -1,7 +1,4 @@
-import {
-    createRouter,
-    createWebHistory
-} from 'vue-router'
+﻿import { createRouter, createWebHistory } from 'vue-router'
 import CookerHomeView from '../views/cookerviews/CookerHome.vue'
 import CookerLoginView from '../views/cookerviews/CookerLogin.vue'
 import IndexView from '../views/index.vue'
@@ -13,75 +10,94 @@ import CookerDeskView from '../views/cookerviews/CookerDesk.vue'
 import CookerProfileView from '../views/cookerviews/CookerProfile.vue'
 import ThemePreviewView from '../views/cookerviews/ThemePreview.vue'
 import CookerRegisterView from '../views/cookerviews/CookerRegister.vue'
+import CookerOrderDetailView from '../views/cookerviews/CookerOrderDetail.vue'
+import CookerMenuView from '../views/cookerviews/CookerMenu.vue'
+import CookerIncomeView from '../views/cookerviews/CookerIncome.vue'
+import CookerSettingsView from '../views/cookerviews/CookerSettings.vue'
 
-
-
-const routes = [{
-        path: '/',
-        name: 'home',
-        component: IndexView
-    },
-    {
-        path: '/cooker',
-        name: 'cookerhome',
-        component: CookerHomeView,
-        children: [{
-            path: 'message',
-            name: 'cookermessage',
-            component: CookerMessageView
-        },
-        {
-            path: 'orders',
-            name: 'cookerorders',
-            component: CookerOrderView
-        },
-        {
-            path: 'desk',
-            name: 'cookerdesk',
-            component: CookerDeskView
-        },
-        {
-            path: 'todo',
-            name: 'cookertodo',
-            component: CookerTodoView
-        },
-        {
-            path: 'serving',
-            name: 'cookerserving',
-            component: CookerServingView
-        },
-        {
-            path: 'profile',
-            name: 'cookerprofile',
-            component: CookerProfileView
-        }
-        ]
-
-    },
-    {
-        path: '/cooker/login',
-        name: 'cookerlogin',
-        component: CookerLoginView
-
-    },
-    {
-        path: '/cooker/register',
-        name: 'cookerregister',
-        component: CookerRegisterView
-
-    },
-    {
-        path: '/theme-preview',
-        name: 'themepreview',
-        component: ThemePreviewView
-
-    }
-
+const routes = [
+  {
+    path: '/',
+    name: 'home',
+    component: IndexView
+  },
+  {
+    path: '/cooker',
+    name: 'cookerhome',
+    component: CookerHomeView,
+    children: [
+      {
+        path: 'message',
+        name: 'cookermessage',
+        component: CookerMessageView
+      },
+      {
+        path: 'orders',
+        name: 'cookerorders',
+        component: CookerOrderView
+      },
+      {
+        path: 'desk',
+        name: 'cookerdesk',
+        component: CookerDeskView
+      },
+      {
+        path: 'todo',
+        name: 'cookertodo',
+        component: CookerTodoView
+      },
+      {
+        path: 'serving',
+        name: 'cookerserving',
+        component: CookerServingView
+      },
+      {
+        path: 'profile',
+        name: 'cookerprofile',
+        component: CookerProfileView
+      },
+      {
+        path: 'order/:id',
+        name: 'cookerorderdetail',
+        component: CookerOrderDetailView
+      },
+      {
+        path: 'menu',
+        name: 'cookermenu',
+        component: CookerMenuView
+      },
+      {
+        path: 'income',
+        name: 'cookerincome',
+        component: CookerIncomeView
+      },
+      {
+        path: 'settings',
+        name: 'cookersettings',
+        component: CookerSettingsView
+      }
+    ]
+  },
+  {
+    path: '/cooker/login',
+    name: 'cookerlogin',
+    component: CookerLoginView
+  },
+  {
+    path: '/cooker/register',
+    name: 'cookerregister',
+    component: CookerRegisterView
+  },
+  {
+    path: '/theme-preview',
+    name: 'themepreview',
+    component: ThemePreviewView
+  }
 ]
 
 const router = createRouter({
-    history: createWebHistory(),
-    routes
+  history: createWebHistory(),
+  routes
 })
 
 export default router
