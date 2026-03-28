@@ -1,639 +1,531 @@
-<template>
-  <div class="container">
-    <h3>历史订单</h3>
-
-    <!-- 搜索和筛选 -->
-    <div class="search-bar">
-      <el-input v-model="searchForm.orderNo" placeholder="请输入订单号" clearable style="width: 200px"
-        @keyup.enter="handleSearch">
-        <template #prefix>
-          <el-icon>
-            <Search />
-          </el-icon>
-        </template>
-      </el-input>
-
-      <el-select v-model="searchForm.status" placeholder="订单状态" clearable style="width: 150px">
-        <el-option label="已完成" value="completed" />
-        <el-option label="已取消" value="cancelled" />
-      </el-select>
-
-      <el-date-picker v-model="searchForm.dateRange" type="daterange" range-separator="至" start-placeholder="开始日期"
-        end-placeholder="结束日期" style="width: 240px" value-format="YYYY-MM-DD" />
-
-      <el-button type="primary" @click="handleSearch">
-        <el-icon>
-          <Search />
-        </el-icon>
-        搜索
-      </el-button>
-      <el-button @click="handleReset">
-        <el-icon>
-          <Refresh />
-        </el-icon>
-        重置
-      </el-button>
-    </div>
-
-    <!-- 订单统计卡片 -->
-    <div class="stats-cards">
-      <el-card shadow="hover" class="stat-card">
-        <div class="stat-item">
-          <div class="stat-icon completed">
-            <el-icon :size="28">
-              <CircleCheck />
-            </el-icon>
-          </div>
-          <div class="stat-info">
-            <div class="stat-value">{{ stats.completed }}</div>
-            <div class="stat-label">已完成</div>
-          </div>
+﻿<template>
+  <div class="page">
+    <section class="summary-grid">
+      <el-card shadow="hover">
+        <div class="summary-item">
+          <span>本月订单数</span>
+          <strong>{{ monthSummary.count }}</strong>
+          <p>收入 ¥{{ money(monthSummary.income) }}</p>
         </div>
       </el-card>
-      <el-card shadow="hover" class="stat-card">
-        <div class="stat-item">
-          <div class="stat-icon cancelled">
-            <el-icon :size="28">
-              <CircleClose />
-            </el-icon>
-          </div>
-          <div class="stat-info">
-            <div class="stat-value">{{ stats.cancelled }}</div>
-            <div class="stat-label">已取消</div>
-          </div>
+      <el-card shadow="hover">
+        <div class="summary-item">
+          <span>本年订单数</span>
+          <strong>{{ yearSummary.count }}</strong>
+          <p>收入 ¥{{ money(yearSummary.income) }}</p>
         </div>
       </el-card>
-      <el-card shadow="hover" class="stat-card">
-        <div class="stat-item">
-          <div class="stat-icon total">
-            <el-icon :size="28">
-              <Document />
-            </el-icon>
-          </div>
-          <div class="stat-info">
-            <div class="stat-value">{{ stats.total }}</div>
-            <div class="stat-label">总订单数</div>
-          </div>
+      <el-card shadow="hover">
+        <div class="summary-item">
+          <span>当前筛选结果</span>
+          <strong>{{ filteredOrders.length }}</strong>
+          <p>收入 ¥{{ money(filteredIncome) }}</p>
         </div>
       </el-card>
-      <el-card shadow="hover" class="stat-card">
-        <div class="stat-item">
-          <div class="stat-icon revenue">
-            <el-icon :size="28">
-              <Money />
-            </el-icon>
-          </div>
-          <div class="stat-info">
-            <div class="stat-value">¥{{ stats.revenue.toFixed(2) }}</div>
-            <div class="stat-label">总收入</div>
+    </section>
+
+    <el-card shadow="hover">
+      <template #header>
+        <div class="head-row">
+          <span>历史订单</span>
+          <div class="tools">
+            <el-button @click="exportReport">导出年报</el-button>
           </div>
         </div>
-      </el-card>
-    </div>
+      </template>
 
-    <!-- 订单列表 -->
-    <div class="order-list">
-      <div v-for="order in filteredOrders" :key="order.id" class="order-card">
-        <el-card shadow="hover">
-          <!-- 订单头部 -->
-          <div class="order-header">
-            <div class="order-info-left">
-              <span class="order-no">订单号：{{ order.orderNo }}</span>
-              <span class="order-time">{{ formatTime(order.createTime) }}</span>
-            </div>
-            <div class="order-status">
-              <el-tag :type="getStatusType(order.status)" size="large">
-                {{ getStatusName(order.status) }}
-              </el-tag>
-            </div>
-          </div>
+      <div class="filters">
+        <el-input v-model="keyword" clearable placeholder="订单号/客户/地址" class="w-220" />
 
-          
+        <el-date-picker
+          v-model="dateRange"
+          type="daterange"
+          range-separator="至"
+          start-placeholder="开始日期"
+          end-placeholder="结束日期"
+          value-format="YYYY-MM-DD"
+        />
 
-          <!-- 订单信息 -->
-          <div class="order-info">
-            <div class="info-row">
-              <span class="info-label">上门地址：</span>
-              <span class="info-value">{{ order.address }}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">客户备注：</span>
-              <span class="info-value">{{ order.remark || '无' }}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">联系方式：</span>
-              <span class="info-value">{{ order.customerPhone }}</span>
-              <el-button link type="primary" @click="handleCall(order.customerPhone)">
-                <el-icon>
-                  <Phone />
-                </el-icon>
-              </el-button>
-            </div>
-          </div>
+        <el-select v-model="statusFilter" clearable placeholder="订单状态" class="w-160">
+          <el-option label="已完成" :value="4" />
+          <el-option label="已取消" :value="5" />
+          <el-option label="已退款" :value="6" />
+        </el-select>
 
-          <!-- 订单底部 -->
-          <div class="order-footer">
-            <div class="order-total">
-              <span>合计：</span>
-              <span class="total-price">¥{{ order.totalPrice.toFixed(2) }}</span>
-            </div>
-            <div class="order-actions">
-              <el-button type="info" @click="handleViewOrderDetail(order)">
-                <el-icon>
-                  <Document />
-                </el-icon>
-                查看详情
-              </el-button>
-            </div>
-          </div>
-        </el-card>
+        <el-input-number v-model="amountMin" :min="0" :step="50" placeholder="最低金额" />
+        <el-input-number v-model="amountMax" :min="0" :step="50" placeholder="最高金额" />
+
+        <el-button @click="resetFilters">重置</el-button>
       </div>
 
-      <!-- 空状态 -->
-      <el-empty v-if="filteredOrders.length === 0" description="暂无订单" />
-    </div>
+      <el-table :data="filteredOrders" border style="width: 100%" v-loading="loading" max-height="520">
+        <el-table-column prop="orderNo" label="订单号" min-width="180" />
+        <el-table-column prop="orderType" label="服务类型" width="110" />
+        <el-table-column label="客户" min-width="130">
+          <template #default="scope">{{ scope.row.customerName || '-' }}</template>
+        </el-table-column>
+        <el-table-column label="预约时间" min-width="150">
+          <template #default="scope">{{ formatDate(scope.row.reserveDate) }} {{ scope.row.reserveTime || '' }}</template>
+        </el-table-column>
+        <el-table-column label="金额" width="110">
+          <template #default="scope">¥{{ money(scope.row.totalAmount) }}</template>
+        </el-table-column>
+        <el-table-column label="状态" width="110">
+          <template #default="scope">
+            <el-tag :type="statusTagType(scope.row.status)">{{ statusText(scope.row.status) }}</el-tag>
+          </template>
+        </el-table-column>
+        <el-table-column label="客户评价" width="120">
+          <template #default="scope">
+            <el-rate :model-value="Math.round(scope.row.customerRating)" disabled size="small" />
+          </template>
+        </el-table-column>
+        <el-table-column label="操作" width="160" fixed="right">
+          <template #default="scope">
+            <el-button link type="primary" @click="$router.push(`/cooker/order/${scope.row.id}`)">详情</el-button>
+            <el-button link type="success" @click="openReview(scope.row)">回复评价</el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-card>
 
-    <!-- 分页 -->
-    <div class="pagination">
-      <el-pagination v-model:current-page="pagination.currentPage" v-model:page-size="pagination.pageSize"
-        :page-sizes="[10, 20, 50, 100]" layout="total, sizes, prev, pager, next, jumper" :total="pagination.total"
-        @size-change="handleSizeChange" @current-change="handleCurrentChange" />
-    </div>
+    <el-card shadow="hover">
+      <template #header>
+        <div class="head-row">
+          <span>收入趋势（月）</span>
+          <el-button @click="exportMonthlyTrend">导出趋势</el-button>
+        </div>
+      </template>
 
-    <!-- 订单详情对话框 -->
-    <el-dialog v-model="detailDialogVisible" title="订单详情" width="600px">
-      <div v-if="currentOrder" class="order-detail">
-        <el-descriptions title="订单信息" :column="2" border>
-          <el-descriptions-item label="订单号">{{ currentOrder.orderNo }}</el-descriptions-item>
-          <el-descriptions-item label="下单时间">{{ formatTime(currentOrder.createTime) }}</el-descriptions-item>
-          <el-descriptions-item label="客户姓名">{{ currentOrder.customerName }}</el-descriptions-item>
-          <el-descriptions-item label="联系电话">{{ currentOrder.customerPhone }}</el-descriptions-item>
-          <el-descriptions-item label="配送地址" :span="2">{{ currentOrder.address }}</el-descriptions-item>
-          <el-descriptions-item label="订单备注" :span="2">{{ currentOrder.remark || '无' }}</el-descriptions-item>
-        </el-descriptions>
+      <!-- 趋势图表 -->
+      <TrendLineChart :data="monthlyTrend" value-key="income" />
 
-        <el-table :data="currentOrder.items" style="margin-top: 20px" border>
-          <el-table-column prop="name" label="菜品名称" />
-          <el-table-column prop="spec" label="规格" />
-          <el-table-column prop="price" label="单价" />
-          <el-table-column prop="quantity" label="数量" />
-          <el-table-column label="小计">
-            <template #default="{ row }">
-              ¥{{ (row.price * row.quantity).toFixed(2) }}
+      <!-- 月度收入表格 -->
+      <div class="monthly-table-container">
+        <el-table :data="monthlyTableData" border v-loading="loading" :row-class-name="tableRowClassName">
+          <el-table-column prop="month" label="月份" width="120" align="center">
+            <template #default="scope">{{ formatMonth(scope.row.month) }}</template>
+          </el-table-column>
+          <el-table-column prop="orderCount" label="订单数" width="100" align="center" />
+          <el-table-column label="已完成" width="100" align="center">
+            <template #default="scope">
+              <el-tag type="success" size="small">{{ scope.row.completedCount }}</el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="已取消" width="100" align="center">
+            <template #default="scope">
+              <el-tag type="danger" size="small">{{ scope.row.cancelledCount }}</el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="总收入" width="140" align="center">
+            <template #default="scope">
+              <span class="income-text">¥{{ money(scope.row.income) }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="预估到账" width="140" align="center">
+            <template #default="scope">
+              <span class="income-highlight">¥{{ money(scope.row.income * 0.82) }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="客单均价" width="120" align="center">
+            <template #default="scope">¥{{ money(scope.row.avgOrderValue) }}</template>
+          </el-table-column>
+          <el-table-column label="月收入环比" width="120" align="center">
+            <template #default="scope">
+              <span :class="getGrowthClass(scope.row.momGrowth)">
+                {{ scope.row.momGrowth >= 0 ? '+' : '' }}{{ scope.row.momGrowth }}%
+              </span>
             </template>
           </el-table-column>
         </el-table>
-
-        <div class="order-total-detail">
-          <span>合计：</span>
-          <span class="total-price">¥{{ currentOrder.totalPrice.toFixed(2) }}</span>
-        </div>
-
-        <div class="dialog-actions">
-          <el-button @click="detailDialogVisible = false">关闭</el-button>
-        </div>
       </div>
+    </el-card>
+
+    <el-dialog v-model="reviewDialogVisible" width="560px" title="评价详情与回复">
+      <template v-if="selectedReviewOrder">
+        <div class="review-box">
+          <el-descriptions :column="1" border>
+            <el-descriptions-item label="订单号">{{ selectedReviewOrder.orderNo }}</el-descriptions-item>
+            <el-descriptions-item label="客户">{{ selectedReviewOrder.customerName || '-' }}</el-descriptions-item>
+            <el-descriptions-item label="评分">
+              <el-rate :model-value="Math.round(selectedReviewOrder.customerRating)" disabled />
+            </el-descriptions-item>
+            <el-descriptions-item label="评价内容">服务整体满意，沟通高效，期待再次合作。</el-descriptions-item>
+          </el-descriptions>
+
+          <el-input v-model="reviewReply" type="textarea" :rows="3" maxlength="120" show-word-limit placeholder="输入回复内容" />
+        </div>
+      </template>
+
+      <template #footer>
+        <el-button @click="reviewDialogVisible = false">取消</el-button>
+        <el-button type="primary" @click="submitReviewReply">发送回复</el-button>
+      </template>
     </el-dialog>
   </div>
 </template>
 
-<script>
+<script setup>
+import { computed, onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
+import TrendLineChart from '@/components/charts/TrendLineChart.vue'
+import { getHistoryOrders } from '@/api/cooker'
 import {
-  Search, Refresh, CircleCheck, CircleClose, Document, Money, Phone
-} from '@element-plus/icons-vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+  formatDate,
+  money,
+  monthlyIncomeByOrders,
+  normalizeOrders,
+  statusTagType,
+  statusText,
+  formatMonth,
+  calculateMomGrowth
+} from '@/utils/cookerOrder'
+import { parseChefId } from '@/utils/cookerSession'
 
-export default {
-  name: 'CookerOrders',
-  components: {
-    Search,
-    Refresh,
-    CircleCheck,
-    CircleClose,
-    Document,
-    Money,
-    Phone
-  },
-  data() {
+const router = useRouter()
+
+const loading = ref(false)
+const chefId = ref(null)
+const orders = ref([])
+
+const keyword = ref('')
+const dateRange = ref([])
+const statusFilter = ref(null)
+const amountMin = ref(null)
+const amountMax = ref(null)
+
+const reviewDialogVisible = ref(false)
+const selectedReviewOrder = ref(null)
+const reviewReply = ref('')
+
+function inDateRange(order) {
+  if (!dateRange.value || dateRange.value.length !== 2) return true
+  const [start, end] = dateRange.value
+  if (!start || !end) return true
+
+  const reserveDate = new Date(order.reserveDate)
+  if (Number.isNaN(reserveDate.getTime())) return false
+
+  const startDate = new Date(`${start}T00:00:00`)
+  const endDate = new Date(`${end}T23:59:59`)
+  return reserveDate >= startDate && reserveDate <= endDate
+}
+
+const filteredOrders = computed(() => {
+  return orders.value.filter((order) => {
+    const text = `${order.orderNo || ''} ${order.customerName || ''} ${order.address || ''}`
+    const byKeyword = !keyword.value || text.includes(keyword.value.trim())
+    const byStatus = statusFilter.value == null || order.status === statusFilter.value
+    const amount = Number(order.totalAmount || 0)
+    const byMin = amountMin.value == null || amount >= amountMin.value
+    const byMax = amountMax.value == null || amount <= amountMax.value
+    return byKeyword && byStatus && byMin && byMax && inDateRange(order)
+  })
+})
+
+const filteredIncome = computed(() => filteredOrders.value.reduce((sum, order) => sum + Number(order.totalAmount || 0), 0))
+const monthlyTrend = computed(() => monthlyIncomeByOrders(filteredOrders.value).map((item) => ({ label: item.month, ...item })))
+
+const monthlyTableData = computed(() => {
+  const data = monthlyIncomeByOrders(filteredOrders.value)
+  // 添加环比增长率
+  return data.map((item, index) => {
+    const previous = index > 0 ? data[index - 1].income : 0
     return {
-      // 搜索表单
-      searchForm: {
-        orderNo: '',
-        status: '',
-        dateRange: []
-      },
-      // 分页
-      pagination: {
-        currentPage: 1,
-        pageSize: 10,
-        total: 0
-      },
-      // 订单详情对话框
-      detailDialogVisible: false,
-      currentOrder: null,
-      // 模拟历史订单数据（只包含已完成和已取消）
-      orders: [
-        {
-          id: 4,
-          orderNo: '202403030002',
-          status: 'completed',
-          createTime: new Date('2024-03-03 12:15:00'),
-          customerName: '周女士',
-          customerPhone: '139****2222',
-          address: '北京市海淀区 xxx 大厦 B 座 1205',
-          remark: '口味清淡的厨师',
-    
-          totalQuantity: 2,
-          totalPrice: 76
-        },
-        {
-          id: 5,
-          orderNo: '202403030003',
-          status: 'cancelled',
-          createTime: new Date('2024-03-03 13:15:00'),
-          customerName: '王先生',
-          customerPhone: '138****3333',
-          address: '上海市浦东新区 xxx 大厦 C 座 1305',
-          remark: '无',
-          totalQuantity: 1,
-          totalPrice: 28
-        }
-      ]
+      ...item,
+      momGrowth: calculateMomGrowth(item.income, previous)
     }
-  },
-  computed: {
-    // 订单统计
-    stats() {
-      const completedOrders = this.orders.filter(o => o.status === 'completed');
-      const cancelledOrders = this.orders.filter(o => o.status === 'cancelled');
-      return {
-        completed: completedOrders.length,
-        cancelled: cancelledOrders.length,
-        total: this.orders.length,
-        revenue: completedOrders.reduce((sum, o) => sum + o.totalPrice, 0)
-      }
-    },
-    // 过滤后的订单列表（只显示历史订单）
-    filteredOrders() {
-      let result = this.orders;
+  })
+})
 
-      // 订单号搜索
-      if (this.searchForm.orderNo) {
-        result = result.filter(o => o.orderNo.includes(this.searchForm.orderNo));
-      }
+const monthSummary = computed(() => {
+  const now = new Date()
+  const monthOrders = orders.value.filter((order) => {
+    const date = new Date(order.reserveDate)
+    return date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth()
+  })
+  return {
+    count: monthOrders.length,
+    income: monthOrders.reduce((sum, order) => sum + Number(order.totalAmount || 0), 0)
+  }
+})
 
-      // 状态筛选（只筛选已完成或已取消）
-      if (this.searchForm.status) {
-        result = result.filter(o => o.status === this.searchForm.status);
-      }
+const yearSummary = computed(() => {
+  const now = new Date()
+  const yearOrders = orders.value.filter((order) => new Date(order.reserveDate).getFullYear() === now.getFullYear())
+  return {
+    count: yearOrders.length,
+    income: yearOrders.reduce((sum, order) => sum + Number(order.totalAmount || 0), 0)
+  }
+})
 
-      // 日期范围筛选
-      if (this.searchForm.dateRange && this.searchForm.dateRange.length === 2) {
-        const startDate = new Date(this.searchForm.dateRange[0]);
-        const endDate = new Date(this.searchForm.dateRange[1]);
-        endDate.setHours(23, 59, 59, 999);
-        result = result.filter(o => {
-          const orderDate = new Date(o.createTime);
-          return orderDate >= startDate && orderDate <= endDate;
-        });
-      }
+function resetFilters() {
+  keyword.value = ''
+  dateRange.value = []
+  statusFilter.value = null
+  amountMin.value = null
+  amountMax.value = null
+}
 
-      // 分页
-      this.pagination.total = result.length;
-      const start = (this.pagination.currentPage - 1) * this.pagination.pageSize;
-      const end = start + this.pagination.pageSize;
+function openReview(order) {
+  selectedReviewOrder.value = order
+  reviewReply.value = ''
+  reviewDialogVisible.value = true
+}
 
-      return result.slice(start, end);
-    }
-  },
-  methods: {
-    // 搜索
-    handleSearch() {
-      this.pagination.currentPage = 1;
-      ElMessage.success('搜索完成');
-    },
-    // 重置
-    handleReset() {
-      this.searchForm = {
-        orderNo: '',
-        status: '',
-        dateRange: []
-      };
-      this.pagination.currentPage = 1;
-    },
-    // 查看详情
-    handleViewOrderDetail(order) {
-      this.currentOrder = order;
-      this.detailDialogVisible = true;
-    },
-    // 打电话
-    handleCall(phone) {
-      ElMessageBox.confirm(`拨打客户电话：${phone}？`, '提示', {
-        confirmButtonText: '拨打',
-        cancelButtonText: '取消',
-        type: 'info'
-      }).then(() => {
-        window.location.href = `tel:${phone}`;
-      }).catch(() => { });
-    },
-    // 分页
-    handleSizeChange() {
-      this.pagination.currentPage = 1;
-    },
-    handleCurrentChange() { },
-    // 获取状态类型
-    getStatusType(status) {
-      const typeMap = {
-        completed: 'success',
-        cancelled: 'info'
-      };
-      return typeMap[status] || '';
-    },
-    // 获取状态名称
-    getStatusName(status) {
-      const nameMap = {
-        completed: '已完成',
-        cancelled: '已取消'
-      };
-      return nameMap[status] || '';
-    },
-    // 格式化时间
-    formatTime(time) {
-      const date = new Date(time);
-      const now = new Date();
-      const diff = now - date;
+function submitReviewReply() {
+  if (!reviewReply.value.trim()) {
+    ElMessage.warning('请输入回复内容')
+    return
+  }
 
-      if (diff < 60000) return '刚刚';
-      if (diff < 3600000) return Math.floor(diff / 60000) + '分钟前';
-      if (diff < 86400000) return Math.floor(diff / 3600000) + '小时前';
-      if (diff < 604800000) return Math.floor(diff / 86400000) + '天前';
+  const raw = localStorage.getItem('cooker_review_reply_v1')
+  const replies = raw ? JSON.parse(raw) : []
+  replies.unshift({
+    orderId: selectedReviewOrder.value.id,
+    orderNo: selectedReviewOrder.value.orderNo,
+    reply: reviewReply.value,
+    time: new Date().toISOString()
+  })
+  localStorage.setItem('cooker_review_reply_v1', JSON.stringify(replies.slice(0, 40)))
 
-      return date.toLocaleDateString('zh-CN', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit'
-      });
+  ElMessage.success('评价回复已发送')
+  reviewDialogVisible.value = false
+}
+
+function exportReport() {
+  const now = new Date()
+  const currentYear = now.getFullYear()
+
+  console.log('[ExportReport] Current year:', currentYear)
+  console.log('[ExportReport] Total orders:', orders.value.length)
+
+  // 导出当年所有订单
+  const list = orders.value.filter((order) => {
+    const date = new Date(order.reserveDate)
+    const year = date.getFullYear()
+    return year === currentYear
+  })
+
+  console.log('[ExportReport] Filtered orders:', list.length)
+
+  if (list.length === 0) {
+    ElMessage.warning(`当前年份没有订单数据`)
+    return
+  }
+
+  const header = ['订单号', '服务类型', '客户', '日期', '金额', '状态', '地址']
+  const rows = list.map((item) => [
+    item.orderNo || '',
+    item.orderType || '',
+    item.customerName || '',
+    `${formatDate(item.reserveDate)} ${item.reserveTime || ''}`,
+    money(item.totalAmount),
+    statusText(item.status),
+    item.address || ''
+  ])
+
+  const csv = [header, ...rows].map((row) => row.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(',')).join('\n')
+  const blob = new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8;' })
+  const link = document.createElement('a')
+  link.href = URL.createObjectURL(blob)
+  link.download = `年度订单报表_${currentYear}.csv`
+  link.click()
+  URL.revokeObjectURL(link.href)
+
+  ElMessage.success(`已导出年报，共${list.length}条记录`)
+}
+
+function exportMonthlyTrend() {
+  if (monthlyTableData.value.length === 0) {
+    ElMessage.warning('没有可导出的月度趋势数据')
+    return
+  }
+
+  const rows = monthlyTableData.value.map((item) => [
+    formatMonth(item.month),
+    item.orderCount,
+    item.completedCount,
+    item.cancelledCount,
+    money(item.income),
+    money(item.income * 0.82),
+    money(item.avgOrderValue),
+    `${item.momGrowth >= 0 ? '+' : ''}${item.momGrowth}%`
+  ])
+
+  const csv = [
+    ['月份', '订单数', '已完成', '已取消', '总收入', '预估到账', '客单均价', '月收入环比'],
+    ...rows
+  ]
+    .map((row) => row.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(','))
+    .join('\n')
+
+  const blob = new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8;' })
+  const link = document.createElement('a')
+  link.href = URL.createObjectURL(blob)
+  link.download = `月度收入趋势_${new Date().toISOString().slice(0, 10)}.csv`
+  link.click()
+  URL.revokeObjectURL(link.href)
+
+  ElMessage.success('月度收入趋势已导出')
+}
+
+function getGrowthClass(growth) {
+  if (growth > 0) return 'growth-positive'
+  if (growth < 0) return 'growth-negative'
+  return 'growth-neutral'
+}
+
+function tableRowClassName({ row, rowIndex }) {
+  // 为收入最高的月份添加特殊样式
+  if (monthlyTableData.value.length > 0) {
+    const maxIncome = Math.max(...monthlyTableData.value.map((item) => item.income))
+    if (row.income === maxIncome) {
+      return 'top-income-row'
     }
   }
+  return ''
 }
+
+async function loadOrders() {
+  loading.value = true
+  try {
+    const res = await getHistoryOrders(chefId.value)
+    if (res.code !== 200) {
+      ElMessage.error(res.message || '获取历史订单失败')
+      return
+    }
+    orders.value = normalizeOrders(Array.isArray(res.data) ? res.data : [])
+  } catch (error) {
+    ElMessage.error(error?.response?.data?.message || error?.message || '获取历史订单失败')
+  } finally {
+    loading.value = false
+  }
+}
+
+onMounted(async () => {
+  chefId.value = parseChefId()
+  if (!chefId.value) {
+    ElMessage.warning('请先登录厨师账号')
+    router.push('/cooker/login')
+    return
+  }
+  await loadOrders()
+})
 </script>
 
 <style scoped>
-.container {
-   width: 100%;
-  max-width: 1200px;
+.page {
+  max-width: 1240px;
   margin: 0 auto;
-  padding: 24px;
-}
-
-h3 {
-  margin: 20px 0;
-  text-align: center;
-}
-
-/* 搜索栏 */
-.search-bar {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-}
-
-/* 统计卡片 */
-.stats-cards {
+  padding: 0 20px 20px;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-bottom: 20px;
+  gap: 14px;
 }
 
-.stat-card {
-  border-radius: 8px;
-}
-
-.stat-item {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.stat-icon {
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-}
-
-.stat-icon.completed {
-  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-}
-
-.stat-icon.cancelled {
-  background: linear-gradient(135deg, #cfd9df 0%, #e2ebf0 100%);
-}
-
-.stat-icon.total {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.stat-icon.revenue {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-}
-
-.stat-info {
-  flex: 1;
-}
-
-.stat-value {
-  font-size: 28px;
-  font-weight: bold;
-  color: #303133;
-}
-
-.stat-label {
-  font-size: 14px;
-  color: #909399;
-  margin-top: 4px;
-}
-
-/* 订单列表 */
-.order-list {
-  margin-bottom: 20px;
-}
-
-.order-card {
-  margin-bottom: 16px;
-}
-
-.order-card :deep(.el-card__body) {
-  padding: 16px;
-}
-
-/* 订单头部 */
-.order-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #ebeef5;
-}
-
-.order-info-left {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.order-no {
-  font-size: 14px;
-  color: #606266;
-}
-
-.order-time {
-  font-size: 12px;
-  color: #909399;
-}
-
-/* 订单商品 */
-.order-items {
-  margin-bottom: 16px;
-}
-
-.order-item {
-  display: flex;
-  align-items: center;
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
-  padding: 8px 0;
-  border-bottom: 1px dashed #ebeef5;
 }
 
-.order-item:last-child {
-  border-bottom: none;
+.summary-item {
+  display: grid;
+  gap: 8px;
 }
 
-.item-image {
-  width: 60px;
-  height: 60px;
-  border-radius: 8px;
+.summary-item span {
+  color: #6f7c91;
+  font-size: 13px;
 }
 
-.item-info {
-  flex: 1;
+.summary-item strong {
+  font-size: 30px;
+  color: #1f3044;
 }
 
-.item-name {
-  font-size: 14px;
-  color: #303133;
-  font-weight: 500;
+.summary-item p {
+  color: #4f5c6f;
 }
 
-.item-spec {
-  font-size: 12px;
-  color: #909399;
-  margin-top: 4px;
-}
-
-.item-quantity {
-  font-size: 14px;
-  color: #606266;
-  margin: 0 16px;
-}
-
-.item-price {
-  font-size: 14px;
-  color: #f56c6c;
-  font-weight: 500;
-}
-
-/* 订单信息 */
-.order-info {
-  background-color: #f5f7fa;
-  padding: 12px;
-  border-radius: 4px;
-  margin-bottom: 16px;
-}
-
-.info-row {
-  display: flex;
-  align-items: flex-start;
-  margin-bottom: 8px;
-  font-size: 14px;
-}
-
-.info-row:last-child {
-  margin-bottom: 0;
-}
-
-.info-label {
-  color: #909399;
-  min-width: 80px;
-}
-
-.info-value {
-  color: #606266;
-  flex: 1;
-}
-
-/* 订单底部 */
-.order-footer {
+.head-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: 12px;
-  border-top: 1px solid #ebeef5;
 }
 
-.order-total {
-  font-size: 14px;
-  color: #606266;
-}
-
-.total-price {
-  font-size: 20px;
-  color: #f56c6c;
-  font-weight: bold;
-}
-
-.order-actions {
+.tools {
   display: flex;
   gap: 8px;
 }
 
-/* 分页 */
-.pagination {
+.filters {
+  margin-bottom: 12px;
   display: flex;
-  justify-content: center;
-  margin-top: 20px;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
-/* 订单详情 */
-.order-total-detail {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 16px;
-  font-size: 16px;
+.w-220 {
+  width: 220px;
 }
 
-.order-total-detail .total-price {
-  font-size: 24px;
-  color: #f56c6c;
-  font-weight: bold;
-  margin-left: 16px;
-}
-
-/* 对话框操作按钮 */
-.dialog-actions {
-  display: flex;
-  justify-content: flex-end;
+.review-box {
+  display: grid;
   gap: 12px;
-  margin-top: 20px;
-  padding-top: 20px;
-  border-top: 1px solid #ebeef5;
+}
+
+.monthly-table-container {
+  margin-top: 16px;
+}
+
+.income-text {
+  color: #606266;
+  font-weight: 500;
+}
+
+.income-highlight {
+  color: #f56c6c;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.growth-positive {
+  color: #f56c6c;
+  font-weight: 500;
+}
+
+.growth-negative {
+  color: #67c23a;
+  font-weight: 500;
+}
+
+.growth-neutral {
+  color: #909399;
+}
+
+:deep(.top-income-row) {
+  background-color: #fdf6ec !important;
+}
+
+:deep(.top-income-row:hover) {
+  background-color: #f5e1d0 !important;
+}
+
+@media (max-width: 992px) {
+  .page {
+    padding: 0 12px 14px;
+  }
+
+  .summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .head-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
 }
 </style>

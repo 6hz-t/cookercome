@@ -117,33 +117,54 @@
                 <el-button @click="mapDialogVisible = false">取消</el-button>
                 <el-button type="primary" @click="confirmLocation">确定</el-button>
             </template>
-        </el-dialog>
-    </div>
-</template>
-<!--         /*
-        * 姓名
-        * 手机号
-        * 身份证正面
-        * 身份证反面
-        * 性别
-        * 身份证号
-        * 头像
-        * 注册时间
-        * 状态（0：在线，1：离线）
-        * 评分
-        * 位置经度
-        * 位置纬度
-        * 位置全址
-        * 简介
-        * 审核状态
-        * 菜系
-  
-        *
-        *
-        * */ -->
+          </el-input>
+        </el-form-item>
 
-<script>
-import { Position, UploadFilled, Plus } from '@element-plus/icons-vue'
+        <el-form-item label="坐标">
+          <div class="coord-row">
+            <el-input :model-value="latitudeText" disabled />
+            <el-input :model-value="longitudeText" disabled />
+            <el-button @click="mapDialogVisible = true">重新选取</el-button>
+          </div>
+        </el-form-item>
+
+        <el-form-item label="从业年限">
+          <el-input-number v-model="form.experienceYears" :min="0" :step="1" style="width: 100%" />
+        </el-form-item>
+
+        <el-form-item label="厨师等级">
+          <el-input-number v-model="form.chefLevel" :min="0" :step="1" style="width: 100%" />
+        </el-form-item>
+
+        <el-form-item label="最低服务价格">
+          <el-input-number v-model="form.minPrice" :min="0" :precision="2" :step="10" style="width: 100%" />
+        </el-form-item>
+
+        <el-form-item label="个人介绍">
+          <el-input v-model="form.introduction" type="textarea" :rows="3" placeholder="请输入个人介绍" />
+        </el-form-item>
+
+        <el-form-item label="状态">
+          <el-select v-model="form.status" style="width: 100%">
+            <el-option label="离线" :value="0" />
+            <el-option label="在线" :value="1" />
+          </el-select>
+        </el-form-item>
+      </el-form>
+    </el-card>
+
+    <BaiduMapPickerDialog
+      v-model="mapDialogVisible"
+      title="地图选点（厨师地址）"
+      :initial-location="profileLocation"
+      @confirm="handleLocationPicked"
+    />
+  </div>
+</template>
+
+<script setup>
+import { computed, onMounted, reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import OSS from 'ali-oss'
 import axios from 'axios'
@@ -528,59 +549,173 @@ export default {
             }
             return isJPG && isLt2M;
         }
+      },
+      trigger: 'blur'
     }
+  ]
 }
+
+const latitudeText = computed(() => (Number(form.latitude) ? Number(form.latitude).toFixed(6) : '未选择'))
+const longitudeText = computed(() => (Number(form.longitude) ? Number(form.longitude).toFixed(6) : '未选择'))
+
+const profileLocation = computed(() => ({
+  lng: Number(form.longitude || 0),
+  lat: Number(form.latitude || 0),
+  address: form.detailAddress || ''
+}))
+
+function fillForm(data = {}) {
+  form.id = Number(data.id || 0)
+  form.idText = String(form.id)
+  form.userId = String(data.userId || form.userId || '')
+  form.realName = data.realName || ''
+  form.gender = Number(data.gender || 0)
+  form.idCardNo = data.idCardNo || ''
+  form.phone = data.phone || ''
+  form.detailAddress = data.detailAddress || ''
+  form.experienceYears = Number(data.experienceYears || 0)
+  form.chefLevel = Number(data.chefLevel || 0)
+  form.minPrice = Number(data.minPrice || 0)
+  form.introduction = data.introduction || ''
+  form.latitude = Number(data.latitude || 0)
+  form.longitude = Number(data.longitude || 0)
+  form.status = Number(data.status || 0)
+
+  setChefLocation({
+    lng: form.longitude,
+    lat: form.latitude,
+    address: form.detailAddress
+  })
+}
+
+function handleLocationPicked(location) {
+  form.longitude = Number(location.lng || 0)
+  form.latitude = Number(location.lat || 0)
+  if (location.address) {
+    form.detailAddress = location.address
+  }
+  setChefLocation({
+    lng: form.longitude,
+    lat: form.latitude,
+    address: form.detailAddress
+  })
+  ElMessage.success('位置已更新')
+}
+
+async function loadProfile() {
+  const userId = parseChefId()
+  if (!userId) {
+    ElMessage.warning('请先登录')
+    router.replace('/cooker/login')
+    return
+  }
+
+  loading.value = true
+  try {
+    form.userId = String(userId)
+    const res = await getChefProfile(userId)
+    if (res.code !== 200) {
+      ElMessage.error(res.message || '加载资料失败')
+      return
+    }
+    fillForm(res.data || { userId: String(userId) })
+  } catch (error) {
+    ElMessage.error(error?.response?.data?.message || error?.message || '加载资料失败')
+  } finally {
+    loading.value = false
+  }
+}
+
+async function handleSave() {
+  if (!form.userId) {
+    ElMessage.warning('用户 ID 不能为空')
+    return
+  }
+
+  // 表单验证
+  if (!formRef.value) return
+  
+  try {
+    await formRef.value.validate()
+  } catch (error) {
+    ElMessage.error('请检查表单填写是否正确')
+    return
+  }
+
+  saving.value = true
+  try {
+    const payload = {
+      id: form.id,
+      userId: form.userId,
+      realName: form.realName,
+      gender: form.gender,
+      idCardNo: form.idCardNo,
+      phone: form.phone,
+      detailAddress: form.detailAddress,
+      experienceYears: form.experienceYears,
+      chefLevel: form.chefLevel,
+      minPrice: form.minPrice,
+      introduction: form.introduction,
+      latitude: form.latitude,
+      longitude: form.longitude,
+      status: form.status
+    }
+
+    const res = await saveChefProfile(payload)
+    if (res.code !== 200) {
+      ElMessage.error(res.message || '保存失败')
+      return
+    }
+
+    fillForm(res.data || payload)
+    ElMessage.success('保存成功')
+  } catch (error) {
+    ElMessage.error(error?.response?.data?.message || error?.message || '保存失败')
+  } finally {
+    saving.value = false
+  }
+}
+
+onMounted(loadProfile)
 </script>
 
 <style scoped>
-.container {
-    width: 1000px;
-    margin: 0 auto;
-    padding: 20px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
-    background-color: #fff;
+.page {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 20px 20px;
 }
 
-.avatar-uploader .avatar {
-    width: 178px;
-    height: 178px;
-    display: block;
+.head-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.avatar-uploader .el-upload {
-    /* 虚线框 */
-    border: 1px dashed #409eff;
-    border-radius: 6px;
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
-    transition: var(--el-transition-duration-fast);
+.form {
+  max-width: 760px;
 }
 
-.avatar-uploader .el-upload:hover {
-    border: 1px dashed #409eff;
+.coord-row {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 10px;
 }
 
-.el-icon.avatar-uploader-icon {
-    font-size: 28px;
-    color: #8c939d;
-    width: 178px;
-    height: 178px;
-    text-align: center;
-}
+@media (max-width: 768px) {
+  .page {
+    padding: 0 12px 14px;
+  }
 
-h3 {
-    margin: 20px;
-    text-align: center;
-    justify-content: center;
-    display: flex;
-}
+  .head-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
 
-.map-container {
-    width: 100%;
-    height: 400px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
+  .coord-row {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

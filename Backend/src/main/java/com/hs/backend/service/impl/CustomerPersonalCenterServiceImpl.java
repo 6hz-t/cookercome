@@ -351,8 +351,8 @@ public class CustomerPersonalCenterServiceImpl implements CustomerPersonalCenter
     private void calculateAndSetOrderStats(CustomerInfo customerInfo, Long userId) {
         try {
             // 定义订单状态分类
-            // 已完成订单：服务完成 (4) + 已退款 (7)
-            java.util.List<Integer> completedStatuses = java.util.Arrays.asList(4, 7);
+            // 已完成订单：服务完成 (3)
+            java.util.List<Integer> completedStatuses = java.util.Arrays.asList(3);
             
             // 查询总订单数
             Long totalOrders = orderMapper.selectCount(

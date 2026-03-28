@@ -1,84 +1,74 @@
-import chefrequest from './request'
-import authrequest from './request'
+﻿import { chefrequest, authrequest } from './request'
 
-// 厨师登录
 export const login = (data) => authrequest.post('/login', data)
 
-<<<<<<< Updated upstream
-//获取新订单/api/chef/getNewOrders
-export const getNewOrders = () => chefrequest.get('/getNewOrders')
-=======
-// 获取新订单/api/chef/getNewOrders
-export const getNewOrders = () => chefrequest.post('/getNewOrders')
+export const registerChef = (data) => {
+  const payload = {
+    phone: data.phone,
+    password: data.password,
+    role: 1
+  }
+  return authrequest.post('/register', payload)
+}
 
-// 接单/api/chef/acceptOrder
-export const acceptOrder = (data) => chefrequest.post('/acceptOrder', data)
->>>>>>> Stashed changes
+export const getNewOrders = (chefId) =>
+  chefrequest.post('/getNewOrders', null, {
+    params: { chefId }
+  })
 
-// 获取厨师信息
-export const getChefInfo = () => chefrequest.get('/cooker/info')
+export const acceptOrder = (orderId, chefId) =>
+  chefrequest.post('/acceptOrder', null, {
+    params: { orderId, chefId }
+  })
 
-// 更新厨师信息
-export const updateChefInfo = (data) => chefrequest.put('/cooker/info', data)
+export const getTodayOrders = (chefId) =>
+  chefrequest.post('/getTodayOrders', null, {
+    params: { chefId }
+  })
 
-// 提交资质审核
-export const submitAudit = (data) => chefrequest.post('/cooker/audit', data)
+export const getOrders = (chefId) =>
+  chefrequest.post('/getOrders', null, {
+    params: { chefId }
+  })
 
-// 获取审核状态
-export const getAuditStatus = () => chefrequest.get('/cooker/audit/status')
+export const getHistoryOrders = (chefId) =>
+  chefrequest.post('/getHistoryOrders', null, {
+    params: { chefId }
+  })
 
-// 切换服务状态
-export const toggleServiceStatus = (status) => chefrequest.put('/cooker/service-status', { status })
+export const updateChefStatus = (chefId, status, reason = '') =>
+  chefrequest.post('/updateChefStatus', null, {
+    params: { chefId, status, reason }
+  })
 
-// 获取菜系列表
-export const getCuisineList = () => chefrequest.get('/cuisine/list')
+export const updateOrderStatus = (orderId, status) =>
+  chefrequest.post('/updateOrderStatus', null, {
+    params: { orderId, status }
+  })
 
-// 获取厨师菜系
-export const getChefCuisines = () => chefrequest.get('/cooker/cuisines')
+export const getChefProfile = (userId) =>
+  chefrequest.get('/profile', {
+    params: { userId }
+  })
 
-// 添加厨师菜系
-export const addChefCuisine = (cuisineId) => chefrequest.post('/cooker/cuisines', { cuisineId })
+export const saveChefProfile = (data) => chefrequest.post('/profile', data)
 
-// 删除厨师菜系
-export const removeChefCuisine = (cuisineId) => chefrequest.delete(`/cooker/cuisines/${cuisineId}`)
+export async function getChefOrderPool(chefId) {
+  const [newRes, servingRes, historyRes] = await Promise.all([getNewOrders(chefId), getOrders(chefId), getHistoryOrders(chefId)])
 
-// 获取菜品列表
-export const getDishList = () => chefrequest.get('/cooker/dishes')
+  const newOrders = Array.isArray(newRes?.data) ? newRes.data : []
+  const servingOrders = Array.isArray(servingRes?.data) ? servingRes.data : []
+  const historyOrders = Array.isArray(historyRes?.data) ? historyRes.data : []
 
-// 添加菜品
-export const addDish = (data) => chefrequest.post('/cooker/dishes', data)
+  return {
+    code: 200,
+    data: [...newOrders, ...servingOrders, ...historyOrders],
+    newOrders,
+    servingOrders,
+    historyOrders
+  }
+}
 
-// 更新菜品
-export const updateDish = (id, data) => chefrequest.put(`/cooker/dishes/${id}`, data)
-
-// 删除菜品
-export const deleteDish = (id) => chefrequest.delete(`/cooker/dishes/${id}`)
-
-// 获取待接单列表
-export const getPendingOrders = () => chefrequest.get('/cooker/orders/pending')
-
-<<<<<<< Updated upstream
-// 接单
-export const acceptOrder = (orderId) => chefrequest.post(`/cooker/orders/${orderId}/accept`)
-
-// 拒单
-export const rejectOrder = (orderId, reason) => chefrequest.post(`/cooker/orders/${orderId}/reject`, { reason })
-=======
-// 获取待服务订单列表（已接单但未服务）
-export const getServingOrders = () => chefrequest.get('/cooker/orders/serving')
->>>>>>> Stashed changes
-
-// 确认服务开始
-export const startService = (orderId) => chefrequest.post(`/cooker/orders/${orderId}/start`)
-
-// 确认服务结束
-export const endService = (orderId) => chefrequest.post(`/cooker/orders/${orderId}/end`)
-
-// 获取收入统计
-export const getIncomeStats = () => chefrequest.get('/cooker/income/stats')
-
-// 获取评价列表
-export const getEvaluations = () => chefrequest.get('/cooker/evaluations')
-
-// 回复评价
-export const replyEvaluation = (evaluationId, content) => chefrequest.post(`/cooker/evaluations/${evaluationId}/reply`, { content })
+export const getServingOrders = getOrders
+export const startService = (orderId) => updateOrderStatus(orderId, 2)
+export const endService = (orderId) => updateOrderStatus(orderId, 3)

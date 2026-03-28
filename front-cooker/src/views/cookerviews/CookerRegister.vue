@@ -1,715 +1,156 @@
-<!-- 厨师注册 - 现代化设计 -->
 <template>
-  <div class="cooker-register">
-    <div class="register-wrapper">
-      <!-- 左侧品牌展示区 -->
-      <div class="register-banner">
-        <div class="banner-overlay"></div>
-        <div class="banner-content">
-          <div class="brand-logo">
-            <div class="logo-icon">
-              <el-icon :size="56" color="#fff"><Sunrise /></el-icon>
-            </div>
-            <h1 class="brand-title">厨师上门</h1>
-          </div>
-          <h2 class="banner-title">开启烹饪事业</h2>
-          <p class="banner-desc">
-            成为专业上门厨师，<br />
-            用厨艺创造美好生活
-          </p>
-          <div class="banner-features">
-            <div class="feature-item">
-              <div class="feature-icon">
-                <el-icon :size="24"><Checked /></el-icon>
-              </div>
-              <span>免费入驻平台</span>
-            </div>
-            <div class="feature-item">
-              <div class="feature-icon">
-                <el-icon :size="24"><Timer /></el-icon>
-              </div>
-              <span>自主接单管理</span>
-            </div>
-            <div class="feature-item">
-              <div class="feature-icon">
-                <el-icon :size="24"><Money /></el-icon>
-              </div>
-              <span>收益透明结算</span>
-            </div>
-            <div class="feature-item">
-              <div class="feature-icon">
-                <el-icon :size="24"><Star /></el-icon>
-              </div>
-              <span>品牌全力支持</span>
-            </div>
-          </div>
-        </div>
+  <div class="auth-page">
+    <el-card class="auth-card" shadow="never">
+      <div class="card-head">
+        <h1>厨师端注册</h1>
+        <p>请输入手机号并设置密码</p>
       </div>
 
-      <!-- 右侧表单区 -->
-      <div class="register-form-section">
-        <div class="form-container">
-          <transition name="fade" mode="out-in">
-            <div key="register" class="form-content">
-              <div class="form-header">
-                <h2 class="form-title">创建账号</h2>
-                <p class="form-subtitle">填写以下信息完成注册</p>
-              </div>
+      <el-form ref="formRef" :model="form" :rules="rules" label-width="0" class="auth-form" @keyup.enter="submit">
+        <el-form-item prop="phone">
+          <el-input v-model="form.phone" placeholder="请输入手机号" maxlength="11" clearable />
+        </el-form-item>
+        <el-form-item prop="password">
+          <el-input v-model="form.password" type="password" placeholder="请输入密码" show-password />
+        </el-form-item>
+        <el-form-item prop="confirmPassword">
+          <el-input v-model="form.confirmPassword" type="password" placeholder="请再次输入密码" show-password />
+        </el-form-item>
+        <el-form-item>
+          <el-button type="primary" class="w-full" :loading="loading" @click="submit">注册</el-button>
+        </el-form-item>
+      </el-form>
 
-              <el-form :model="form" :rules="rules" ref="registerForm" label-width="0">
-                <el-form-item prop="username">
-                  <div class="input-wrapper">
-                    <el-icon class="input-icon"><User /></el-icon>
-                    <el-input
-                      v-model="form.username"
-                      placeholder="请输入用户名"
-                      size="large"
-                      clearable
-                    />
-                  </div>
-                </el-form-item>
-
-                <el-form-item prop="phone">
-                  <div class="input-wrapper">
-                    <el-icon class="input-icon"><Phone /></el-icon>
-                    <el-input
-                      v-model="form.phone"
-                      placeholder="请输入手机号"
-                      size="large"
-                      clearable
-                      maxlength="11"
-                    />
-                  </div>
-                </el-form-item>
-
-                <el-form-item prop="code">
-                  <div class="code-input-wrapper">
-                    <div class="input-wrapper code-input">
-                      <el-icon class="input-icon"><Message /></el-icon>
-                      <el-input
-                        v-model="form.code"
-                        placeholder="请输入验证码"
-                        size="large"
-                        clearable
-                        maxlength="6"
-                      />
-                    </div>
-                    <el-button 
-                      class="code-btn" 
-                      :disabled="countdown > 0"
-                      @click="sendCode"
-                    >
-                      {{ countdown > 0 ? `${countdown}s` : '获取验证码' }}
-                    </el-button>
-                  </div>
-                </el-form-item>
-
-                <el-form-item prop="password">
-                  <div class="input-wrapper">
-                    <el-icon class="input-icon"><Lock /></el-icon>
-                    <el-input
-                      v-model="form.password"
-                      type="password"
-                      placeholder="请输入密码"
-                      size="large"
-                      show-password
-                    />
-                  </div>
-                </el-form-item>
-
-                <el-form-item prop="confirmPassword">
-                  <div class="input-wrapper">
-                    <el-icon class="input-icon"><Lock /></el-icon>
-                    <el-input
-                      v-model="form.confirmPassword"
-                      type="password"
-                      placeholder="请确认密码"
-                      size="large"
-                      show-password
-                    />
-                  </div>
-                </el-form-item>
-
-                <el-form-item>
-                  <div class="agreement">
-                    <el-checkbox v-model="agreed"></el-checkbox>
-                    <span>我已阅读并同意</span>
-                    <el-link class="agreement-link" :underline="false">《服务协议》</el-link>
-                    <span>和</span>
-                    <el-link class="agreement-link" :underline="false">《隐私政策》</el-link>
-                  </div>
-                </el-form-item>
-
-                <el-form-item>
-                  <el-button
-                    type="primary"
-                    size="large"
-                    class="submit-btn"
-                    @click="submitRegister('registerForm')"
-                    :loading="loading"
-                    :disabled="!agreed"
-                  >
-                    同意协议并注册
-                  </el-button>
-                </el-form-item>
-              </el-form>
-
-              <div class="form-footer">
-                <span>已有账号？</span>
-                <el-link class="switch-link" :underline="false" @click="goLogin">
-                  立即登录
-                </el-link>
-              </div>
-            </div>
-          </transition>
-        </div>
-
-        <!-- 底部链接 -->
-        <div class="form-footer-links">
-          <el-link :underline="false">关于我们</el-link>
-          <el-link :underline="false">帮助中心</el-link>
-          <el-link :underline="false">隐私政策</el-link>
-          <el-link :underline="false">服务条款</el-link>
-        </div>
+      <div class="footer-link">
+        已有账号？
+        <el-link type="primary" :underline="false" @click="$router.push('/cooker/login')">去登录</el-link>
       </div>
-    </div>
+    </el-card>
   </div>
 </template>
 
 <script>
-import { User, Lock, Sunrise, Checked, Timer, Money, Star, Phone, Message } from '@element-plus/icons-vue'
+import { registerChef } from '@/api/cooker'
 
 export default {
   name: 'CookerRegister',
-  components: {
-    Sunrise
-  },
   data() {
-    var validateUsername = (rule, value, callback) => {
-      if (value === '') {
-        callback(new Error('请输入用户名'));
-      } else if (value.length < 3) {
-        callback(new Error('用户名至少 3 个字符'));
-      } else {
-        callback();
-      }
-    };
-    var validatePhone = (rule, value, callback) => {
-      if (value === '') {
-        callback(new Error('请输入手机号'));
-      } else if (!/^1[3-9]\d{9}$/.test(value)) {
-        callback(new Error('请输入正确的手机号'));
-      } else {
-        callback();
-      }
-    };
-    var validateCode = (rule, value, callback) => {
-      if (value === '') {
-        callback(new Error('请输入验证码'));
-      } else if (value.length !== 6) {
-        callback(new Error('验证码为 6 位数字'));
-      } else {
-        callback();
-      }
-    };
-    var validatePassword = (rule, value, callback) => {
-      if (value === '') {
-        callback(new Error('请输入密码'));
-      } else if (value.length < 6) {
-        callback(new Error('密码至少 6 个字符'));
-      } else {
-        callback();
-      }
-    };
-    var validateConfirmPassword = (rule, value, callback) => {
-      if (value === '') {
-        callback(new Error('请确认密码'));
-      } else if (value !== this.form.password) {
-        callback(new Error('两次输入的密码不一致'));
-      } else {
-        callback();
-      }
-    };
-
     return {
       loading: false,
-      agreed: false,
-      countdown: 0,
-      timer: null,
       form: {
-        username: '',
         phone: '',
-        code: '',
         password: '',
         confirmPassword: ''
       },
       rules: {
-        username: [{ validator: validateUsername, trigger: 'blur' }],
-        phone: [{ validator: validatePhone, trigger: 'blur' }],
-        code: [{ validator: validateCode, trigger: 'blur' }],
-        password: [{ validator: validatePassword, trigger: 'blur' }],
-        confirmPassword: [{ validator: validateConfirmPassword, trigger: 'blur' }]
+        phone: [
+          { required: true, message: '请输入手机号', trigger: 'blur' },
+          { pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确', trigger: 'blur' }
+        ],
+        password: [
+          { required: true, message: '请输入密码', trigger: 'blur' },
+          { min: 6, message: '密码至少 6 位', trigger: 'blur' }
+        ],
+        confirmPassword: [
+          {
+            validator: (_rule, value, callback) => {
+              if (!value) {
+                callback(new Error('请再次输入密码'))
+                return
+              }
+              if (value !== this.form.password) {
+                callback(new Error('两次输入密码不一致'))
+                return
+              }
+              callback()
+            },
+            trigger: 'blur'
+          }
+        ]
       }
     }
   },
   methods: {
-    sendCode() {
-      if (!this.form.phone || !/^1[3-9]\d{9}$/.test(this.form.phone)) {
-        this.$message.warning('请先输入正确的手机号');
-        return;
+    async submit() {
+      if (this.loading) return
+      const valid = await this.$refs.formRef.validate().catch(() => false)
+      if (!valid) return
+
+      this.loading = true
+      try {
+        const res = await registerChef(this.form)
+        if (res.code !== 200) {
+          this.$message.error(res.message || '注册失败')
+          return
+        }
+        this.$message.success('注册成功，请登录')
+        this.$router.push('/cooker/login')
+      } catch (error) {
+        this.$message.error(error?.response?.data?.message || error?.message || '注册失败')
+      } finally {
+        this.loading = false
       }
-      this.$message.success('验证码已发送');
-      this.countdown = 60;
-      this.timer = setInterval(() => {
-        this.countdown--;
-        if (this.countdown <= 0) {
-          clearInterval(this.timer);
-        }
-      }, 1000);
-    },
-    submitRegister(formName) {
-      this.$refs[formName].validate((valid) => {
-        if (valid) {
-          if (!this.agreed) {
-            this.$message.warning('请先同意服务协议和隐私政策');
-            return;
-          }
-          this.loading = true;
-          setTimeout(() => {
-            this.loading = false;
-            this.$message.success('注册成功！');
-            this.$router.push('/cooker/login');
-          }, 1000);
-        } else {
-          this.$message.error('请填写完整的注册信息');
-          return false;
-        }
-      });
-    },
-    goLogin() {
-      this.$router.push('/cooker/login');
-    }
-  },
-  beforeDestroy() {
-    if (this.timer) {
-      clearInterval(this.timer);
     }
   }
 }
 </script>
 
-<style lang="scss" scoped>
-// 主题色变量
-$primary-gradient: linear-gradient(135deg, #9ED2BE 0%, #5A9367 100%);
-$primary-color: #5A9367;
-$primary-light: #9ED2BE;
-$text-primary: #3A4B3F;
-$text-secondary: #7A8C80;
-$text-light: #A3B3A8;
-$bg-soft: #F2F8F5;
-$border-color: #E6EEE9;
-
-.cooker-register {
+<style scoped>
+.auth-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #F2F8F5 0%, #E8F0EC 100%);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 20px;
+  background: #f6f8fb;
+  font-family: 'Source Han Sans SC', 'PingFang SC', 'Microsoft YaHei', sans-serif;
 }
 
-.register-wrapper {
+.auth-card {
   width: 100%;
-  max-width: 1100px;
-  min-height: 700px;
-  background: #fff;
-  border-radius: 15px;
-  box-shadow: 0 20px 60px rgba(90, 147, 103, 0.15);
-  display: flex;
-  overflow: hidden;
+  max-width: 420px;
+  border-radius: 14px;
+  border: 1px solid var(--el-border-color-light);
 }
 
-/* ========== 左侧品牌展示区 ========== */
-.register-banner {
-  flex: 1;
-  min-width: 350px;
-  background: linear-gradient(135deg, #9ED2BE 0%, #5A9367 100%);
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 40px;
-  overflow: hidden;
-
-  .banner-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="40" fill="rgba(255,255,255,0.05)"/></svg>');
-    background-size: 100px 100px;
-  }
-
-  .banner-content {
-    position: relative;
-    z-index: 1;
-    text-align: center;
-    color: #fff;
-
-    .brand-logo {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 16px;
-      margin-bottom: 32px;
-
-      .logo-icon {
-        width: 80px;
-        height: 80px;
-        background: rgba(255, 255, 255, 0.2);
-        border-radius: 20px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        backdrop-filter: blur(10px);
-      }
-
-      .brand-title {
-        font-size: 2.2rem;
-        font-weight: 700;
-        margin: 0;
-      }
-    }
-
-    .banner-title {
-      font-size: 1.8rem;
-      font-weight: 600;
-      margin: 0 0 16px;
-    }
-
-    .banner-desc {
-      font-size: 1rem;
-      font-weight: 400;
-      opacity: 0.9;
-      margin: 0 0 40px;
-      line-height: 1.6;
-    }
-
-    .banner-features {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 16px;
-
-      .feature-item {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 8px;
-        text-align: center;
-
-        .feature-icon {
-          width: 48px;
-          height: 48px;
-          background: rgba(255, 255, 255, 0.2);
-          border-radius: 12px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        span {
-          font-size: 0.85rem;
-          font-weight: 500;
-        }
-      }
-    }
-  }
-}
-
-/* ========== 右侧表单区 ========== */
-.register-form-section {
-  flex: 1;
-  min-width: 350px;
-  display: flex;
-  flex-direction: column;
-  padding: 40px;
-}
-
-.form-container {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.form-content {
-  animation: fadeIn 0.5s ease-out;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.form-header {
-  margin-bottom: 32px;
-
-  .form-title {
-    font-size: 1.8rem;
-    font-weight: 600;
-    color: $text-primary;
-    margin: 0 0 8px;
-  }
-
-  .form-subtitle {
-    font-size: 0.95rem;
-    font-weight: 400;
-    color: $text-secondary;
-    margin: 0;
-  }
-}
-
-/* 输入框样式 */
-:deep(.el-form-item) {
-  margin-bottom: 16px;
-}
-
-.input-wrapper {
-  display: flex;
-  align-items: center;
-  border: 1px solid $border-color;
-  border-radius: 8px;
-  padding: 0 16px;
-  transition: all 0.3s;
-  background: #fff;
-
-  &:hover {
-    border-color: $text-light;
-  }
-
-  &:focus-within {
-    border-color: $primary-color;
-    box-shadow: 0 0 0 3px rgba(90, 147, 103, 0.1);
-  }
-
-  .input-icon {
-    font-size: 20px;
-    color: $text-light;
-    margin-right: 12px;
-  }
-
-  :deep(.el-input__wrapper) {
-    box-shadow: none;
-    padding: 0;
-
-    .el-input__inner {
-      height: 50px;
-      font-size: 1rem;
-      color: $text-primary;
-    }
-  }
-}
-
-.code-input-wrapper {
-  display: flex;
-  gap: 12px;
-
-  .code-input {
-    flex: 1;
-  }
-
-  .code-btn {
-    height: 50px;
-    padding: 0 20px;
-    border-radius: 8px;
-    background: $primary-gradient;
-    border: none;
-    font-weight: 600;
-    font-size: 0.95rem;
-    color: #fff;
-    white-space: nowrap;
-    transition: all 0.3s;
-
-    &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(90, 147, 103, 0.3);
-    }
-
-    &:active {
-      transform: translateY(0);
-    }
-
-    &:disabled {
-      background: $border-color;
-      cursor: not-allowed;
-      transform: none;
-    }
-  }
-}
-
-/* 协议区域 */
-.agreement {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  font-size: 0.85rem;
-  color: $text-secondary;
-  line-height: 1.5;
-  margin: 20px 0;
-
-  :deep(.el-checkbox) {
-    margin-top: 2px;
-  }
-
-  .agreement-link {
-    font-size: 0.85rem;
-    color: $primary-color;
-    font-weight: 500;
-  }
-}
-
-/* 提交按钮 */
-.submit-btn {
-  width: 100%;
-  height: 50px;
-  font-size: 1rem;
-  font-weight: 600;
-  border-radius: 8px;
-  background: $primary-gradient;
-  border: none;
-  transition: all 0.3s;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(90, 147, 103, 0.3);
-  }
-
-  &:active {
-    transform: translateY(0);
-  }
-
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none;
-  }
-}
-
-/* 表单底部 */
-.form-footer {
+.card-head {
+  margin-bottom: 10px;
   text-align: center;
-  margin-top: 24px;
-  font-size: 0.95rem;
-  color: $text-secondary;
-
-  span {
-    margin-right: 8px;
-  }
-
-  .switch-link {
-    font-size: 0.95rem;
-    color: $primary-color;
-    font-weight: 600;
-    cursor: pointer;
-
-    &:hover {
-      text-decoration: underline;
-    }
-  }
 }
 
-/* 底部链接 */
-.form-footer-links {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 20px;
-  margin-top: auto;
-  padding-top: 24px;
-  border-top: 1px solid $border-color;
-
-  :deep(.el-link) {
-    font-size: 0.8rem;
-    color: $text-secondary;
-
-    &:hover {
-      color: $primary-color;
-    }
-  }
+.card-head h1 {
+  margin: 0;
+  font-size: 24px;
+  color: var(--el-text-color-primary);
 }
 
-/* ========== 响应式设计 ========== */
-@media (max-width: 768px) {
-  .register-wrapper {
-    flex-direction: column;
-    max-width: 450px;
-    min-height: auto;
-  }
-
-  .register-banner {
-    min-width: 100%;
-    padding: 40px 25px;
-
-    .banner-content {
-      .brand-logo {
-        margin-bottom: 24px;
-
-        .logo-icon {
-          width: 60px;
-          height: 60px;
-        }
-
-        .brand-title {
-          font-size: 1.8rem;
-        }
-      }
-
-      .banner-title {
-        font-size: 1.5rem;
-      }
-
-      .banner-desc {
-        font-size: 0.9rem;
-      }
-
-      .banner-features {
-        grid-template-columns: repeat(2, 1fr);
-      }
-    }
-  }
-
-  .register-form-section {
-    padding: 40px 25px;
-  }
+.card-head p {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--el-text-color-secondary);
 }
 
-@media (max-width: 425px) {
-  .register-banner {
-    padding: 30px 20px;
+.auth-form {
+  margin-top: 8px;
+}
 
-    .banner-features {
-      grid-template-columns: 1fr;
-    }
+.w-full {
+  width: 100%;
+}
+
+.footer-link {
+  margin-top: 8px;
+  text-align: center;
+  color: var(--el-text-color-secondary);
+}
+
+@media (max-width: 640px) {
+  .auth-page {
+    padding: 12px;
   }
 
-  .register-form-section {
-    padding: 30px 20px;
-  }
-
-  .form-header {
-    .form-title {
-      font-size: 1.5rem;
-    }
-  }
-
-  .agreement {
-    flex-wrap: wrap;
+  .auth-card {
+    border-radius: 12px;
   }
 }
 </style>

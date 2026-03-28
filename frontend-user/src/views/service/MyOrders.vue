@@ -8,6 +8,35 @@
       <p class="panel-desc">查看和管理您的所有订单</p>
     </div>
     
+    <!-- 搜索和排序区域 -->
+    <div class="search-sort-area">
+      <div class="search-box">
+        <el-input
+          v-model="searchKeyword"
+          placeholder="搜索订单号或厨师姓名"
+          :prefix-icon="Search"
+          clearable
+          @clear="handleSearchClear"
+        />
+      </div>
+      
+      <div class="sort-box">
+        <el-select v-model="sortKey" placeholder="排序方式" size="small" @change="handleSortChange">
+          <el-option label="创建时间" value="createTime" />
+          <el-option label="预约时间" value="reserveDate" />
+          <el-option label="订单金额" value="totalAmount" />
+        </el-select>
+        <el-button
+          :icon="sortOrder === 'ascending' ? ArrowUp : ArrowDown"
+          size="small"
+          @click="toggleSortOrder"
+          :disabled="!sortKey"
+        >
+          {{ sortOrder === 'ascending' ? '升序' : '降序' }}
+        </el-button>
+      </div>
+    </div>
+
     <!-- 订单分类标签 -->
     <div class="order-tabs">
       <el-radio-group v-model="activeCategory" size="large" @change="handleCategoryChange">
@@ -42,7 +71,7 @@
     </div>
     
     <!-- 空状态 -->
-    <div v-else-if="orders.length === 0" class="empty-state">
+    <div v-else-if="filteredAndSortedOrders.length === 0" class="empty-state">
       <div class="empty-icon">
         <el-icon :size="80" color="#667eea"><Document /></el-icon>
       </div>
@@ -54,7 +83,7 @@
     
     <!-- 订单列表 -->
     <div v-else class="order-list">
-      <div v-for="order in orders" :key="order.id" class="order-card">
+      <div v-for="order in currentPageOrders" :key="order.id" class="order-card">
         <div class="order-header">
           <span class="order-no">订单号：{{ order.orderNo }}</span>
           <el-tag :type="getOrderStatusType(order.status)" size="small">
@@ -157,6 +186,19 @@
           </div>
         </div>
       </div>
+    </div>
+    
+    <!-- 分页控件 -->
+    <div v-if="filteredAndSortedOrders.length > 0" class="pagination-container">
+      <el-pagination
+        v-model:current-page="pagination.page"
+        v-model:page-size="pagination.pageSize"
+        :page-sizes="[5, 10, 20, 50]"
+        :total="pagination.total"
+        layout="total, sizes, prev, pager, next, jumper"
+        @size-change="handlePageSizeChange"
+        @current-change="handlePageChange"
+      />
     </div>
 
     <!-- 退款对话框（自定义） -->
@@ -314,11 +356,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { Document, Menu, Clock, Money, Finished, Timer, Calendar, Food, Close, RefreshLeft, Star, InfoFilled, Loading, Edit, WarningFilled, CircleCheck } from '@element-plus/icons-vue'
+import { ref, onMounted, computed, watch } from 'vue'
+import { Document, Menu, Clock, Money, Finished, Timer, Calendar, Food, Close, RefreshLeft, Star, InfoFilled, Loading, Edit, WarningFilled, CircleCheck, Search, ArrowUp, ArrowDown } from '@element-plus/icons-vue'
 import { getUserOrders, actionOrder } from '@/api/chef'
 import { addFavorite } from '@/api/favorite'
 import { ElMessage, ElMessageBox } from 'element-plus'
+import { debounce } from 'lodash-es'
 
 const defaultAvatar = 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e55bcpng.png'
 
@@ -326,6 +369,14 @@ const defaultAvatar = 'https://cube.elemecdn.com/0/88/03b0d39583f48206768a7534e5
 const activeCategory = ref('all')
 const orders = ref([])
 const loading = ref(false)
+const pagination = ref({
+  page: 1,
+  pageSize: 10,
+  total: 0
+})
+const sortKey = ref('createTime')
+const sortOrder = ref('descending')
+const searchKeyword = ref('')
 
 // 退款相关
 const refundDialogVisible = ref(false)
@@ -340,6 +391,80 @@ const refundForm = ref({
 const favoriteDialogVisible = ref(false)
 const favoriting = ref(false)
 const currentFavoritingOrderId = ref(null)
+
+// 防抖函数 - 用于搜索
+const debouncedSearch = debounce(() => {
+  loadOrders(activeCategory.value, 1)
+}, 500)
+
+// 监听搜索关键词变化
+watch(searchKeyword, (newVal, oldVal) => {
+  console.log('[MyOrders] 搜索关键词变化:', {
+    新值: newVal,
+    旧值: oldVal,
+    是否触发搜索: newVal !== ''
+  })
+  
+  if (newVal !== '') {
+    debouncedSearch()
+  }
+})
+
+// 计算属性：过滤和排序后的订单列表
+const filteredAndSortedOrders = computed(() => {
+  let result = [...orders.value]
+  const originalCount = result.length
+  
+  // 搜索过滤
+  if (searchKeyword.value.trim()) {
+    const keyword = searchKeyword.value.toLowerCase()
+    result = result.filter(order => 
+      order.orderNo.toLowerCase().includes(keyword) ||
+      (order.chefName && order.chefName.toLowerCase().includes(keyword))
+    )
+    
+    console.log('[MyOrders] 搜索过滤结果:', {
+      关键词: keyword,
+      过滤前数量: originalCount,
+      过滤后数量: result.length
+    })
+  }
+  
+  // 排序
+  const beforeSort = [...result]
+  result.sort((a, b) => {
+    let compareValue = 0
+    
+    if (sortKey.value === 'createTime') {
+      compareValue = new Date(a.createTime) - new Date(b.createTime)
+    } else if (sortKey.value === 'reserveDate') {
+      compareValue = new Date(a.reserveDate) - new Date(b.reserveDate)
+    } else if (sortKey.value === 'totalAmount') {
+      compareValue = a.totalAmount - b.totalAmount
+    }
+    
+    return sortOrder.value === 'ascending' ? compareValue : -compareValue
+  })
+  
+  // 如果排序前后数据不同，输出排序结果
+  if (JSON.stringify(beforeSort) !== JSON.stringify(result)) {
+    console.log('[MyOrders] 排序结果:', {
+      排序键: sortKey.value,
+      排序方向: sortOrder.value,
+      排序前: beforeSort.slice(0, 3), // 只显示前3条数据作为示例
+      排序后: result.slice(0, 3) // 只显示前3条数据作为示例
+    })
+  }
+  
+  return result
+})
+
+// 计算属性：当前页的订单
+const currentPageOrders = computed(() => {
+  const start = (pagination.value.page - 1) * pagination.value.pageSize
+  const end = start + pagination.value.pageSize
+  return filteredAndSortedOrders.value.slice(start, end)
+})
 
 // 获取厨师等级文字
 const getChefLevelText = (level) => {
@@ -403,19 +528,61 @@ const formatDateTime = (dateTimeStr) => {
 }
 
 // 加载订单数据
-const loadOrders = async (category) => {
+const loadOrders = async (category, page = 1) => {
   try {
     loading.value = true
-    const res = await getUserOrders(category)
+    
+    // 构建请求参数
+    const params = {
+      category,
+      page,
+      size: pagination.value.pageSize
+    }
+    
+    // 如果有排序条件，添加到请求参数
+    if (sortKey.value && sortOrder.value) {
+      params.sort = `${sortKey.value},${sortOrder.value}`
+    }
+    
+    console.log('[MyOrders] 加载订单请求参数:', {
+      category,
+      page,
+      size: pagination.value.pageSize,
+      sort: params.sort
+    })
+    
+    const res = await getUserOrders(category, params)
     if (res.code === 200 && res.data) {
-      orders.value = res.data
+      // 更新订单列表和分页信息
+      orders.value = res.data.orders || res.data
+      pagination.value.total = res.data.total || res.data.length || 0
+      
+      // 更新当前页码
+      if (page !== pagination.value.page) {
+        pagination.value.page = page
+      }
+      
+      // 调试信息：输出加载的订单数据
+      console.log('[MyOrders] 订单加载成功:', {
+        请求参数: params,
+        响应数据: res.data,
+        订单总数: pagination.value.total,
+        当前页码: pagination.value.page,
+        每页数量: pagination.value.pageSize,
+        当前订单数量: orders.value.length,
+        过滤后订单数量: filteredAndSortedOrders.value.length,
+        当前页订单数量: currentPageOrders.value.length
+      })
     } else {
       orders.value = []
+      pagination.value.total = 0
+      console.warn('[MyOrders] 订单加载失败或返回数据异常:', res)
     }
   } catch (error) {
-    console.error('加载订单失败:', error)
+    console.error('[MyOrders] 加载订单失败:', error)
     ElMessage.error('加载订单失败')
     orders.value = []
+    pagination.value.total = 0
   } finally {
     loading.value = false
   }
@@ -423,7 +590,72 @@ const loadOrders = async (category) => {
 
 // 处理分类变化
 const handleCategoryChange = () => {
-  loadOrders(activeCategory.value)
+  console.log('[MyOrders] 分类变化:', {
+    新分类: activeCategory.value,
+    搜索关键词: searchKeyword.value,
+    排序键: sortKey.value,
+    排序方向: sortOrder.value
+  })
+  loadOrders(activeCategory.value, 1)
+}
+
+// 处理搜索清除
+const handleSearchClear = () => {
+  console.log('[MyOrders] 搜索清除')
+  searchKeyword.value = ''
+  loadOrders(activeCategory.value, 1)
+}
+
+// 处理排序变化
+const handleSortChange = (key) => {
+  console.log('[MyOrders] 排序变化:', {
+    新排序键: key,
+    旧排序键: sortKey.value,
+    排序方向: sortOrder.value
+  })
+  if (sortKey.value === key) {
+    // 如果点击的是当前排序键，则切换排序方向
+    sortOrder.value = sortOrder.value === 'ascending' ? 'descending' : 'ascending'
+  } else {
+    // 否则设置新的排序键，默认为降序
+    sortKey.value = key
+    sortOrder.value = 'descending'
+  }
+  // 重新加载数据
+  loadOrders(activeCategory.value, 1)
+}
+
+// 切换排序顺序
+const toggleSortOrder = () => {
+  console.log('[MyOrders] 排序方向切换:', {
+    新方向: sortOrder.value === 'ascending' ? 'descending' : 'ascending',
+    旧方向: sortOrder.value
+  })
+  sortOrder.value = sortOrder.value === 'ascending' ? 'descending' : 'ascending'
+  // 重新加载数据
+  loadOrders(activeCategory.value, 1)
+}
+
+// 处理页码变化
+const handlePageChange = (page) => {
+  console.log('[MyOrders] 页码变化:', {
+    新页码: page,
+    旧页码: pagination.value.page,
+    每页数量: pagination.value.pageSize,
+    订单总数: pagination.value.total
+  })
+  loadOrders(activeCategory.value, page)
+}
+
+// 处理每页数量变化
+const handlePageSizeChange = (size) => {
+  console.log('[MyOrders] 每页数量变化:', {
+    新数量: size,
+    旧数量: pagination.value.pageSize,
+    当前页码: pagination.value.page
+  })
+  pagination.value.pageSize = size
+  loadOrders(activeCategory.value, 1)
 }
 
 // 取消订单
@@ -574,6 +806,14 @@ const confirmFavorite = async () => {
 
 // 组件挂载时加载数据
 onMounted(() => {
+  console.log('[MyOrders] 组件挂载，初始加载订单')
+  console.log('[MyOrders] 初始状态:', {
+    分类: activeCategory.value,
+    搜索关键词: searchKeyword.value,
+    排序键: sortKey.value,
+    排序方向: sortOrder.value,
+    分页信息: pagination.value
+  })
   loadOrders('all')
 })
 </script>
@@ -581,6 +821,79 @@ onMounted(() => {
 <style scoped>
 .my-orders {
   min-height: 600px;
+}
+
+/* 搜索和排序区域样式 */
+.search-sort-area {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 0 10px;
+  gap: 20px;
+}
+
+.search-box {
+  flex: 1;
+  max-width: 400px;
+}
+
+.search-box :deep(.el-input__wrapper) {
+  background: rgba(36, 43, 61, 0.6);
+  border: 1px solid rgba(102, 126, 234, 0.3);
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.search-box :deep(.el-input__wrapper:hover) {
+  border-color: rgba(102, 126, 234, 0.5);
+}
+
+.search-box :deep(.el-input__wrapper.is-focus) {
+  border-color: #667eea;
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+}
+
+.sort-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sort-box :deep(.el-select) {
+  width: 150px;
+}
+
+.sort-box :deep(.el-select .el-input__wrapper) {
+  background: rgba(36, 43, 61, 0.6);
+  border: 1px solid rgba(102, 126, 234, 0.3);
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.sort-box :deep(.el-select .el-input__wrapper:hover),
+.sort-box :deep(.el-select .el-input__wrapper.is-focus) {
+  border-color: #667eea;
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+}
+
+.sort-box :deep(.el-button) {
+  background: rgba(36, 43, 61, 0.6);
+  border: 1px solid rgba(102, 126, 234, 0.3);
+  color: rgba(255, 255, 255, 0.9);
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.sort-box :deep(.el-button:hover:not(:disabled)) {
+  background: rgba(102, 126, 234, 0.2);
+  border-color: rgba(102, 126, 234, 0.6);
+  transform: translateY(-2px);
+}
+
+.sort-box :deep(.el-button:disabled) {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* 面板头部 */
@@ -1664,5 +1977,47 @@ onMounted(() => {
 .btn-submit:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* 分页控件样式 */
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 30px;
+  padding: 0 20px;
+}
+
+.pagination-container :deep(.el-pagination) {
+  justify-content: center;
+  padding: 0;
+}
+
+.pagination-container :deep(.el-pagination__total),
+.pagination-container :deep(.el-pagination__sizes),
+.pagination-container :deep(.el-pagination__jump) {
+  color: rgba(255, 255, 255, 0.8);
+  font-weight: 500;
+}
+
+.pagination-container :deep(.el-pager) li {
+  background: rgba(36, 43, 61, 0.6);
+  border: 1px solid rgba(102, 126, 234, 0.3);
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0 4px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+}
+
+.pagination-container :deep(.el-pager li:hover) {
+  background: rgba(102, 126, 234, 0.2);
+  border-color: rgba(102, 126, 234, 0.6);
+}
+
+.pagination-container :deep(.el-pager li.active) {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-color: #667eea;
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 4px 10px rgba(102, 126, 234, 0.4);
 }
 </style>

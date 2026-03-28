@@ -96,11 +96,12 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        
-        // 开发环境：允许特定端口（不要使用 * 当 allowCredentials=true 时）
+
+        // 开发环境：允许特定端口和远程地址
         configuration.setAllowedOriginPatterns(Arrays.asList(
             "http://localhost:*",
-            "http://127.0.0.1:*"
+            "http://127.0.0.1:*",
+            "http://124.221.15.13:*"
         ));
         
         // 允许的请求方法

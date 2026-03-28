@@ -103,4 +103,19 @@ public class OrderDTO implements Serializable {
      * 是否已收藏（true-已收藏，false-未收藏）
      */
     private Boolean isFavorited;
+
+    /**
+     * 客户姓名
+     */
+    private String customerName;
+
+    /**
+     * 客户联系电话
+     */
+    private String customerPhone;
+
+    /**
+     * 服务地址全称
+     */
+    private String address;
 }

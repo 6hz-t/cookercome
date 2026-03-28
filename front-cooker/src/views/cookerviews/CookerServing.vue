@@ -58,115 +58,26 @@
             </el-card>
         </div>
 
-        <!-- 订单列表 -->
-        <div class="orders-area" v-if="orders.length > 0">
-            <el-card v-for="order in orders" :key="order.orderid" class="order-card" shadow="hover">
-                <div class="order-header">
-                    <div class="order-info-left">
-                        <span class="order-no">订单编号：{{ order.orderNo }}</span>
-                        <span class="order-time">{{ formatTime(order.createTime) }}</span>
-                    </div>
-                    <el-tag :type="getStatusType(order.status)" size="large">
-                        {{ getStatusName(order.status) }}
-                    </el-tag>
-                </div>
+        <div class="row"><span>客户</span>{{ order.customerName || '-' }}</div>
+        <div class="row"><span>电话</span>{{ order.customerPhone || '-' }}</div>
+        <div class="row"><span>时间</span>{{ formatDate(order.reserveDate) }} {{ order.reserveTime || '' }}</div>
+        <div class="row"><span>地址</span>{{ order.address || '-' }}</div>
 
-                <div class="order-body">
-                    <div class="info-row">
-                        <span class="info-label">客户姓名：</span>
-                        <span class="info-value">{{ order.username }}</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">联系电话：</span>
-                        <span class="info-value">{{ order.userphone }}</span>
-                        <el-button link type="primary" @click="handleCall(order.userphone)">
-                            <el-icon>
-                                <Phone />
-                            </el-icon>
-                        </el-button>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">服务时间：</span>
-                        <span class="info-value">{{ order.servetime }}</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">服务地址：</span>
-                        <span class="info-value">{{ order.serveaddress }}</span>
-                    </div>
-                    <div class="info-row" v-if="order.requirement">
-                        <span class="info-label">客户要求：</span>
-                        <span class="info-value requirement">{{ order.requirement }}</span>
-                    </div>
-                </div>
-
-                <div class="order-footer">
-                    <div class="order-total">
-                        <span>订单金额：</span>
-                        <span class="total-price">¥{{ order.totalprice }}</span>
-                    </div>
-                    <div class="order-actions">
-                        <el-button v-if="order.status === 'accepted'" type="primary" @click="handleStartService(order)">
-                            <el-icon>
-                                <VideoPlay />
-                            </el-icon>
-                            开始服务
-                        </el-button>
-                        <el-button v-if="order.status === 'serving'" type="success" @click="handleCompleteService(order)">
-                            <el-icon>
-                                <CircleCheck />
-                            </el-icon>
-                            完成服务
-                        </el-button>
-                        <el-button @click="handleViewDetail(order)">
-                            <el-icon>
-                                <Document />
-                            </el-icon>
-                            查看详情
-                        </el-button>
-                    </div>
-                </div>
-            </el-card>
+        <div class="footer">
+          <div class="price">¥{{ money(order.totalAmount) }}</div>
+          <div class="actions">
+            <el-button link type="primary" @click="$router.push(`/cooker/order/${order.id}`)">详情</el-button>
+            <el-button v-if="order.status === 2" type="success" @click="completeService(order)">完成服务</el-button>
+          </div>
         </div>
-
-        <!-- 空状态 -->
-        <el-empty v-else description="暂无待服务订单" />
-
-        <!-- 订单详情对话框 -->
-        <el-dialog v-model="detailDialogVisible" title="订单详情" width="600px">
-            <div v-if="currentOrder" class="order-detail">
-                <el-descriptions title="订单信息" :column="2" border>
-                    <el-descriptions-item label="订单号">{{ currentOrder.orderNo }}</el-descriptions-item>
-                    <el-descriptions-item label="下单时间">{{ formatTime(currentOrder.createTime) }}</el-descriptions-item>
-                    <el-descriptions-item label="客户姓名">{{ currentOrder.username }}</el-descriptions-item>
-                    <el-descriptions-item label="联系电话">{{ currentOrder.userphone }}</el-descriptions-item>
-                    <el-descriptions-item label="服务时间" :span="2">{{ currentOrder.servetime }}</el-descriptions-item>
-                    <el-descriptions-item label="服务地址" :span="2">{{ currentOrder.serveaddress }}</el-descriptions-item>
-                    <el-descriptions-item label="客户要求" :span="2">{{ currentOrder.requirement || '无' }}</el-descriptions-item>
-                </el-descriptions>
-
-                <div class="order-total-detail">
-                    <span>订单金额：</span>
-                    <span class="total-price">¥{{ currentOrder.totalprice }}</span>
-                </div>
-
-                <div class="dialog-actions">
-                    <el-button v-if="currentOrder.status === 'accepted'" type="primary" @click="handleStartService(currentOrder)">
-                        开始服务
-                    </el-button>
-                    <el-button v-if="currentOrder.status === 'serving'" type="success" @click="handleCompleteService(currentOrder)">
-                        完成服务
-                    </el-button>
-                    <el-button @click="detailDialogVisible = false">关闭</el-button>
-                </div>
-            </div>
-        </el-dialog>
-    </div>
+      </el-card>
+    </section>
+  </div>
 </template>
 
-<script>
-import {
-    Clock, Timer, Calendar, Money, Phone, Document, VideoPlay, CircleCheck
-} from '@element-plus/icons-vue'
+<script setup>
+import { computed, onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getServingOrders, startService, endService, updateOrderStatus, getOrders } from '@/api/cooker'
 
@@ -369,199 +280,198 @@ export default {
     async mounted() {
         await this.loadOrders()
     }
+    
+    const allOrders = normalizeOrders(Array.isArray(res.data) ? res.data : [])
+    console.log('[Serving] 后端返回的所有订单:', allOrders.map(o => ({ 
+      id: o.id, 
+      orderNo: o.orderNo, 
+      status: o.status,
+      statusText: statusText(o.status)
+    })))
+    
+    // 只保留状态为 2（服务中）的订单
+    orders.value = allOrders.filter((item) => item.status === 2)
+    
+    console.log('[Serving] 过滤后的服务中订单:', orders.value.map(o => ({
+      id: o.id,
+      orderNo: o.orderNo,
+      status: o.status
+    })))
+    console.log('[Serving] 服务中订单数量:', orders.value.length)
+  } catch (error) {
+    ElMessage.error(error?.response?.data?.message || error?.message || '获取订单失败')
+  }
 }
+
+/**
+ * 解析预约时间字符串为 Date 对象
+ */
+function parseReserveTime(order) {
+  if (!order.reserveDate) return null
+  
+  const dateStr = formatDate(order.reserveDate)
+  if (!order.reserveTime) return new Date(dateStr)
+  
+  // 解析时间格式 "14:00-16:00" 或 "14:00"
+  const timeMatch = order.reserveTime.match(/(\d{1,2}):(\d{2})/)
+  if (!timeMatch) return new Date(dateStr)
+  
+  const [, hour, minute] = timeMatch
+  const date = new Date(dateStr)
+  date.setHours(parseInt(hour), parseInt(minute), 0, 0)
+  return date
+}
+
+/**
+ * 完成服务（状态 2 -> 4）
+ */
+function completeService(order) {
+  const reserveTime = parseReserveTime(order)
+  const now = new Date()
+
+  // 如果还没到预约时间，显示二次确认
+  if (reserveTime && now < reserveTime) {
+    const timeStr = reserveTime.toLocaleString('zh-CN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+
+    ElMessageBox.confirm(
+      `预约时间为 ${timeStr}，当前还未到预约时间，是否确认完成服务？`,
+      '时间校验提示',
+      {
+        confirmButtonText: '确认完成',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    ).then(async () => {
+      await updateOrderStatusAndReload(order.id, 4)
+    }).catch(() => {
+      // 用户取消，不做任何操作
+    })
+  } else {
+    // 已到时间或无预约时间，直接确认
+    ElMessageBox.confirm('确认完成服务？', '提示', {
+      confirmButtonText: '确认',
+      cancelButtonText: '取消',
+      type: 'success'
+    }).then(async () => {
+      await updateOrderStatusAndReload(order.id, 4)
+    }).catch(() => {
+      // 用户取消
+    })
+  }
+}
+
+/**
+ * 更新订单状态并重新加载
+ */
+async function updateOrderStatusAndReload(orderId, status) {
+  try {
+    const res = await updateOrderStatus(orderId, status)
+    if (res.code !== 200) {
+      ElMessage.error(res.message || '更新订单状态失败')
+      return
+    }
+    ElMessage.success('已完成服务')
+    await loadOrders()
+  } catch (error) {
+    ElMessage.error(error?.response?.data?.message || error?.message || '操作失败')
+  }
+}
+
+onMounted(async () => {
+  chefId.value = parseChefId()
+  if (!chefId.value) {
+    ElMessage.warning('请先登录厨师账号')
+    router.push('/cooker/login')
+    return
+  }
+  await loadOrders()
+})
 </script>
 
 <style scoped>
-.container {
-    width: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 24px;
+.page {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 20px 20px;
 }
 
-h3 {
-    margin: 20px 0;
-    text-align: center;
-    color: var(--color-text-primary);
-    font-size: 20px;
-    font-weight: 600;
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
 }
 
-/* 统计卡片 */
-.stats-cards {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
-    margin-bottom: 20px;
+.stat {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.stat-card {
-    border-radius: 8px;
+.stat span {
+  color: #738096;
 }
 
-.stat-item {
-    display: flex;
-    align-items: center;
-    gap: 16px;
+.stat strong {
+  font-size: 26px;
+  color: #213247;
 }
 
-.stat-icon {
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
+.order-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 12px;
 }
 
-.stat-icon.pending {
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+.head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
 }
 
-.stat-icon.servicing {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+.row {
+  margin: 6px 0;
+  color: #536179;
+  line-height: 1.5;
 }
 
-.stat-icon.today {
-    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+.row span {
+  color: #758199;
+  margin-right: 8px;
 }
 
-.stat-icon.revenue {
-    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+.footer {
+  margin-top: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.stat-info {
-    flex: 1;
+.actions {
+  display: flex;
+  gap: 8px;
 }
 
-.stat-value {
-    font-size: 28px;
-    font-weight: bold;
-    color: #303133;
+.price {
+  color: #f56c6c;
+  font-size: 20px;
+  font-weight: 700;
 }
 
-.stat-label {
-    font-size: 14px;
-    color: #909399;
-    margin-top: 4px;
-}
+@media (max-width: 768px) {
+  .page {
+    padding: 0 12px 14px;
+  }
 
-/* 订单列表 */
-.orders-area {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-
-.order-card {
-    border-radius: 8px;
-}
-
-.order-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-    padding-bottom: 12px;
-    border-bottom: 1px solid #ebeef5;
-}
-
-.order-info-left {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
-
-.order-no {
-    font-size: 14px;
-    color: #606266;
-}
-
-.order-time {
-    font-size: 12px;
-    color: #909399;
-}
-
-.order-body {
-    margin-bottom: 16px;
-}
-
-.info-row {
-    display: flex;
-    align-items: flex-start;
-    margin-bottom: 8px;
-    font-size: 14px;
-}
-
-.info-row:last-child {
-    margin-bottom: 0;
-}
-
-.info-label {
-    color: #909399;
-    min-width: 80px;
-}
-
-.info-value {
-    color: #606266;
-    flex: 1;
-}
-
-.info-value.requirement {
-    background-color: #f5f7fa;
-    padding: 8px 12px;
-    border-radius: 4px;
-    display: block;
-}
-
-.order-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding-top: 12px;
-    border-top: 1px solid #ebeef5;
-}
-
-.order-total {
-    font-size: 14px;
-    color: #606266;
-}
-
-.total-price {
-    font-size: 20px;
-    color: #f56c6c;
-    font-weight: bold;
-    margin-left: 8px;
-}
-
-.order-actions {
-    display: flex;
-    gap: 8px;
-}
-
-/* 订单详情 */
-.order-total-detail {
-    display: flex;
-    justify-content: flex-end;
-    margin-top: 16px;
-    font-size: 16px;
-}
-
-.order-total-detail .total-price {
-    font-size: 24px;
-    color: #f56c6c;
-    font-weight: bold;
-    margin-left: 16px;
-}
-
-.dialog-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 12px;
-    margin-top: 20px;
-    padding-top: 20px;
-    border-top: 1px solid #ebeef5;
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
