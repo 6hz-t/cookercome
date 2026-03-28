@@ -1,18 +1,61 @@
-﻿<template>
-  <div class="page">
-    <section class="stats-grid">
-      <el-card shadow="hover"><div class="stat"><span>待开始</span><strong>{{ stats.pending }}</strong></div></el-card>
-      <el-card shadow="hover"><div class="stat"><span>服务中</span><strong>{{ stats.serving }}</strong></div></el-card>
-      <el-card shadow="hover"><div class="stat"><span>总数</span><strong>{{ stats.total }}</strong></div></el-card>
-    </section>
+<template>
+    <div class="container">
+        <h3>服务订单</h3>
 
-    <el-empty v-if="orders.length === 0" description="暂无服务中订单" />
-
-    <section v-else class="order-grid">
-      <el-card v-for="order in orders" :key="order.id" class="order-card" shadow="hover">
-        <div class="head">
-          <strong>{{ order.orderNo }}</strong>
-          <el-tag :type="statusTagType(order.status)">{{ statusText(order.status) }}</el-tag>
+        <!-- 订单统计 -->
+        <div class="stats-cards">
+            <el-card shadow="hover" class="stat-card">
+                <div class="stat-item">
+                    <div class="stat-icon pending">
+                        <el-icon :size="28">
+                            <Clock />
+                        </el-icon>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-value">{{ stats.pending }}</div>
+                        <div class="stat-label">待服务</div>
+                    </div>
+                </div>
+            </el-card>
+            <el-card shadow="hover" class="stat-card">
+                <div class="stat-item">
+                    <div class="stat-icon servicing">
+                        <el-icon :size="28">
+                            <Timer />
+                        </el-icon>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-value">{{ stats.servicing }}</div>
+                        <div class="stat-label">服务中</div>
+                    </div>
+                </div>
+            </el-card>
+            <el-card shadow="hover" class="stat-card">
+                <div class="stat-item">
+                    <div class="stat-icon today">
+                        <el-icon :size="28">
+                            <Calendar />
+                        </el-icon>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-value">{{ stats.today }}</div>
+                        <div class="stat-label">今日订单</div>
+                    </div>
+                </div>
+            </el-card>
+            <el-card shadow="hover" class="stat-card">
+                <div class="stat-item">
+                    <div class="stat-icon revenue">
+                        <el-icon :size="28">
+                            <Money />
+                        </el-icon>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-value">¥{{ stats.todayRevenue.toFixed(2) }}</div>
+                        <div class="stat-label">今日收入</div>
+                    </div>
+                </div>
+            </el-card>
         </div>
 
         <div class="row"><span>客户</span>{{ order.customerName || '-' }}</div>
@@ -36,30 +79,206 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getOrders, updateOrderStatus } from '@/api/cooker'
-import { formatDate, money, normalizeOrders, statusTagType, statusText } from '@/utils/cookerOrder'
-import { parseChefId } from '@/utils/cookerSession'
+import { getServingOrders, startService, endService, updateOrderStatus, getOrders } from '@/api/cooker'
 
-const router = useRouter()
-const chefId = ref(null)
-const orders = ref([])
+export default {
+    name: 'CookerServing',
+    components: {
+        Clock,
+        Timer,
+        Calendar,
+        Money,
+        Phone,
+        Document,
+        VideoPlay,
+        CircleCheck
+    },
+    data() {
+        return {
+            orders: [],
+            detailDialogVisible: false,
+            currentOrder: null
+        }
+    },
+    computed: {
+        stats() {
+            const pendingOrders = this.orders.filter(o => o.status === 'accepted')
+            const servicingOrders = this.orders.filter(o => o.status === 'serving')
+            const today = new Date().toDateString()
+            const todayOrders = this.orders.filter(o => new Date(o.createTime).toDateString() === today)
+            const todayRevenue = todayOrders
+                .filter(o => o.status === 'completed')
+                .reduce((sum, o) => sum + parseFloat(o.totalprice || 0), 0)
 
-const stats = computed(() => {
-  // 状态 2 = 服务中，状态 3 = 已完成
-  const serving = orders.value.filter((item) => item.status === 2).length
-  return {
-    pending: 0,
-    serving,
-    total: orders.value.length
-  }
-})
+            return {
+                pending: pendingOrders.length,
+                servicing: servicingOrders.length,
+                today: todayOrders.length,
+                todayRevenue: todayRevenue
+            }
+        }
+    },
+    methods: {
+        async loadOrders() {
+            try {
+                // 从后端API获取订单数据
+                const chefId = localStorage.getItem('userId')
+                console.log('[调试] 厨师ID:', chefId)
+                
+                if (!chefId) {
+                    ElMessage.warning('未找到厨师ID，请重新登录')
+                    return
+                }
+                
+                console.log('[调试] 开始调用获取订单API...')
+                const res = await getOrders(chefId)
+                console.log('[调试] API返回完整数据:', res)
+                
+                // 直接处理返回的数据
+                if (res.records && res.records.length > 0) {
+                    console.log('[调试] 订单记录:', res.records)
+                    // 转换后端数据格式为前端需要的格式
+                    this.orders = res.records.map(order => ({
+                        orderid: order.id,
+                        orderNo: order.orderNo,
+                        username: order.customerId || '',
+                        userphone: order.customerId || '',
+                        servetime: `${order.reserveDate} ${order.reserveTime}`,
+                        serveaddress: order.addressId || '',
+                        requirement: order.dishRequirements || '',
+                        totalprice: order.totalAmount || 0,
+                        status: this.convertStatus(order.status),
+                        createTime: order.createTime
+                    }))
+                    console.log('[调试] 转换后的订单数据:', this.orders)
+                } else {
+                    console.log('[调试] API返回错误:', res.message)
+                    this.orders = []
+                }
+            } catch (error) {
+                console.error('[调试] 加载订单失败:', error)
+                ElMessage.error('加载订单失败')
+            }
+        },
+        saveOrder(order) {
+            // 保存订单到 localStorage
+            const servingOrders = localStorage.getItem('servingOrders')
+            let orders = servingOrders ? JSON.parse(servingOrders) : []
+            orders.push(order)
+            localStorage.setItem('servingOrders', JSON.stringify(orders))
+        },
+        convertStatus(status) {
+            // 将后端状态转换为前端状态
+            const statusMap = {
+                2: 'accepted',    // 已接单
+                3: 'serving',     // 服务中
+                4: 'completed',   // 已完成
+                5: 'cancelled'    // 已取消
+            }
+            return statusMap[status] || 'accepted'
+        },
+        getStatusType(status) {
+            const typeMap = {
+                accepted: 'warning',
+                serving: 'primary',
+                completed: 'success',
+                cancelled: 'info'
+            }
+            return typeMap[status] || ''
+        },
+        getStatusName(status) {
+            const nameMap = {
+                accepted: '待服务',
+                serving: '服务中',
+                completed: '已完成',
+                cancelled: '已取消'
+            }
+            return nameMap[status] || ''
+        },
+        formatTime(time) {
+            if (!time) return ''
+            const date = new Date(time)
+            const now = new Date()
+            const diff = now - date
 
-async function loadOrders() {
-  try {
-    const res = await getOrders(chefId.value)
-    if (res.code !== 200) {
-      ElMessage.error(res.message || '获取订单失败')
-      return
+            if (diff < 60000) return '刚刚'
+            if (diff < 3600000) return Math.floor(diff / 60000) + '分钟前'
+            if (diff < 86400000) return Math.floor(diff / 3600000) + '小时前'
+            if (diff < 604800000) return Math.floor(diff / 86400000) + '天前'
+
+            return date.toLocaleDateString('zh-CN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            })
+        },
+        handleCall(phone) {
+            ElMessageBox.confirm(`拨打客户电话：${phone}？`, '提示', {
+                confirmButtonText: '拨打',
+                cancelButtonText: '取消',
+                type: 'info'
+            }).then(() => {
+                window.location.href = `tel:${phone}`
+            }).catch(() => { })
+        },
+        async handleStartService(order) {
+            try {
+                await ElMessageBox.confirm(`确认订单：${order.orderNo}？`, '提示', {
+                    confirmButtonText: '确认',
+                    cancelButtonText: '取消',
+                    type: 'info'
+                })
+
+                // 调用更新订单状态 API，设置状态为2（服务中）
+                await updateOrderStatus(order.orderid, 1)
+                
+                // 更新订单状态
+                order.status = 'serving'
+                this.updateOrders()
+                
+                ElMessage.success('服务已完成')
+                this.detailDialogVisible = false
+            } catch (error) {
+               console.error('失败:', error)
+            }
+        },
+        async handleCompleteService(order) {
+            try {
+                await ElMessageBox.confirm(`确认完成服务订单：${order.orderNo}？`, '提示', {
+                    confirmButtonText: '确认',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                })
+
+                // 调用更新订单状态 API，设置状态为3
+                await updateOrderStatus(order.orderid, 3)
+                
+                // 从列表中移除已完成的订单
+                this.orders = this.orders.filter(o => o.orderid !== order.orderid)
+                this.updateOrders()
+                
+                ElMessage.success('服务已完成')
+                this.detailDialogVisible = false
+            } catch (error) {
+                if (error !== 'cancel') {
+                    console.error('完成服务失败:', error)
+                    ElMessage.error('完成服务失败')
+                }
+            }
+        },
+        updateOrders() {
+            // 更新 localStorage 中的订单列表
+            localStorage.setItem('servingOrders', JSON.stringify(this.orders))
+        },
+        handleViewDetail(order) {
+            this.currentOrder = order
+            this.detailDialogVisible = true
+        }
+    },
+    async mounted() {
+        await this.loadOrders()
     }
     
     const allOrders = normalizeOrders(Array.isArray(res.data) ? res.data : [])

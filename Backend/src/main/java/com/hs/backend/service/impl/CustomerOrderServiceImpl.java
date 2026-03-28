@@ -354,11 +354,11 @@ public class CustomerOrderServiceImpl implements CustomerOrderService {
                         slotStatus.setOrderId(null);
                     } else {
                         // 其他状态直接映射到前端展示状态
-                        // 数据库 0（订单提交）-> 前端 1
-                        // 数据库 1（待支付）-> 前端 2
-                        // 数据库 2（已支付）-> 前端 3
-                        // 数据库 3（服务完成）-> 前端 4
-                        // 数据库 5（退款中）-> 前端 5
+                        // 数据库 0（待接单）-> 前端 1（待接单）
+                        // 数据库 1（待支付）-> 前端 2（待支付）
+                        // 数据库 2（已支付）-> 前端 3（已预约）
+                        // 数据库 3（服务完成）-> 前端 4（服务中）
+                        // 数据库 5（退款中）-> 前端 5（退款中）
                         slotStatus.setStatus(dbStatus == 3 ? 4 : dbStatus + 1);
                         slotStatus.setOrderId(order.getId());
                     }

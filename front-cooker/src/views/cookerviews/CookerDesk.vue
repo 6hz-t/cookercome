@@ -12,14 +12,30 @@
           <el-tag :type="online ? 'success' : 'info'" effect="dark">{{ online ? '在线接单' : '休息中' }}</el-tag>
         </div>
       </div>
-    </el-card>
+      <div class="status-switch">
+        <span class="status-label">在线状态</span>
+        <el-switch
+          v-model="isOnline"
+          active-color="#52c41a"
+          inactive-color="#d9d9d9"
+          @change="handleStatusChange"
+          size="large"
+        />
+        <span class="status-text" :class="{ online: isOnline }">
+          {{ isOnline ? '接单中' : '休息中' }}
+        </span>
+      </div>
+    </header>
 
-    <section class="cards-grid">
-      <el-card v-for="card in dashboardCards" :key="card.key" shadow="hover">
-        <div class="metric-card">
-          <span class="label">{{ card.label }}</span>
-          <strong>{{ card.value }}</strong>
-          <span class="compare" :class="card.compare.ratio >= 0 ? 'up' : 'down'">{{ card.compare.text }}</span>
+    <!-- 数据统计卡片 -->
+    <section class="stats">
+      <div class="stats-card" v-for="(item, index) in statsData" :key="index">
+        <div class="stats-icon" :style="{ background: item.color }">
+          {{ item.icon }}
+        </div>
+        <div class="stats-content">
+          <div class="num" :style="{ color: item.color }">{{ item.value }}</div>
+          <div class="label">{{ item.label }}</div>
         </div>
       </el-card>
     </section>
@@ -186,212 +202,97 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, onMounted, computed } from 'vue'
 import { ElMessage } from 'element-plus'
-import { ArrowUp } from '@element-plus/icons-vue'
-import TrendLineChart from '@/components/charts/TrendLineChart.vue'
-import DonutChart from '@/components/charts/DonutChart.vue'
-import RatingDistribution from '@/components/charts/RatingDistribution.vue'
-import { getChefOrderPool, getTodayOrders, updateChefStatus } from '@/api/cooker'
-import {
-  buildOrderTypeShare,
-  buildRatingDistribution,
-  buildTrend,
-  compareWithYesterday,
-  formatDateTime,
-  money,
-  normalizeOrders,
-  todayTimeline
-} from '@/utils/cookerOrder'
-import { getCookerSettings } from '@/utils/cookerSettings'
-import {
-  appendStatusReason,
-  getStatusReasonLog,
-  getUnreadMessageCount,
-  parseChefId
-} from '@/utils/cookerSession'
+import { 
+  UserFilled, 
+  Menu, 
+  Money, 
+  TrendCharts,
+  User,
+  Food,
+  Wallet,
+  Bell,
+  Setting,
+  Service,
+  Document,
+  DataAnalysis
+} from '@element-plus/icons-vue'
 
-const router = useRouter()
+// 响应式数据
+const chefName = ref('王师傅')
+const isOnline = ref(true)
+const chartRef = ref(null)
 
-const loading = ref(true)
-const chefId = ref(null)
-const online = ref(localStorage.getItem('cooker_online_state') !== '0')
-const unreadCount = ref(getUnreadMessageCount())
-
-const newOrders = ref([])
-const servingOrders = ref([])
-const historyOrders = ref([])
-
-const summary = ref({
-  todayOrder: 0,
-  waitOrder: 0,
-  todayIncome: 0
+// 当前日期
+const currentDate = computed(() => {
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = String(now.getMonth() + 1).padStart(2, '0')
+  const day = String(now.getDate()).padStart(2, '0')
+  const weekDays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六']
+  const week = weekDays[now.getDay()]
+  return `${year}-${month}-${day} ${week}`
 })
 
-const trendDays = ref(7)
-const trendValueKey = ref('orderCount')
-const trendOptions = [
-  { label: '本周', value: 7 },
-  { label: '本月', value: 30 }
-]
+// 数据统计
+const statsData = ref([
+  { value: 3, label: '今日已接订单', icon: '📋', color: '#409eff' },
+  { value: 2, label: '待服务订单', icon: '⏰', color: '#e6a23c' },
+  { value: '¥860', label: '今日收入', icon: '💰', color: '#67c23a' }
+])
 
-const statusDialogVisible = ref(false)
-const pendingStatus = ref(true)
-const statusReason = ref('')
-const statusRemark = ref('')
-const statusSaving = ref(false)
-const statusReasonLog = ref(getStatusReasonLog())
-const statusLogExpanded = ref(false)
+// 常用功能列表
+const funcList = ref([
+  { icon: '👤', name: '个人资料', action: 'profile', bgColor: '#ecf5ff', color: '#409eff' },
+  { icon: '🍳', name: '我的菜单', action: 'menu', bgColor: '#fdf6ec', color: '#e6a23c' },
+  { icon: '💰', name: '收入明细', action: 'income', bgColor: '#f0f9eb', color: '#67c23a' },
+  { icon: '📩', name: '消息通知', action: 'notice', bgColor: '#fef0f0', color: '#f56c6c' },
+  { icon: '⚙️', name: '系统设置', action: 'setting', bgColor: '#ecf5ff', color: '#909399' },
+  { icon: '📞', name: '联系客服', action: 'service', bgColor: '#f0f9eb', color: '#67c23a' }
+])
 
-function toggleStatusLog() {
-  statusLogExpanded.value = !statusLogExpanded.value
+// 收入统计数据
+const incomeData = ref([
+  { value: '¥2580', label: '本月总收入', icon: 'Wallet', color: '#67c23a' },
+  { value: 12, label: '本月订单数', icon: 'Document', color: '#409eff' },
+  { value: '¥215', label: '平均单价', icon: 'DataAnalysis', color: '#e6a23c' }
+])
+
+// 在线状态切换处理
+const handleStatusChange = (val) => {
+  const status = val ? '在线接单' : '休息中'
+  ElMessage.success(`已切换为${status}状态`)
 }
 
-const statusReasonOptions = ['休息中', '忙碌中', '临时外出', '设备维护', '自定义安排']
-const settings = getCookerSettings()
-
-const allOrders = computed(() => normalizeOrders([...newOrders.value, ...servingOrders.value, ...historyOrders.value]))
-const trendData = computed(() => buildTrend(allOrders.value, trendDays.value))
-const orderTypeShare = computed(() => buildOrderTypeShare(allOrders.value))
-const ratingResult = computed(() => buildRatingDistribution(allOrders.value))
-const todaySchedule = computed(() => todayTimeline([...newOrders.value, ...servingOrders.value, ...historyOrders.value]))
-
-const newOrderCount = computed(() => newOrders.value.length)
-const waitOrderCount = computed(() => servingOrders.value.length)
-
-const dashboardCards = computed(() => {
-  const orderCompare = compareWithYesterday(summary.value.todayOrder)
-  const waitCompare = compareWithYesterday(summary.value.waitOrder)
-  const incomeCompare = compareWithYesterday(summary.value.todayIncome)
-
-  return [
-    {
-      key: 'todayOrder',
-      label: '总接单',
-      value: `${summary.value.todayOrder} 单`,
-      compare: orderCompare
-    },
-    {
-      key: 'waitOrder',
-      label: '待服务',
-      value: `${summary.value.waitOrder} 单`,
-      compare: waitCompare
-    },
-    {
-      key: 'todayIncome',
-      label: '总收入',
-      value: `¥ ${money(summary.value.todayIncome)}`,
-      compare: incomeCompare
-    }
-  ]
-})
-
-const quickActions = computed(() => {
-  const base = [
-    { label: '待接单', path: '/cooker/todo', recommendType: '家宴' },
-    { label: '服务中订单', path: '/cooker/serving', recommendType: '团建' },
-    { label: '我的菜单', path: '/cooker/menu', recommendType: '私厨' },
-    { label: '收益明细', path: '/cooker/income', recommendType: '宴会' },
-    { label: '系统设置', path: '/cooker/settings', recommendType: '家宴' }
-  ]
-
-  if (!settings.autoRecommend) {
-    return base.map((item) => ({ ...item, recommended: false }))
-  }
-
-  return base.map((item) => ({
-    ...item,
-    recommended: settings.preferredOrderTypes.includes(item.recommendType)
-  }))
-})
-
-async function loadDashboard() {
-  loading.value = true
-  try {
-    const [todayRes, pool] = await Promise.all([getTodayOrders(chefId.value), getChefOrderPool(chefId.value)])
-
-    newOrders.value = pool.newOrders
-    servingOrders.value = pool.servingOrders
-    historyOrders.value = pool.historyOrders
-    
-    // 使用实际订单数据计算统计值，不依赖后端返回的统计
-    const allTodayOrders = [...newOrders.value, ...servingOrders.value, ...historyOrders.value]
-    summary.value = {
-      todayOrder: allTodayOrders.length,
-      waitOrder: servingOrders.value.length,
-      todayIncome: allTodayOrders.reduce((sum, order) => sum + Number(order.totalAmount || 0), 0)
-    }
-    
-    console.log('[Desk] 今日订单统计:', summary.value)
-    console.log('[Desk] 后端返回的统计:', todayRes?.data)
-  } catch (error) {
-    ElMessage.error(error?.response?.data?.message || error?.message || '加载工作台数据失败')
-  } finally {
-    loading.value = false
+// 常用功能点击处理
+const handleFuncClick = (item) => {
+  switch (item.action) {
+    case 'profile':
+      ElMessage.info('进入个人资料页面')
+      break
+    case 'menu':
+      ElMessage.info('进入我的菜单页面')
+      break
+    case 'income':
+      ElMessage.info('进入收入明细页面')
+      break
+    case 'notice':
+      ElMessage.info('进入消息通知页面')
+      break
+    case 'setting':
+      ElMessage.info('进入系统设置页面')
+      break
+    case 'service':
+      ElMessage.info('联系客服：400-123-4567')
+      break
+    default:
+      ElMessage.info(`点击了${item.name}`)
   }
 }
 
-function handleStatusToggle(value) {
-  pendingStatus.value = value
-  statusReason.value = value ? '恢复接单' : '休息中'
-  statusRemark.value = ''
-  statusDialogVisible.value = true
-}
-
-function cancelStatusChange() {
-  online.value = !pendingStatus.value
-  statusDialogVisible.value = false
-}
-
-async function confirmStatusChange() {
-  if (!statusReason.value) {
-    ElMessage.warning('请选择切换原因')
-    return
-  }
-
-  statusSaving.value = true
-  try {
-    const target = pendingStatus.value ? 1 : 0
-    const reasonText = statusRemark.value ? `${statusReason.value}（${statusRemark.value}）` : statusReason.value
-
-    const res = await updateChefStatus(chefId.value, target, reasonText)
-    if (res.code !== 200) {
-      ElMessage.error(res.message || '状态切换失败')
-      online.value = !pendingStatus.value
-      return
-    }
-
-    localStorage.setItem('cooker_online_state', String(target))
-    appendStatusReason({
-      status: target,
-      statusText: pendingStatus.value ? '在线接单' : '休息中',
-      reason: reasonText
-    })
-    statusReasonLog.value = getStatusReasonLog()
-    ElMessage.success('接单状态已更新')
-    statusDialogVisible.value = false
-  } catch (error) {
-    online.value = !pendingStatus.value
-    ElMessage.error(error?.response?.data?.message || error?.message || '状态切换失败')
-  } finally {
-    statusSaving.value = false
-  }
-}
-
-onMounted(async () => {
-  chefId.value = parseChefId()
-  if (!chefId.value) {
-    ElMessage.warning('请先登录厨师账号')
-    router.push('/cooker/login')
-    return
-  }
-
-  await loadDashboard()
-
-  window.addEventListener('cooker-message-updated', (event) => {
-    unreadCount.value = Number(event?.detail?.unreadCount || 0)
-  })
+onMounted(() => {
+  // 初始化逻辑
 })
 </script>
 
