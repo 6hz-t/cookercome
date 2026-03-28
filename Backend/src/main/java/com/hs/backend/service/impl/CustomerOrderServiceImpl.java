@@ -157,8 +157,8 @@ public class CustomerOrderServiceImpl implements CustomerOrderService {
                     .eq("reserve_date", reserveDate)
                     .eq("reserve_time", reserveTime)
                     // 只检查有效订单（排除已取消、已完成、已退款等状态）
-                    // 订单状态：0-待支付，1-已支付，2-厨师接单，3-服务中，4-服务完成，5-订单取消，6-退款中，7-已退款
-                    .in("status", 0, 1, 2, 3); // 只检查待支付、已支付、厨师接单、服务中的订单
+                    // 订单状态：0-订单提交，1-待支付（已接单），2-已支付，3-服务完成，4-订单取消，5-退款中，6-已退款
+                    .in("status", 0, 1, 2); // 只检查待支付、已支付、未完成的订单
         
         List<Order> existingOrders = orderMapper.selectList(queryWrapper);
         
@@ -354,11 +354,11 @@ public class CustomerOrderServiceImpl implements CustomerOrderService {
                         slotStatus.setOrderId(null);
                     } else {
                         // 其他状态直接映射到前端展示状态
-                        // 数据库 0（待接单）-> 前端 1（待接单）
-                        // 数据库 1（待支付）-> 前端 2（待支付）
-                        // 数据库 2（已支付）-> 前端 3（已预约）
-                        // 数据库 3（服务完成）-> 前端 4（服务中）
-                        // 数据库 5（退款中）-> 前端 5（退款中）
+                        // 数据库 0（订单提交）-> 前端 1
+                        // 数据库 1（待支付）-> 前端 2
+                        // 数据库 2（已支付）-> 前端 3
+                        // 数据库 3（服务完成）-> 前端 4
+                        // 数据库 5（退款中）-> 前端 5
                         slotStatus.setStatus(dbStatus == 3 ? 4 : dbStatus + 1);
                         slotStatus.setOrderId(order.getId());
                     }

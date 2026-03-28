@@ -65,7 +65,7 @@ public class Order implements Serializable {
     private BigDecimal totalAmount;
 
     /**
-     * 订单状态：0-订单提交，1-待支付（已接单），2-已支付，3-服务中，4-服务完成，5-退款中，6-已退款
+     * 订单状态：0-订单提交，1-待支付（已接单），2-已支付，3-服务完成，4-订单取消，5-退款中，6-已退款
      */
     private Integer status;
 
