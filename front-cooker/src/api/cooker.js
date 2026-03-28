@@ -70,5 +70,5 @@ export async function getChefOrderPool(chefId) {
 }
 
 export const getServingOrders = getOrders
-export const startService = (orderId) => updateOrderStatus(orderId, 3)
-export const endService = (orderId) => updateOrderStatus(orderId, 4)
+export const startService = (orderId) => updateOrderStatus(orderId, 2)
+export const endService = (orderId) => updateOrderStatus(orderId, 3)

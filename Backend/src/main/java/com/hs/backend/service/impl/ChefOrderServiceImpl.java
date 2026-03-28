@@ -55,7 +55,7 @@ public class ChefOrderServiceImpl implements ChefOrderService {
     @Override
     public List<OrderDTO> getHistoryOrders(Long chefId) {
         requireChefId(chefId);
-        List<Long> orderChefIds = resolveOrderChefIds(chefId);
+        List<String> orderChefIds = resolveOrderChefIds(chefId);
         List<Integer> statusList = List.of(3, 4);
         List<Order> orders = orderMapper.selectList(new LambdaQueryWrapper<Order>()
                 .in(Order::getChefId, orderChefIds)
@@ -67,7 +67,7 @@ public class ChefOrderServiceImpl implements ChefOrderService {
     @Override
     public List<OrderDTO> getPendingOrders(Long chefId) {
         requireChefId(chefId);
-        List<Long> orderChefIds = resolveOrderChefIds(chefId);
+        List<String> orderChefIds = resolveOrderChefIds(chefId);
         // Keep both status 0/1 for compatibility with existing data.
         List<Integer> statusList = List.of(0, 1);
         List<Order> orders = orderMapper.selectList(new LambdaQueryWrapper<Order>()
@@ -80,7 +80,7 @@ public class ChefOrderServiceImpl implements ChefOrderService {
     @Override
     public List<OrderDTO> getServingOrders(Long chefId) {
         requireChefId(chefId);
-        List<Long> orderChefIds = resolveOrderChefIds(chefId);
+        List<String> orderChefIds = resolveOrderChefIds(chefId);
         List<Integer> statusList = List.of(2);
         List<Order> orders = orderMapper.selectList(new LambdaQueryWrapper<Order>()
                 .in(Order::getChefId, orderChefIds)
@@ -92,7 +92,7 @@ public class ChefOrderServiceImpl implements ChefOrderService {
     @Override
     public Map<String, Object> getTodayOrderSummary(Long chefId) {
         requireChefId(chefId);
-        List<Long> orderChefIds = resolveOrderChefIds(chefId);
+        List<String> orderChefIds = resolveOrderChefIds(chefId);
 
         LocalDateTime start = LocalDate.now().atStartOfDay();
         LocalDateTime end = start.plusDays(1);
@@ -128,7 +128,7 @@ public class ChefOrderServiceImpl implements ChefOrderService {
     @Transactional(rollbackFor = Exception.class)
     public void acceptOrder(Long orderId, Long chefId) {
         requireChefId(chefId);
-        List<Long> orderChefIds = resolveOrderChefIds(chefId);
+        List<String> orderChefIds = resolveOrderChefIds(chefId);
         if (orderId == null) {
             throw new BusinessException("orderId is required");
         }
@@ -137,7 +137,9 @@ public class ChefOrderServiceImpl implements ChefOrderService {
         if (order == null) {
             throw new BusinessException("Order not found");
         }
-        if (!orderChefIds.contains(order.getChefId())) {
+        
+        String orderChefId = order.getChefId();
+        if (orderChefId == null || !orderChefIds.contains(orderChefId)) {
             throw new BusinessException("Order does not belong to current chef");
         }
         if (!Objects.equals(order.getStatus(), 0) && !Objects.equals(order.getStatus(), 1)) {
@@ -154,7 +156,7 @@ public class ChefOrderServiceImpl implements ChefOrderService {
         if (orderId == null) {
             throw new BusinessException("orderId is required");
         }
-        if (status == null || status < 2 || status > 6) {
+        if (status == null || status < 2 || status > 4) {
             throw new BusinessException("Invalid order status");
         }
 
@@ -164,10 +166,8 @@ public class ChefOrderServiceImpl implements ChefOrderService {
         }
 
         order.setStatus(status);
-        if (Objects.equals(status, 3) && order.getServiceStartTime() == null) {
-            order.setServiceStartTime(LocalDateTime.now());
-        }
-        if (Objects.equals(status, 4)) {
+        // Status 3 means service completed, set service end time
+        if (Objects.equals(status, 3)) {
             order.setServiceEndTime(LocalDateTime.now());
         }
 
@@ -207,17 +207,21 @@ public class ChefOrderServiceImpl implements ChefOrderService {
      * Compatibility:
      * 1) historical data may save order.chef_id as user id;
      * 2) current booking flow saves order.chef_id as t_chef_info.id.
+     * 
+     * @return List of String chef IDs (matching order.chef_id type)
      */
-    private List<Long> resolveOrderChefIds(Long chefUserId) {
-        Set<Long> ids = new LinkedHashSet<>();
-        ids.add(chefUserId);
+    private List<String> resolveOrderChefIds(Long chefUserId) {
+        Set<String> ids = new LinkedHashSet<>();
+        // Add user ID as string (for legacy compatibility)
+        ids.add(String.valueOf(chefUserId));
 
         List<ChefInfo> chefInfos = chefInfoMapper.selectList(new LambdaQueryWrapper<ChefInfo>()
                 .eq(ChefInfo::getUserId, String.valueOf(chefUserId)));
 
         for (ChefInfo chefInfo : chefInfos) {
             if (chefInfo != null && chefInfo.getId() != null) {
-                ids.add(chefInfo.getId());
+                // Add chef info ID as string (matching order.chef_id format)
+                ids.add(String.valueOf(chefInfo.getId()));
             }
         }
 

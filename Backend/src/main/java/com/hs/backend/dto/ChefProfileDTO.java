@@ -1,4 +1,4 @@
-﻿package com.hs.backend.dto;
+package com.hs.backend.dto;
 
 import lombok.Data;
 
