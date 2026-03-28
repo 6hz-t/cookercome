@@ -8,7 +8,7 @@ import jakarta.validation.constraints.NotNull;
  * 订单操作请求
  */
 @Data
-public class OrderActionRequest {
+public class  OrderActionRequest {
 
     /**
      * 订单 ID

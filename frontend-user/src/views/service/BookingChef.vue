@@ -470,17 +470,13 @@ const handleConfirmBooking = async () => {
     }
     
     const res = await createOrder(params)
-    if (res.code === 200) {
-      ElMessage.success(`订单创建成功！订单号：${res.data}`)
-      bookingDialogVisible.value = false
-      // 通知父组件订单创建成功
-      emit('order-created', res.data)
-    } else {
-      ElMessage.error(res.message || '订单创建失败')
-    }
+    ElMessage.success(`订单创建成功！订单号：${res.data}`)
+    bookingDialogVisible.value = false
+    // 通知父组件订单创建成功
+    emit('order-created', res.data)
   } catch (error) {
     console.error('创建订单失败:', error)
-    ElMessage.error(error.message || '订单创建失败')
+    // 错误信息由全局拦截器统一处理，这里不需要再弹出提示
   } finally {
     submitting.value = false
   }
@@ -1365,3 +1361,4 @@ const handleConfirmBooking = async () => {
   background: rgba(36, 43, 61, 0.3) !important;
 }
 </style>
+

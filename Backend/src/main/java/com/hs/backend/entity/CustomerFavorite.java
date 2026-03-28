@@ -25,9 +25,9 @@ public class CustomerFavorite {
     private Long customerId;
     
     /**
-     * 厨师用户 ID
+     * 厨师用户 ID（chefinfo 表的 user_id）
      */
-    private Long chefId;
+    private String chefId;
     
     /**
      * 创建时间

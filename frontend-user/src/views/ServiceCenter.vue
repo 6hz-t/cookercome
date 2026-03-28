@@ -65,6 +65,7 @@
           v-bind="currentComponentProps"
           @book-chef="handleBookChef"
           @order-created="handleOrderCreated"
+          @navigate-to="handleNavigateTo"
         />
       </transition>
     </main>
@@ -294,6 +295,11 @@ const handleOrderCreated = (orderNo) => {
   // 消息已在 BookingChef 组件中显示，这里不再重复显示
   // 可以跳转到订单详情页或我的订单页面
   // navigateTo('orders')
+}
+
+// 处理导航跳转事件（来自子组件）
+const handleNavigateTo = (key) => {
+  navigateTo(key)
 }
 
 // 加载用户信息

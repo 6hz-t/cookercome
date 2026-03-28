@@ -80,5 +80,6 @@
     </orderEntry>
     <orderEntry type="library" name="Maven: org.springframework:spring-tx:6.1.1" level="project" />
     <orderEntry type="library" name="Maven: org.springframework.security:spring-security-crypto:6.2.0" level="project" />
+    <orderEntry type="library" name="Maven: org.springframework.security:spring-security-core:6.2.0" level="project" />
   </component>
 </module>

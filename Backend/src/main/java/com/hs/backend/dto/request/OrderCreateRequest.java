@@ -16,11 +16,11 @@ import java.math.BigDecimal;
 public class OrderCreateRequest {
 
     /**
-     * 厨师 ID
+     * 厨师 ID（chefinfo 表的 user_id）
      */
     @NotNull(message = "厨师 ID 不能为空")
-    @Schema(description = "厨师 ID", required = true, example = "1")
-    private Long chefId;
+    @Schema(description = "厨师 ID", required = true, example = "41")
+    private String chefId;
 
     /**
      * 地址 ID

@@ -6,7 +6,7 @@ import request from '@/utils/request'
 export function getProfile() {
   return request({
     url: '/customer/profile',
-   method: 'get'
+    method: 'get'
   })
 }
 
@@ -16,8 +16,8 @@ export function getProfile() {
 export function updateProfile(data: any) {
   return request({
     url: '/customer/profile',
-   method: 'put',
-   data
+    method: 'put',
+    data
   })
 }
 
@@ -27,7 +27,7 @@ export function updateProfile(data: any) {
 export function getOrders() {
   return request({
     url: '/customer/orders',
-   method: 'get'
+    method: 'get'
   })
 }
 
@@ -37,7 +37,7 @@ export function getOrders() {
 export function getFavorites() {
   return request({
     url: '/customer/favorites',
-   method: 'get'
+    method: 'get'
   })
 }
 
@@ -47,7 +47,7 @@ export function getFavorites() {
 export function getAddresses() {
   return request({
     url: '/customer/addresses',
-   method: 'get'
+    method: 'get'
   })
 }
 
@@ -57,8 +57,8 @@ export function getAddresses() {
 export function addAddress(data: any) {
   return request({
     url: '/customer/addresses',
-   method: 'post',
-   data
+    method: 'post',
+    data
   })
 }
 
@@ -68,7 +68,7 @@ export function addAddress(data: any) {
 export function deleteAddress(id: number) {
   return request({
     url: `/customer/addresses/${id}`,
-   method: 'delete'
+    method: 'delete'
   })
 }
 
@@ -78,7 +78,17 @@ export function deleteAddress(id: number) {
 export function updateAddress(id: number, data: any) {
   return request({
     url: `/customer/addresses/${id}`,
-   method: 'put',
-   data
+    method: 'put',
+    data
+  })
+}
+
+/**
+ * 获取用户时间段占用情况
+ */
+export const getUserSchedule = () => {
+  return request({
+    url: '/customer/schedule',
+    method: 'get'
   })
 }

@@ -35,9 +35,9 @@ public class Order implements Serializable {
     private Long customerId;
 
     /**
-     * 厨师用户 ID
+     * 厨师用户 ID（chefinfo 表的 user_id）
      */
-    private Long chefId;
+    private String chefId;
 
     /**
      * 服务地址 ID

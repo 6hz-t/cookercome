@@ -789,8 +789,12 @@ const confirmFavorite = async () => {
     
     ElMessage.success('收藏成功')
     favoriteDialogVisible.value = false
-    // 可选：重新加载订单列表（如果需要更新收藏状态）
-    // loadOrders(activeCategory.value)
+    
+    // 更新当前订单的收藏状态
+    const orderIndex = orders.value.findIndex(o => o.id === currentOrder.value.id)
+    if (orderIndex !== -1) {
+      orders.value[orderIndex].isFavorited = true
+    }
   } catch (error) {
     console.error('收藏失败:', error)
     // 不再显示错误消息，全局拦截器已经处理
